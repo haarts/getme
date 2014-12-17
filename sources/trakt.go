@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"sort"
 )
@@ -34,10 +35,15 @@ func (a byRating) Len() int           { return len(a) }
 func (a byRating) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a byRating) Less(i, j int) bool { return a[i].Ratings.Votes > a[j].Ratings.Votes }
 
+var traktURL = "http://api.trakt.tv/search/shows.json/5bc6254d3bbde304a49557cf2845d921"
+
 func Search(query string) Matches {
-	resp, err := http.Get("http://api.trakt.tv/search/shows.json/5bc6254d3bbde304a49557cf2845d921?query=" + query)
-	if err != nil { //TODO also error out on anything but a 200 Response
+	escapedQuery := url.Values{}
+	escapedQuery.Add("query", query)
+	resp, err := http.Get(traktURL + "?query=" + escapedQuery.Encode())
+	if err != nil || resp.StatusCode != 200 { //TODO Tidy this up (better logging)
 		fmt.Println("Error when searching: ", err)
+		fmt.Println("Error when searching: ", resp)
 		os.Exit(1) //TODO retry a couple of times when it's a timeout.
 	}
 	defer resp.Body.Close()
