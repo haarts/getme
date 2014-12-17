@@ -19,7 +19,10 @@ func getQuery() string {
 
 func main() {
 	query := getQuery()
-	matches := sources.Search(query)
+	matches, err := sources.Search(query)
+	if err != nil {
+		fmt.Printf("err %+v\n", err)
+	}
 	fmt.Printf("matches %+v\n", matches)
 	fmt.Printf("matches.BestMatch() %+v\n", matches.BestMatch())
 }

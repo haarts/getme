@@ -27,7 +27,7 @@ func TestOrdering(t *testing.T) {
 
 	traktURL = ts.URL
 
-	matches := Search("some query")
+	matches, _ := Search("some query")
 	if matches.BestMatch().Title() != "The Big Bang Theory" {
 		t.Fatal("best match is not The Big Bang Theory")
 	}

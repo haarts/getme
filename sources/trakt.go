@@ -2,11 +2,10 @@ package sources
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"sort"
 )
 
@@ -37,30 +36,35 @@ func (a byRating) Less(i, j int) bool { return a[i].Ratings.Votes > a[j].Ratings
 
 var traktURL = "http://api.trakt.tv/search/shows.json/5bc6254d3bbde304a49557cf2845d921"
 
-func Search(query string) Matches {
+func constructUrl(query string) string {
 	escapedQuery := url.Values{}
 	escapedQuery.Add("query", query)
-	resp, err := http.Get(traktURL + "?query=" + escapedQuery.Encode())
-	if err != nil || resp.StatusCode != 200 { //TODO Tidy this up (better logging)
-		fmt.Println("Error when searching: ", err)
-		fmt.Println("Error when searching: ", resp)
-		os.Exit(1) //TODO retry a couple of times when it's a timeout.
+	return traktURL + "?query=" + escapedQuery.Encode()
+}
+
+func Search(query string) (Matches, error) {
+	resp, err := http.Get(constructUrl(query))
+	if err != nil {
+		return nil, err //TODO retry a couple of times when it's a timeout.
 	}
+	if resp.StatusCode != 200 {
+		return nil, errors.New("Search return non 200 status code")
+	}
+
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Error when parsing response: ", err)
-		os.Exit(1)
+		return nil, err
 	}
 
 	var ms []traktMatch
 	err = json.Unmarshal(body, &ms)
 	if err != nil {
-		fmt.Println("Error unmarshaling response: ", err)
+		return nil, err
 	}
 
 	sort.Sort(byRating(ms))
 
-	return traktMatches(ms)
+	return traktMatches(ms), nil
 }
