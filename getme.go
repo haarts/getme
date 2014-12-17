@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/haarts/getme/providers"
+	"github.com/haarts/getme/sources"
 )
 
 func getQuery() string {
@@ -19,6 +19,7 @@ func getQuery() string {
 
 func main() {
 	query := getQuery()
-	matches := providers.Search(query)
+	matches := sources.Search(query)
 	fmt.Printf("matches %+v\n", matches)
+	fmt.Printf("matches.BestMatch() %+v\n", matches.BestMatch())
 }
