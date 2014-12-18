@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/haarts/getme/sources"
 	"github.com/haarts/getme/store"
@@ -71,15 +72,29 @@ func displayAlternatives(ms []sources.Match) *sources.Match {
 	return &ms[i-1]
 }
 
-func main() {
-	store := store.Open()
-	query := getQuery()
+func search(query string) []sources.Match {
+	c := time.NewTicker(1 * time.Second)
+	go func() {
+		for _ = range c.C {
+			fmt.Print(".")
+		}
+	}()
+
 	matches, err := sources.Search(query)
 	if err != nil {
 		fmt.Printf("err %+v\n", err)
 	}
+	c.Stop()
+	fmt.Print("\n")
+	return matches
+}
 
-	displayBestMatch(matches[0])
+func main() {
+	store := store.Open()
+	query := getQuery()
+	matches := search(query)
+
+	displayBestMatch(matches[0]) //TODO catch empty slice
 	bestMatchConfirmed := displayBestMatchConfirmation()
 	if bestMatchConfirmed {
 		store.CreateShow(matches[0])
