@@ -105,7 +105,7 @@ func main() {
 	} else {
 		match := displayAlternatives(matches)
 		if match != nil {
-			store.CreateShow(matches[0])
+			store.CreateShow(match)
 		}
 	}
 	fmt.Printf("store %+v\n", store)
