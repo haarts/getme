@@ -55,12 +55,14 @@ func displayAlternatives(ms []sources.Match) *sources.Match {
 		fmt.Printf("err %+v\n", err)
 	}
 
+	// User abort
 	if line == "\n" {
 		return nil
 	}
 
 	withoutNewline := strings.Trim(line, "\n")
 	i, err := strconv.Atoi(withoutNewline)
+	// User mis-typed, try again
 	if err != nil {
 		return displayAlternatives(ms)
 	}
