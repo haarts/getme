@@ -93,8 +93,12 @@ func main() {
 	store := store.Open()
 	query := getQuery()
 	matches := search(query)
+	if len(matches) == 0 {
+		fmt.Println("We haven't found what you were looking for.")
+		return
+	}
 
-	displayBestMatch(matches[0]) //TODO catch empty slice
+	displayBestMatch(matches[0])
 	bestMatchConfirmed := displayBestMatchConfirmation()
 	if bestMatchConfirmed {
 		store.CreateShow(matches[0])
