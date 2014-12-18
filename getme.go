@@ -25,7 +25,7 @@ func displayBestMatch(bestMatch sources.Match) {
 	fmt.Println(" ", bestMatch.Title)
 }
 
-func askConfirmation() bool {
+func displayBestMatchConfirmation() bool {
 	fmt.Print("Is this the one you want? [Y/n] ")
 
 	bio := bufio.NewReader(os.Stdin)
@@ -76,7 +76,7 @@ func main() {
 	}
 
 	displayBestMatch(matches[0])
-	bestMatchConfirmed := askConfirmation()
+	bestMatchConfirmed := displayBestMatchConfirmation()
 	if bestMatchConfirmed {
 		// Store it somewhere.
 	} else {
