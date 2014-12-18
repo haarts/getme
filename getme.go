@@ -26,7 +26,8 @@ func showBestMatch(bestMatch sources.Match) {
 }
 
 func askConfirmation() bool {
-	fmt.Print("Is this the one you want? [Y/n]")
+	fmt.Print("Is this the one you want? [Y/n] ")
+
 	bio := bufio.NewReader(os.Stdin)
 	line, err := bio.ReadString('\n')
 	if err != nil {
