@@ -14,18 +14,8 @@ type ratings struct {
 }
 
 type traktMatch struct {
-	FoundTitle string  `json:"title"`
-	Ratings    ratings `json:"ratings"`
-}
-
-func (t traktMatch) Title() string {
-	return t.FoundTitle
-}
-
-type traktMatches []traktMatch
-
-func (tm traktMatches) BestMatch() Match {
-	return tm[0]
+	Title   string  `json:"title"`
+	Ratings ratings `json:"ratings"`
 }
 
 type byRating []traktMatch
@@ -42,7 +32,7 @@ func constructUrl(query string) string {
 	return traktURL + "?query=" + escapedQuery.Encode()
 }
 
-func Search(query string) (Matches, error) {
+func Search(query string) ([]Match, error) {
 	resp, err := http.Get(constructUrl(query))
 	if err != nil {
 		return nil, err //TODO retry a couple of times when it's a timeout.
@@ -66,5 +56,13 @@ func Search(query string) (Matches, error) {
 
 	sort.Sort(byRating(ms))
 
-	return traktMatches(ms), nil
+	return convertToMatches(ms), nil
+}
+
+func convertToMatches(ms []traktMatch) []Match {
+	matches := make([]Match, len(ms))
+	for i, m := range ms {
+		matches[i] = Match{Title: m.Title}
+	}
+	return matches
 }

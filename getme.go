@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/haarts/getme/sources"
 )
@@ -20,7 +22,7 @@ func getQuery() string {
 
 func showBestMatch(bestMatch sources.Match) {
 	fmt.Println("The best match we found is:")
-	fmt.Println(" ", bestMatch.Title())
+	fmt.Println(" ", bestMatch.Title)
 }
 
 func askConfirmation() bool {
@@ -38,6 +40,33 @@ func askConfirmation() bool {
 	}
 }
 
+func presentAlternatives(ms []sources.Match) *sources.Match {
+	fmt.Println("Which one ARE you looking for?")
+	for i, m := range ms {
+		fmt.Printf("[%d] %s\n", i+1, m.Title)
+	}
+
+	fmt.Print("Enter the correct number: ")
+
+	bio := bufio.NewReader(os.Stdin)
+	line, err := bio.ReadString('\n')
+	if err != nil {
+		fmt.Printf("err %+v\n", err)
+	}
+
+	if line == "\n" {
+		return nil
+	}
+
+	withoutNewline := strings.Trim(line, "\n")
+	i, err := strconv.Atoi(withoutNewline)
+	if err != nil {
+		return presentAlternatives(ms)
+	}
+
+	return &ms[i-1]
+}
+
 func main() {
 	query := getQuery()
 	matches, err := sources.Search(query)
@@ -45,15 +74,14 @@ func main() {
 		fmt.Printf("err %+v\n", err)
 	}
 
-	showBestMatch(matches.BestMatch())
+	showBestMatch(matches[0])
 	bestMatchConfirmed := askConfirmation()
-	fmt.Printf("bestMatchConfirmed %+v\n", bestMatchConfirmed)
 	if bestMatchConfirmed {
 		// Store it somewhere.
 	} else {
-		// Show entire list and store selection.
+		match := presentAlternatives(matches)
+		if match != nil {
+			// Store it somewhere.
+		}
 	}
-
-	fmt.Printf("matches %+v\n", matches)
-	fmt.Printf("matches.BestMatch() %+v\n", matches.BestMatch())
 }
