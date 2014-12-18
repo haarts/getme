@@ -24,12 +24,12 @@ func (a byRating) Len() int           { return len(a) }
 func (a byRating) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a byRating) Less(i, j int) bool { return a[i].Ratings.Votes > a[j].Ratings.Votes }
 
-var traktURL = "http://api.trakt.tv/search/shows.json/5bc6254d3bbde304a49557cf2845d921"
+var traktSearchURL = "http://api.trakt.tv/search/shows.json/5bc6254d3bbde304a49557cf2845d921"
 
 func constructUrl(query string) string {
 	escapedQuery := url.Values{}
 	escapedQuery.Add("query", query)
-	return traktURL + "?query=" + escapedQuery.Encode()
+	return traktSearchURL + "?query=" + escapedQuery.Encode()
 }
 
 func Search(query string) ([]Match, error) {
