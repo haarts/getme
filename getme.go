@@ -20,7 +20,7 @@ func getQuery() string {
 	return query
 }
 
-func showBestMatch(bestMatch sources.Match) {
+func displayBestMatch(bestMatch sources.Match) {
 	fmt.Println("The best match we found is:")
 	fmt.Println(" ", bestMatch.Title)
 }
@@ -41,7 +41,7 @@ func askConfirmation() bool {
 	}
 }
 
-func presentAlternatives(ms []sources.Match) *sources.Match {
+func displayAlternatives(ms []sources.Match) *sources.Match {
 	fmt.Println("Which one ARE you looking for?")
 	for i, m := range ms {
 		fmt.Printf("[%d] %s\n", i+1, m.Title)
@@ -62,7 +62,7 @@ func presentAlternatives(ms []sources.Match) *sources.Match {
 	withoutNewline := strings.Trim(line, "\n")
 	i, err := strconv.Atoi(withoutNewline)
 	if err != nil {
-		return presentAlternatives(ms)
+		return displayAlternatives(ms)
 	}
 
 	return &ms[i-1]
@@ -75,12 +75,12 @@ func main() {
 		fmt.Printf("err %+v\n", err)
 	}
 
-	showBestMatch(matches[0])
+	displayBestMatch(matches[0])
 	bestMatchConfirmed := askConfirmation()
 	if bestMatchConfirmed {
 		// Store it somewhere.
 	} else {
-		match := presentAlternatives(matches)
+		match := displayAlternatives(matches)
 		if match != nil {
 			// Store it somewhere.
 		}
