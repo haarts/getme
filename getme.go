@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/haarts/getme/sources"
+	"github.com/haarts/getme/store"
 )
 
 func getQuery() string {
@@ -71,6 +72,7 @@ func displayAlternatives(ms []sources.Match) *sources.Match {
 }
 
 func main() {
+	store := store.Open()
 	query := getQuery()
 	matches, err := sources.Search(query)
 	if err != nil {
@@ -80,11 +82,12 @@ func main() {
 	displayBestMatch(matches[0])
 	bestMatchConfirmed := displayBestMatchConfirmation()
 	if bestMatchConfirmed {
-		// Store it somewhere.
+		store.CreateShow(matches[0])
 	} else {
 		match := displayAlternatives(matches)
 		if match != nil {
-			// Store it somewhere.
+			store.CreateShow(matches[0])
 		}
 	}
+	fmt.Printf("store %+v\n", store)
 }
