@@ -15,6 +15,7 @@ type ratings struct {
 
 type traktMatch struct {
 	Title   string  `json:"title"`
+	URL     string  `json:"url"`
 	Ratings ratings `json:"ratings"`
 }
 
@@ -62,7 +63,10 @@ func Search(query string) ([]Match, error) {
 func convertToMatches(ms []traktMatch) []Match {
 	matches := make([]Match, len(ms))
 	for i, m := range ms {
-		matches[i] = Match{Title: m.Title}
+		matches[i] = Match{
+			Title: m.Title,
+			URL:   m.URL,
+		}
 	}
 	return matches
 }
