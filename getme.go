@@ -82,16 +82,16 @@ func search(query string) []sources.Match {
 	return matches
 }
 
-func searchSeasons(m sources.Match) {
+func searchSeasons(m sources.Match) ([]sources.Season, error) {
 	c := startProgressBar()
 	defer stopProgressBar(c)
 
-	seasons, err := sources.GetSeasons()
-	if err != nil { // TODO: Handle the error upstream
-		fmt.Printf("err %+v\n", err)
+	seasons, err := sources.GetSeasons(m)
+	if err != nil {
+		return nil, err
 	}
 
-	return seasons
+	return seasons, nil
 }
 
 func startProgressBar() *time.Ticker {
@@ -118,22 +118,23 @@ func main() {
 		fmt.Println("We haven't found what you were looking for.")
 		return
 	}
-	match = matches[0]
+	match := matches[0]
 
 	// Determine which show ppl want.
 	displayBestMatch(match)
 	if displayBestMatchConfirmation() {
 		store.CreateShow(match)
 	} else {
-		match = displayAlternatives(matches)
-		if match == nil {
+		alternative := displayAlternatives(matches)
+		if alternative == nil {
 			return
 		} else {
+			match = *alternative
 			store.CreateShow(match)
 		}
 	}
 
 	// Fetch the seasons associated with the found show.
-	seasons := searchSeasons(match)
+	seasons, _ := searchSeasons(match)
 	fmt.Printf("seasons %+v\n", seasons)
 }
