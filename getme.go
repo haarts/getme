@@ -94,7 +94,7 @@ func searchSeasons(m sources.Match) {
 	return seasons
 }
 
-func startProgressBar() *time.Timer {
+func startProgressBar() *time.Ticker {
 	c := time.NewTicker(1 * time.Second)
 	go func() {
 		for _ = range c.C {
@@ -105,7 +105,7 @@ func startProgressBar() *time.Timer {
 	return c
 }
 
-func stopProgressBar(c time.Timer) {
+func stopProgressBar(c *time.Ticker) {
 	c.Stop()
 	fmt.Print("\n")
 }
