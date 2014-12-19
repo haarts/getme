@@ -27,16 +27,20 @@ func displayBestMatch(bestMatch sources.Match) {
 	fmt.Println(" ", bestMatch.Title)
 }
 
-func displayBestMatchConfirmation() bool {
-	fmt.Print("Is this the one you want? [Y/n] ")
-
+func getUserInput() string {
 	bio := bufio.NewReader(os.Stdin) // TODO Can't getting user input be extracted in a function?
 	line, err := bio.ReadString('\n')
 	if err != nil {
 		fmt.Printf("err %+v\n", err)
 	}
+	return strings.Trim(line, "\n")
+}
 
-	if line == "\n" || line == "y\n" || line == "Y\n" {
+func displayBestMatchConfirmation() bool {
+	fmt.Print("Is this the one you want? [Y/n] ")
+	line := getUserInput()
+
+	if line == "" || line == "y" || line == "Y" {
 		return true
 	} else {
 		return false
@@ -50,20 +54,14 @@ func displayAlternatives(ms []sources.Match) *sources.Match {
 	}
 
 	fmt.Print("Enter the correct number: ")
-
-	bio := bufio.NewReader(os.Stdin)
-	line, err := bio.ReadString('\n')
-	if err != nil {
-		fmt.Printf("err %+v\n", err)
-	}
+	line := getUserInput()
 
 	// User abort
-	if line == "\n" {
+	if line == "" {
 		return nil
 	}
 
-	withoutNewline := strings.Trim(line, "\n")
-	i, err := strconv.Atoi(withoutNewline)
+	i, err := strconv.Atoi(line)
 	// User mis-typed, try again
 	if err != nil {
 		return displayAlternatives(ms)
