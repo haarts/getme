@@ -30,7 +30,7 @@ func displayBestMatch(bestMatch sources.Match) {
 func displayBestMatchConfirmation() bool {
 	fmt.Print("Is this the one you want? [Y/n] ")
 
-	bio := bufio.NewReader(os.Stdin)
+	bio := bufio.NewReader(os.Stdin) // TODO Can't getting user input be extracted in a function?
 	line, err := bio.ReadString('\n')
 	if err != nil {
 		fmt.Printf("err %+v\n", err)
@@ -73,6 +73,30 @@ func displayAlternatives(ms []sources.Match) *sources.Match {
 }
 
 func search(query string) []sources.Match {
+	c := startProgressBar()
+	defer stopProgressBar(c)
+
+	matches, err := sources.Search(query)
+	if err != nil { // TODO: Handle the error upstream
+		fmt.Printf("err %+v\n", err)
+	}
+
+	return matches
+}
+
+func searchSeasons(m sources.Match) {
+	c := startProgressBar()
+	defer stopProgressBar(c)
+
+	seasons, err := sources.GetSeasons()
+	if err != nil { // TODO: Handle the error upstream
+		fmt.Printf("err %+v\n", err)
+	}
+
+	return seasons
+}
+
+func startProgressBar() *time.Timer {
 	c := time.NewTicker(1 * time.Second)
 	go func() {
 		for _ = range c.C {
@@ -80,13 +104,12 @@ func search(query string) []sources.Match {
 		}
 	}()
 
-	matches, err := sources.Search(query)
-	if err != nil {
-		fmt.Printf("err %+v\n", err)
-	}
+	return c
+}
+
+func stopProgressBar(c time.Timer) {
 	c.Stop()
 	fmt.Print("\n")
-	return matches
 }
 
 func main() {
@@ -97,16 +120,22 @@ func main() {
 		fmt.Println("We haven't found what you were looking for.")
 		return
 	}
+	match = matches[0]
 
-	displayBestMatch(matches[0])
-	bestMatchConfirmed := displayBestMatchConfirmation()
-	if bestMatchConfirmed {
-		store.CreateShow(matches[0])
+	// Determine which show ppl want.
+	displayBestMatch(match)
+	if displayBestMatchConfirmation() {
+		store.CreateShow(match)
 	} else {
-		match := displayAlternatives(matches)
-		if match != nil {
+		match = displayAlternatives(matches)
+		if match == nil {
+			return
+		} else {
 			store.CreateShow(match)
 		}
 	}
-	fmt.Printf("store %+v\n", store)
+
+	// Fetch the seasons associated with the found show.
+	seasons := searchSeasons(match)
+	fmt.Printf("seasons %+v\n", seasons)
 }
