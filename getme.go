@@ -28,7 +28,7 @@ func displayBestMatch(bestMatch sources.Match) {
 }
 
 func getUserInput() string {
-	bio := bufio.NewReader(os.Stdin) // TODO Can't getting user input be extracted in a function?
+	bio := bufio.NewReader(os.Stdin)
 	line, err := bio.ReadString('\n')
 	if err != nil {
 		fmt.Printf("err %+v\n", err)
@@ -36,14 +36,15 @@ func getUserInput() string {
 	return strings.Trim(line, "\n")
 }
 
-func displayBestMatchConfirmation() bool {
+func displayBestMatchConfirmation(matches []sources.Match) *sources.Match {
+	displayBestMatch(matches[0])
 	fmt.Print("Is this the one you want? [Y/n] ")
 	line := getUserInput()
 
 	if line == "" || line == "y" || line == "Y" {
-		return true
+		return &matches[0]
 	} else {
-		return false
+		return nil
 	}
 }
 
@@ -118,23 +119,21 @@ func main() {
 		fmt.Println("We haven't found what you were looking for.")
 		return
 	}
-	match := matches[0]
 
 	// Determine which show ppl want.
-	displayBestMatch(match)
-	if displayBestMatchConfirmation() {
-		store.CreateShow(match)
+	match := displayBestMatchConfirmation(matches)
+	if match != nil {
+		store.CreateShow(*match)
 	} else {
-		alternative := displayAlternatives(matches)
-		if alternative == nil {
-			return
+		match := displayAlternatives(matches)
+		if match != nil {
+			store.CreateShow(*match)
 		} else {
-			match = *alternative
-			store.CreateShow(match)
+			return
 		}
 	}
 
 	// Fetch the seasons associated with the found show.
-	seasons, _ := searchSeasons(match)
+	seasons, _ := searchSeasons(*match)
 	fmt.Printf("seasons %+v\n", seasons)
 }
