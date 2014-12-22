@@ -56,17 +56,17 @@ func DisplayAlternatives(ms []sources.Match) *sources.Match {
 	return &ms[i-1]
 }
 
-func Search(query string) []sources.Match {
+func Search(query string) ([]sources.Match, error) {
 	fmt.Print("Seaching")
 	c := startProgressBar()
 	defer stopProgressBar(c)
 
 	matches, err := sources.Search(query)
-	if err != nil { // TODO: Handle the error upstream
-		fmt.Printf("err %+v\n", err)
+	if err != nil {
+		return nil, err
 	}
 
-	return matches
+	return matches, nil
 }
 
 func SearchSeasons(m sources.Match) ([]sources.Season, error) {

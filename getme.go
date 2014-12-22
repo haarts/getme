@@ -15,8 +15,11 @@ import (
 
 func main() {
 	store := store.Open()
-	query := ui.GetQuery()
-	matches := ui.Search(query)
+	matches, err := ui.Search(ui.GetQuery())
+	if err != nil {
+		fmt.Println("We've encountered a problem searching. The error:")
+		fmt.Println(" ", err)
+	}
 	if len(matches) == 0 {
 		fmt.Println("We haven't found what you were looking for.")
 		return
@@ -36,7 +39,11 @@ func main() {
 	}
 
 	// Fetch the seasons associated with the found show.
-	seasons, _ := ui.SearchSeasons(*match)
+	seasons, err := ui.SearchSeasons(*match)
+	if err != nil {
+		fmt.Println("We've encountered a problem looking up seasons for the show. The error:")
+		fmt.Println(" ", err)
+	}
 	episodes := sources.CreateEpisodes(seasons)
 
 	// We have two entry points. One on the first run and one when running as daemon.
