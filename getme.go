@@ -70,7 +70,7 @@ func main() {
 	}
 
 	if match == nil {
-		fmt.Println("Sorry we couldn't find it for you.")
+		fmt.Println("We're sorry we couldn't find it for you.")
 		return
 	}
 
