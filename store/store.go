@@ -17,6 +17,10 @@ func Open() *Store {
 	}
 }
 
+// TODO flush to disk
+func (s Store) Close() {
+}
+
 // TODO adds serialization to a bunch of JSON files.
 // Plan: each show is a dir in shows/. Each seasons is a dir in that. And each
 // episode is a file in that. When an episode has been found and downloaded

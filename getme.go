@@ -13,28 +13,9 @@ import (
 	"github.com/haarts/getme/ui"
 )
 
-func main() {
+func handleShow(show *sources.Match) error {
 	store := store.Open()
-	matches, err := ui.Search(ui.GetQuery())
-	if err != nil {
-		fmt.Println("We've encountered a problem searching. The error:")
-		fmt.Println(" ", err)
-	}
-	if len(matches) == 0 {
-		fmt.Println("We haven't found what you were looking for.")
-		return
-	}
-
-	// Determine which show/movie ppl want.
-	match := ui.DisplayBestMatchConfirmation(matches)
-	if match == nil {
-		match = ui.DisplayAlternatives(matches)
-	}
-
-	if match == nil {
-		fmt.Println("Sorry we couldn't find it for you.")
-		return
-	}
+	defer store.Close()
 
 	store.CreateShow(*match)
 
@@ -65,6 +46,37 @@ func main() {
 	}
 	for _, torrent := range torrents {
 		download(string(torrent))
+	}
+}
+
+func main() {
+	matches, err := ui.Search(ui.GetQuery())
+	if err != nil {
+		fmt.Println("We've encountered a problem searching. The error:")
+		fmt.Println(" ", err)
+	}
+	if len(matches) == 0 {
+		fmt.Println("We haven't found what you were looking for.")
+		return
+	}
+
+	// Determine which show/movie ppl want.
+	match := ui.DisplayBestMatchConfirmation(matches)
+	if match == nil {
+		match = ui.DisplayAlternatives(matches)
+	}
+
+	if match == nil {
+		fmt.Println("Sorry we couldn't find it for you.")
+		return
+	}
+
+	// TODO Handle 'Movie' case.
+
+	// Handle the 'Show' case.
+	handleShow(match)
+	if err != nil {
+		fmt.Printf("err %+v\n", err)
 	}
 }
 
