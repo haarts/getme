@@ -135,5 +135,20 @@ func main() {
 
 	// Fetch the seasons associated with the found show.
 	seasons, _ := searchSeasons(*match)
-	fmt.Printf("seasons %+v\n", seasons)
+	episodes := search_engines.CreateEpisodes(seasons)
+
+	// TODO Create episodes
+	// We have two entry points. One on the first run and one when running as daemon.
+	// So we create episodes based on seasons always. Then look at the disk/store and figure out
+	// what is missing.
+	// Then we take that list of episodes and create search queries.
+	// The types defined in sources pkg are wrong.
+	// * Match -> Show (ORLY?)
+	// * intro Movie
+	// * intro Episode
+	// How can I make main work with both Show and Movie? An interface? Then I need to intro
+	// getters/setters...
+	//
+	// TODO Create search queries
+	// TODO Move all the UI stuff to own package
 }
