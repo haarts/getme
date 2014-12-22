@@ -7,7 +7,7 @@ import (
 )
 
 func TestCreateEpisodes(t *testing.T) {
-	seasons := []sources.Season{{1, 4}, {2, 5}}
+	seasons := []sources.Season{{"bar", 1, 4}, {"bar", 2, 5}}
 
 	episodes := sources.CreateEpisodes(seasons)
 	if len(episodes) != 9 {
