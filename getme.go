@@ -50,6 +50,42 @@ func main() {
 	// How can I make main work with both Show and Movie? An interface? Then I need to intro
 	// getters/setters...
 	//
-	// TODO Create search queries
-	// TODO Move all the UI stuff to own package
+
+	torrents, err := search_engines.Search(episodes)
+	if err != nil {
+		fmt.Println("Something went wrong looking for your episodes.", err)
+		return
+	}
+	for _, torrent := range torrents {
+		download(string(torrent))
+	}
+}
+
+func download(url string) {
+	tokens := strings.Split(url, "/")
+	fileName := tokens[len(tokens)-1]
+	fmt.Println("Downloading", url, "to", fileName)
+
+	// TODO: check file existence first with io.IsExist
+	output, err := os.Create("/tmp/getme/" + fileName)
+	if err != nil {
+		fmt.Println("Error while creating", fileName, "-", err)
+		return
+	}
+	defer output.Close()
+
+	response, err := http.Get(url)
+	if err != nil {
+		fmt.Println("Error while downloading", url, "-", err)
+		return
+	}
+	defer response.Body.Close()
+
+	n, err := io.Copy(output, response.Body)
+	if err != nil {
+		fmt.Println("Error while downloading", url, "-", err)
+		return
+	}
+
+	fmt.Println(n, "bytes downloaded.")
 }
