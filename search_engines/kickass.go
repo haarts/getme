@@ -121,7 +121,7 @@ func getBody(query string) ([]byte, error) {
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
-		return nil, errors.New("Search return non 200 status code")
+		return nil, errors.New("Search return non 200 status code: ", resp.StatusCode)
 	}
 
 	defer resp.Body.Close()

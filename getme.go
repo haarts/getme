@@ -68,6 +68,7 @@ func main() {
 	}
 }
 
+// This is an odd function here. Perhaps I'll group it with the 'getBody' function.
 func download(url string) {
 	tokens := strings.Split(url, "/")
 	fileName := tokens[len(tokens)-1]
