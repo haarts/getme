@@ -69,7 +69,7 @@ func Search(query string) ([]sources.Match, error) {
 	return matches, nil
 }
 
-func SearchSeasons(m sources.Match) ([]sources.Season, error) {
+func LookupSeasons(m sources.Match) ([]sources.Season, error) {
 	fmt.Print("Looking up seasons")
 	c := startProgressBar()
 	defer stopProgressBar(c)
