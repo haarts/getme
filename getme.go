@@ -27,16 +27,16 @@ func main() {
 
 	// Determine which show/movie ppl want.
 	match := ui.DisplayBestMatchConfirmation(matches)
-	if match != nil {
-		store.CreateShow(*match)
-	} else {
-		match := ui.DisplayAlternatives(matches)
-		if match != nil {
-			store.CreateShow(*match)
-		} else {
-			return
-		}
+	if match == nil {
+		match = ui.DisplayAlternatives(matches)
 	}
+
+	if match == nil {
+		fmt.Println("Sorry we couldn't find it for you.")
+		return
+	}
+
+	store.CreateShow(*match)
 
 	// Fetch the seasons associated with the found show.
 	seasons, err := ui.LookupSeasons(*match)
