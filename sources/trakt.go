@@ -27,14 +27,14 @@ func (a byRating) Less(i, j int) bool { return a[i].Ratings.Votes > a[j].Ratings
 
 var traktSearchURL = "http://api.trakt.tv/search/shows.json/5bc6254d3bbde304a49557cf2845d921"
 
-func constructUrl(query string) string {
+func constructURL(query string) string {
 	escapedQuery := url.Values{}
 	escapedQuery.Add("query", query)
 	return traktSearchURL + "?query=" + escapedQuery.Encode()
 }
 
 func Search(query string) ([]Match, error) {
-	resp, err := http.Get(constructUrl(query))
+	resp, err := http.Get(constructURL(query))
 	if err != nil {
 		return nil, err //TODO retry a couple of times when it's a timeout.
 	}
