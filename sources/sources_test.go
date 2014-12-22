@@ -6,6 +6,32 @@ import (
 	"github.com/haarts/getme/sources"
 )
 
+func TestRegisterNilSource(t *testing.T) {
+	defer func() {
+		str := recover()
+		if str == nil {
+			t.Error("Expected panic, got none.")
+		}
+	}()
+	sources.Register("nil", nil)
+}
+
+func TestRegisterDuplicateSource(t *testing.T) {
+	defer func() {
+		str := recover()
+		if str == nil {
+			t.Error("Expected panic, got none.")
+		}
+	}()
+	sources.Register("one", 123)
+	sources.Register("one", 123)
+}
+
+// TODO Not sure how to test this yet.
+func TestRegister(t *testing.T) {
+	sources.Register("one", 123)
+}
+
 func TestCreateEpisodes(t *testing.T) {
 	seasons := []sources.Season{{"bar", 1, 4}, {"bar", 2, 5}}
 

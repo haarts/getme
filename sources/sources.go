@@ -27,6 +27,20 @@ type Episode struct {
 	Episode  int
 }
 
+type source interface{}
+
+var sources = make(map[string]source)
+
+func Register(name string, source source) {
+	if source == nil {
+		panic("source: Register source is nil")
+	}
+	if _, dup := sources[name]; dup {
+		panic("source: Register called twice for source " + name)
+	}
+	sources[name] = source
+}
+
 func CreateEpisodes(seasons []Season) (episodes []Episode) {
 	for _, s := range seasons {
 		for i := 1; i <= s.Episodes; i++ {
