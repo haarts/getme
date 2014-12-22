@@ -17,13 +17,14 @@ func handleShow(show *sources.Match) error {
 	store := store.Open()
 	defer store.Close()
 
-	store.CreateShow(*match)
+	store.CreateShow(*show)
 
 	// Fetch the seasons associated with the found show.
-	seasons, err := ui.LookupSeasons(*match)
+	seasons, err := ui.LookupSeasons(*show)
 	if err != nil {
 		fmt.Println("We've encountered a problem looking up seasons for the show. The error:")
 		fmt.Println(" ", err)
+		return err
 	}
 	episodes := sources.CreateEpisodes(seasons)
 
@@ -42,11 +43,13 @@ func handleShow(show *sources.Match) error {
 	torrents, err := search_engines.Search(episodes)
 	if err != nil {
 		fmt.Println("Something went wrong looking for your episodes.", err)
-		return
+		return err
 	}
 	for _, torrent := range torrents {
 		download(string(torrent))
 	}
+
+	return nil
 }
 
 func main() {
@@ -74,9 +77,9 @@ func main() {
 	// TODO Handle 'Movie' case.
 
 	// Handle the 'Show' case.
-	handleShow(match)
+	err = handleShow(match)
 	if err != nil {
-		fmt.Printf("err %+v\n", err)
+		return
 	}
 }
 
