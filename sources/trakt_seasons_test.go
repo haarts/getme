@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestGetSeasons(t *testing.T) {
+func TestExpandShow(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprintln(w, readFixture("fixtures/trakt_seasons.json"))
@@ -19,10 +19,19 @@ func TestGetSeasons(t *testing.T) {
 	show := &Show{URL: "boo/some-url"}
 	getSeasonsOnTrakt(show)
 	if len(show.Seasons) != 6 {
-		t.Error("Expected 6 seasons, got:", len(show.Seasons))
+		t.Fatal("Expected 6 seasons, got:", len(show.Seasons))
 	}
 
 	if show.Seasons[0].Season == 0 {
 		t.Error("Expected Season field to be not default, got:", show.Seasons[0])
+	}
+
+	if len(show.Seasons[0].Episodes) != 9 {
+		t.Fatal("Expected 9 episodes, got:", len(show.Seasons[0].Episodes))
+	}
+
+	episode := show.Seasons[0].Episodes[0]
+	if show.Seasons[0] != episode.Season {
+		t.Error("Expected episode to point to parent Season, got: ", episode.Season, show.Seasons[0])
 	}
 }
