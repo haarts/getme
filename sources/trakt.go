@@ -3,6 +3,7 @@ package sources
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -43,7 +44,7 @@ func searchTrakt(query string) ([]Match, error) {
 		return nil, err //TODO retry a couple of times when it's a timeout.
 	}
 	if resp.StatusCode != 200 {
-		return nil, errors.New("Search return non 200 status code")
+		return nil, errors.New(fmt.Sprintf("Search returned non 200 status code: %d", resp.StatusCode))
 	}
 
 	defer resp.Body.Close()

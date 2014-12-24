@@ -20,6 +20,7 @@ func (m Movie) DisplayTitle() string {
 type Show struct {
 	Title                  string
 	URL                    string
+	ID                     int
 	Seasons                []*Season
 	seasonsAndEpisodesFunc func(*Show) error
 }
