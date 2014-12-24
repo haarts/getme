@@ -30,14 +30,6 @@ func handleShow(show *sources.Show) error {
 	// We have two entry points. One on the first run and one when running as daemon.
 	// So we create episodes based on seasons always. Then look at the disk/store and figure out
 	// what is missing.
-	// Then we take that list of episodes and create search queries.
-	// The types defined in sources pkg are wrong.
-	// * Match -> Show (ORLY?)
-	// * intro Movie
-	// * intro Episode
-	// How can I make main work with both Show and Movie? An interface? Then I need to intro
-	// getters/setters...
-	//
 
 	torrents, err := search_engines.Search(show.Episodes())
 	if err != nil {
