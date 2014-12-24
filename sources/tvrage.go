@@ -51,7 +51,6 @@ func constructTvRageSeasonsURL(show *Show) string {
 }
 
 func searchTvRage(query string) ([]Match, error) {
-	fmt.Printf("tvRageURL %+v\n", tvRageURL)
 	resp, err := http.Get(constructTvRageSearchURL(query))
 	if err != nil {
 		return nil, err //TODO retry a couple of times when it's a timeout.
