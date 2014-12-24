@@ -16,12 +16,13 @@ func TestGetSeasons(t *testing.T) {
 
 	traktSeasonsURL = ts.URL + "/"
 
-	seasons, _ := GetSeasons(Show{URL: "boo/some-url"})
-	if len(seasons) != 6 {
-		t.Error("Expected 6 seasons, got:", len(seasons))
+	show := &Show{URL: "boo/some-url"}
+	getSeasonsOnTrakt(show)
+	if len(show.Seasons) != 6 {
+		t.Error("Expected 6 seasons, got:", len(show.Seasons))
 	}
 
-	if seasons[0].Season == 0 {
-		t.Error("Expected Season field to be not default, got:", seasons[0])
+	if show.Seasons[0].Season == 0 {
+		t.Error("Expected Season field to be not default, got:", show.Seasons[0])
 	}
 }

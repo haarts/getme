@@ -17,14 +17,13 @@ func handleShow(show *sources.Show) error {
 	store := store.Open()
 	defer store.Close()
 
-	// Fetch the seasons associated with the found show.
-	seasons, err := ui.LookupSeasons(*show)
+	// Fetch the seasons/episodes associated with the found show.
+	err := ui.Lookup(*show)
 	if err != nil {
 		fmt.Println("We've encountered a problem looking up seasons for the show. The error:")
 		fmt.Println(" ", err)
 		return err
 	}
-	fmt.Printf("seasons %+v\n", seasons)
 
 	store.CreateShow(*show)
 

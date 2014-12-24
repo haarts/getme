@@ -57,29 +57,36 @@ func DisplayAlternatives(ms []sources.Match) *sources.Match {
 }
 
 func Search(query string) ([]sources.Match, error) {
-	fmt.Print("Seaching")
+	fmt.Print("Seaching: ")
+	fmt.Print(strings.Join(sources.ListSources(), ", "))
+	fmt.Print("\n")
+
 	c := startProgressBar()
 	defer stopProgressBar(c)
 
-	matches, err := sources.Search(query)
-	if err != nil {
-		return nil, err
+	matches, errors := sources.Search(query)
+	if !isAllNil(errors) {
+		return nil, errors[0] //TODO change the type to []error
 	}
 
 	return matches, nil
 }
 
-func LookupSeasons(m sources.Show) ([]sources.Season, error) {
-	fmt.Print("Looking up seasons")
+func isAllNil(errors []error) bool {
+	for _, e := range errors {
+		if e != nil {
+			return false
+		}
+	}
+	return true
+}
+
+func Lookup(m sources.Show) error {
+	fmt.Print("Looking up seasons and episodes")
 	c := startProgressBar()
 	defer stopProgressBar(c)
 
-	seasons, err := sources.GetSeasons(m)
-	if err != nil {
-		return nil, err
-	}
-
-	return seasons, nil
+	return m.GetSeasonsAndEpisodes()
 }
 
 func displayBestMatch(bestMatch sources.Match) {

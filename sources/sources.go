@@ -15,13 +15,18 @@ func (m Movie) DisplayTitle() string {
 }
 
 type Show struct {
-	Title   string
-	URL     string
-	Seasons []*Season
+	Title                  string
+	URL                    string
+	Seasons                []*Season
+	seasonsAndEpisodesFunc func(*Show) error
 }
 
 func (s Show) DisplayTitle() string {
 	return s.Title
+}
+
+func (s *Show) GetSeasonsAndEpisodes() error {
+	return s.seasonsAndEpisodesFunc(s)
 }
 
 func (s Show) Episodes() []Episode {
@@ -49,6 +54,22 @@ func Register(name string, source searchFun) {
 		panic("source: Register called twice for source " + name)
 	}
 	sources[name] = source
+}
+
+func ListSources() (names []string) {
+	for name, _ := range sources {
+		names = append(names, name)
+	}
+	return
+}
+
+func Search(q string) (matches []Match, errors []error) {
+	for _, s := range sources {
+		ms, err := s(q)
+		matches = append(matches, ms...)
+		errors = append(errors, err)
+	}
+	return
 }
 
 func (e *Episode) ShowName() string {

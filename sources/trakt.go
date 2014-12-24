@@ -9,6 +9,10 @@ import (
 	"sort"
 )
 
+func init() {
+	Register("trakt", searchTrakt)
+}
+
 type ratings struct {
 	Votes int `json:"votes"`
 }
@@ -33,7 +37,7 @@ func constructURL(query string) string {
 	return traktSearchURL + "?query=" + escapedQuery.Encode()
 }
 
-func Search(query string) ([]Match, error) {
+func searchTrakt(query string) ([]Match, error) {
 	resp, err := http.Get(constructURL(query))
 	if err != nil {
 		return nil, err //TODO retry a couple of times when it's a timeout.
@@ -66,6 +70,7 @@ func convertToMatches(ms []traktMatch) []Match {
 		matches[i] = Show{
 			URL:   m.URL,
 			Title: m.Title,
+			seasonsAndEpisodesFunc: getSeasonsOnTrakt,
 		}
 	}
 	return matches
