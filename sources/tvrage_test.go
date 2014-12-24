@@ -20,7 +20,16 @@ func TestTvRageSeasons(t *testing.T) {
 	getSeasonsOnTvRage(show)
 
 	if len(show.Seasons) == 0 {
-		t.Error("Expected seasons to be not zero, got:", len(show.Seasons))
+		t.Fatal("Expected seasons to be not zero, got:", len(show.Seasons))
+	}
+
+	season := show.Seasons[0]
+	if season.Show != show {
+		t.Error("Expected reference to original show, got:", season.Show)
+	}
+
+	if season.Season == 0 {
+		t.Error("Expected Season number not to be zero, got:", season.Season)
 	}
 }
 
@@ -35,6 +44,11 @@ func TestTvRageSearch(t *testing.T) {
 
 	matches, _ := searchTvRage("some query")
 	if matches[0].DisplayTitle() != "The Big Bang Theory" {
-		t.Fatal("best match is not The Big Bang Theory")
+		t.Error("Best match is not The Big Bang Theory")
+	}
+
+	s := (matches[0]).(Show)
+	if s.ID == 0 {
+		t.Error("Expect ID to be not zero, got:", s.ID)
 	}
 }

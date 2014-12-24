@@ -73,7 +73,7 @@ func ListSources() (names []string) {
 func Search(q string) (matches []Match, errors []error) {
 	for _, s := range sources { //TODO Make parallel
 		ms, err := s(q)
-		matches = append(matches, ms...)
+		matches = append(matches, ms...) // TODO This is pretty dumb of course, with multiple sources the first always wins.
 		errors = append(errors, err)
 	}
 	return
