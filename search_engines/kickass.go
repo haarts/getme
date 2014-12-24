@@ -26,7 +26,7 @@ func (i Item) torrentURL() TorrentURL {
 	return TorrentURL(fmt.Sprintf(torCacheURL, i.InfoHash))
 }
 
-type kickassResult struct {
+type kickassSearchResult struct {
 	Channel struct {
 		Items []Item `xml:"item"`
 	} `xml:"channel"`
@@ -47,41 +47,44 @@ func constructURL(episode string) string { //NOTE this url concat is broken but 
 
 func Search(episodes []*sources.Episode) ([]TorrentURL, error) {
 	var results []TorrentURL
-	var episodeResult []kickassResult
 	// TODO dont loop if a list of episodes span a complete season. Search for the season instead.
 	for _, e := range episodes {
-		queries := e.QueryNames()
-		for _, q := range queries {
-			body, err := getBody(q)
-			if err != nil {
-				return nil, err
-			}
-
-			var kr kickassResult
-			err = xml.Unmarshal(body, &kr)
-			if err != nil {
-				return nil, err
-			}
-			episodeResult = append(episodeResult, kr)
+		best, err := getBestTorrentForEpisode(e)
+		if err != nil {
+			return nil, err
 		}
-		var xs []Item
-		for _, e := range episodeResult {
-			xs = append(xs, e.Channel.Items...)
-		}
-
-		onlyEnglish := xs[:0]
-		for _, x := range xs {
-			if isEnglish(x, *e) {
-				onlyEnglish = append(onlyEnglish, x)
-			}
-		}
-
-		sort.Sort(BySeeds(onlyEnglish))
-
-		best := getBest(onlyEnglish)
 		results = append(results, best.torrentURL())
 	}
 	return results, nil
+}
+
+func getBestTorrentForEpisode(e *sources.Episode) (*Item, error) {
+	//var episodeSpecificResult []kickassSearchResult
+	var results []Item
+	for _, q := range e.QueryNames() {
+		body, err := searchKickass(q)
+		if err != nil {
+			return nil, err
+		}
+
+		var result kickassSearchResult
+		err = xml.Unmarshal(body, &result)
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, result.Channel.Items...)
+	}
+
+	onlyEnglish := results[:0]
+	for _, x := range results {
+		if isEnglish(x, *e) {
+			onlyEnglish = append(onlyEnglish, x)
+		}
+	}
+
+	sort.Sort(BySeeds(onlyEnglish))
+	best := getBest(onlyEnglish)
+	return &best, nil
 }
 
 // TODO pick 1080p if no there pick 720p
@@ -115,13 +118,14 @@ func isEnglish(i Item, e sources.Episode) bool {
 
 }
 
-func getBody(query string) ([]byte, error) {
+func searchKickass(query string) ([]byte, error) {
 	resp, err := http.Get(constructURL(query))
 	if err != nil {
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("Search return non 200 status code: %d", resp.StatusCode))
+		fmt.Printf("resp.Request %+v\n", resp.Request)
+		return nil, errors.New(fmt.Sprintf("Search returned non 200 status code: %d", resp.StatusCode))
 	}
 
 	defer resp.Body.Close()

@@ -31,7 +31,7 @@ func TestSearching(t *testing.T) {
 
 	show := sources.Show{Title: "Title", URL: "url", Seasons: nil}
 	season := sources.Season{&show, 1, nil}
-	matches, err := Search([]sources.Episode{{"", &season, 1}})
+	matches, err := Search([]*sources.Episode{{"", &season, 1}})
 	fmt.Printf("err %+v\n", err)
 	fmt.Printf("matches %+v\n", matches)
 }
