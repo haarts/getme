@@ -27,7 +27,7 @@ func TestSearching(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	kickassSearchURL = ts.URL
+	kickassURL = ts.URL
 
 	show := sources.Show{Title: "Title", URL: "url", Seasons: nil}
 	season := sources.Season{&show, 1, nil}
@@ -47,12 +47,13 @@ func Test404(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	kickassSearchURL = ts.URL
+	kickassURL = ts.URL
 
 	show := sources.Show{Title: "Title", URL: "url", Seasons: nil}
 	season := sources.Season{&show, 1, nil}
 	matches, err := Search([]*sources.Episode{{"", &season, 1}})
 
+	// TODO Add proper tests
 	fmt.Printf("err %+v\n", err)
 	fmt.Printf("matches %+v\n", matches)
 }

@@ -43,11 +43,11 @@ func (a BySeeds) Len() int           { return len(a) }
 func (a BySeeds) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a BySeeds) Less(i, j int) bool { return a[i].Seeds > a[j].Seeds }
 
-var kickassSearchURL = "https://kickass.so"
+var kickassURL = "https://kickass.so"
 var torCacheURL = "http://torcache.net/torrent/%s.torrent"
 
-func constructURL(episode string) string { //NOTE this url concat is broken but it's for tests...
-	return fmt.Sprintf(kickassSearchURL+"/usearch/%s/?rss=1", url.QueryEscape(episode))
+func constructSearchURL(episode string) string {
+	return fmt.Sprintf(kickassURL+"/usearch/%s/?rss=1", url.QueryEscape(episode))
 }
 
 // TODO Create a similar Register scheme as with the sources
@@ -127,7 +127,7 @@ func isEnglish(i Item, e sources.Episode) bool {
 }
 
 func searchKickass(query string) ([]byte, error) {
-	resp, err := http.Get(constructURL(query))
+	resp, err := http.Get(constructSearchURL(query))
 	if err != nil {
 		return nil, err
 	}
