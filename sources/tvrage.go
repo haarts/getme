@@ -36,7 +36,7 @@ type tvRageSeason struct {
 }
 
 type tvRageEpisode struct {
-	Episode int    `xml:"epnum"`
+	Episode int    `xml:"seasonnum"`
 	Title   string `xml:"title"`
 }
 
@@ -130,8 +130,8 @@ func convertFromTvRageSeasons(show *Show, ss []tvRageSeason) []*Season {
 			Season:   s.Season,
 			Episodes: make([]*Episode, len(s.Episodes)),
 		}
-		for i, e := range s.Episodes {
-			season.Episodes[i] = &Episode{e.Title, &season, e.Episode}
+		for j, e := range s.Episodes {
+			season.Episodes[j] = &Episode{e.Title, &season, e.Episode}
 		}
 		seasons[i] = &season
 	}

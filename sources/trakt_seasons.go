@@ -53,8 +53,8 @@ func convertToSeasons(show *Show, ss []traktSeason) []*Season {
 			Season:   s.Season,
 			Episodes: make([]*Episode, s.Episodes),
 		}
-		for i, _ := range season.Episodes {
-			season.Episodes[i] = &Episode{"", &season, i + 1}
+		for j, _ := range season.Episodes {
+			season.Episodes[j] = &Episode{"", &season, j + 1}
 		}
 		seasons[i] = &season
 	}
