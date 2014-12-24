@@ -83,7 +83,7 @@ func main() {
 
 // This is an odd function here. Perhaps I'll group it with the 'getBody' function.
 func download(torrent search_engines.Torrent) error {
-	fileName := torrent.Episode.AsFileName()
+	fileName := torrent.Episode.AsFileName() + ".torrent"
 	fmt.Println("Downloading", torrent.URL, "to", fileName)
 
 	// TODO: check file existence first with io.IsExist
