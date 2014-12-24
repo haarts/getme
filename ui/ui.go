@@ -36,7 +36,7 @@ func DisplayBestMatchConfirmation(matches []sources.Match) *sources.Match {
 func DisplayAlternatives(ms []sources.Match) *sources.Match {
 	fmt.Println("Which one ARE you looking for?")
 	for i, m := range ms {
-		fmt.Printf("[%d] %s\n", i+1, m.Title)
+		fmt.Printf("[%d] %s\n", i+1, m.DisplayTitle())
 	}
 
 	fmt.Print("Enter the correct number: ")
@@ -69,7 +69,7 @@ func Search(query string) ([]sources.Match, error) {
 	return matches, nil
 }
 
-func LookupSeasons(m sources.Match) ([]sources.Season, error) {
+func LookupSeasons(m sources.Show) ([]sources.Season, error) {
 	fmt.Print("Looking up seasons")
 	c := startProgressBar()
 	defer stopProgressBar(c)
@@ -84,7 +84,7 @@ func LookupSeasons(m sources.Match) ([]sources.Season, error) {
 
 func displayBestMatch(bestMatch sources.Match) {
 	fmt.Println("The best match we found is:")
-	fmt.Println(" ", bestMatch.Title)
+	fmt.Println(" ", bestMatch.DisplayTitle())
 }
 
 func startProgressBar() *time.Ticker {

@@ -103,7 +103,7 @@ func getBest(xs []Item) Item {
 // search for native name for language
 func isEnglish(i Item, e sources.Episode) bool {
 	// Too weak a check but it is the easiest
-	if strings.Contains(strings.ToLower(e.ShowName), "french") {
+	if strings.Contains(strings.ToLower(e.ShowName()), "french") {
 		return true
 	}
 

@@ -29,7 +29,9 @@ func TestSearching(t *testing.T) {
 
 	kickassSearchURL = ts.URL
 
-	matches, err := Search([]sources.Episode{{ShowName: "Bar", Episode: 1, Season: 1}})
+	show := sources.Show{"Buffy", "", nil}
+	season := sources.Season{&show, 1, nil}
+	matches, err := Search([]sources.Episode{{"", &season, 1}})
 	fmt.Printf("err %+v\n", err)
 	fmt.Printf("matches %+v\n", matches)
 }

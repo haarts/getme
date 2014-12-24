@@ -15,7 +15,7 @@ type traktSeason struct {
 
 var traktSeasonsURL = "http://api.trakt.tv/show/seasons.json/5bc6254d3bbde304a49557cf2845d921/"
 
-func GetSeasons(m Match) ([]Season, error) {
+func GetSeasons(m Show) ([]Season, error) {
 	parts := strings.Split(m.URL, "/")
 	traktIdentifier := parts[len(parts)-1]
 
@@ -47,10 +47,14 @@ func GetSeasons(m Match) ([]Season, error) {
 func convertToSeasons(ss []traktSeason) []Season {
 	seasons := make([]Season, len(ss))
 	for i, s := range ss {
-		seasons[i] = Season{
+		season := Season{
 			Season:   s.Season,
-			Episodes: s.Episodes,
+			Episodes: make([]*Episode, s.Episodes),
 		}
+		for i, _ := range season.Episodes {
+			season.Episodes[i] = &Episode{"", &season, i + 1}
+		}
+		seasons[i] = season
 	}
 	return seasons
 }

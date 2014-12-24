@@ -63,9 +63,9 @@ func Search(query string) ([]Match, error) {
 func convertToMatches(ms []traktMatch) []Match {
 	matches := make([]Match, len(ms))
 	for i, m := range ms {
-		matches[i] = Match{
-			Title: m.Title,
+		matches[i] = Show{
 			URL:   m.URL,
+			Title: m.Title,
 		}
 	}
 	return matches

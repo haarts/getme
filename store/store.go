@@ -26,7 +26,7 @@ func (s Store) Close() {
 // episode is a file in that. When an episode has been found and downloaded
 // just rename the file. The file contains some meta data.
 
-func (s *Store) CreateShow(m sources.Match) *Show {
+func (s *Store) CreateShow(m sources.Show) *Show {
 	show := Show{m.Title}
 	s.shows[m.Title] = show
 	return &show

@@ -13,11 +13,9 @@ import (
 	"github.com/haarts/getme/ui"
 )
 
-func handleShow(show *sources.Match) error {
+func handleShow(show *sources.Show) error {
 	store := store.Open()
 	defer store.Close()
-
-	store.CreateShow(*show)
 
 	// Fetch the seasons associated with the found show.
 	seasons, err := ui.LookupSeasons(*show)
@@ -26,7 +24,9 @@ func handleShow(show *sources.Match) error {
 		fmt.Println(" ", err)
 		return err
 	}
-	episodes := sources.CreateEpisodes(seasons)
+	fmt.Printf("seasons %+v\n", seasons)
+
+	store.CreateShow(*show)
 
 	// We have two entry points. One on the first run and one when running as daemon.
 	// So we create episodes based on seasons always. Then look at the disk/store and figure out
@@ -40,7 +40,7 @@ func handleShow(show *sources.Match) error {
 	// getters/setters...
 	//
 
-	torrents, err := search_engines.Search(episodes)
+	torrents, err := search_engines.Search(show.Episodes())
 	if err != nil {
 		fmt.Println("Something went wrong looking for your episodes.", err)
 		return err
@@ -74,12 +74,17 @@ func main() {
 		return
 	}
 
+	switch m := (*match).(type) {
+	case sources.Show:
+		err = handleShow(&m)
+		if err != nil {
+			return
+		}
+	case sources.Movie:
 	// TODO Handle 'Movie' case.
 
-	// Handle the 'Show' case.
-	err = handleShow(match)
-	if err != nil {
-		return
+	default:
+		panic("Match is neither a Show or a Movie")
 	}
 }
 

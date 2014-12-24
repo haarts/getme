@@ -16,7 +16,7 @@ func TestGetSeasons(t *testing.T) {
 
 	traktSeasonsURL = ts.URL + "/"
 
-	seasons, _ := GetSeasons(Match{URL: "boo/some-url"})
+	seasons, _ := GetSeasons(Show{URL: "boo/some-url"})
 	if len(seasons) != 6 {
 		t.Error("Expected 6 seasons, got:", len(seasons))
 	}

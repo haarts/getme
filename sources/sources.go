@@ -2,58 +2,63 @@ package sources
 
 import "fmt"
 
-type Match struct {
-	Title string
-	URL   string // NOTE: Perhaps this should be a url.URL in stead of a string
+type Match interface {
+	DisplayTitle() string
 }
 
 type Movie struct {
-}
-
-type Show struct {
 	Title string
 }
 
+func (m Movie) DisplayTitle() string {
+	return m.Title
+}
+
+type Show struct {
+	Title   string
+	URL     string
+	Seasons []*Season
+}
+
+func (s Show) DisplayTitle() string {
+	return s.Title
+}
+
+func (s Show) Episodes() []Episode {
+	return nil
+}
+
 type Season struct {
-	ShowName string
+	Show     *Show
 	Season   int
-	Episodes int
+	Episodes []*Episode
 }
 
 type Episode struct {
-	ShowName string
-	Title    string
-	Season   int
-	Episode  int
+	Title   string
+	Season  *Season
+	Episode int
 }
 
-type source interface{}
+type searchFun func(string) ([]Match, error)
 
-var sources = make(map[string]source)
+var sources = make(map[string]searchFun)
 
-func Register(name string, source source) {
-	if source == nil {
-		panic("source: Register source is nil")
-	}
+func Register(name string, source searchFun) {
 	if _, dup := sources[name]; dup {
 		panic("source: Register called twice for source " + name)
 	}
 	sources[name] = source
 }
 
-func CreateEpisodes(seasons []Season) (episodes []Episode) {
-	for _, s := range seasons {
-		for i := 1; i <= s.Episodes; i++ {
-			episodes = append(episodes, Episode{ShowName: s.ShowName, Season: s.Season, Episode: i})
-		}
-	}
-	return
+func (e *Episode) ShowName() string {
+	return e.Season.Show.Title
 }
 
 func (e *Episode) QueryNames() []string {
 	// TODO deal with daily shows
-	s1 := fmt.Sprintf("%s S%02dE%02d", e.ShowName, e.Season, e.Episode)
-	s2 := fmt.Sprintf("%s %dx%d", e.ShowName, e.Season, e.Episode)
+	s1 := fmt.Sprintf("%s S%02dE%02d", e.ShowName(), e.Season.Season, e.Episode)
+	s2 := fmt.Sprintf("%s %dx%d", e.ShowName(), e.Season.Season, e.Episode)
 
 	return []string{s1, s2}
 }
