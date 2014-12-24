@@ -18,7 +18,10 @@ func TestTvRageSeasons(t *testing.T) {
 
 	show := &Show{ID: 123}
 	getSeasonsOnTvRage(show)
-	fmt.Printf("show %+v\n", show)
+
+	if len(show.Seasons) == 0 {
+		t.Error("Expected seasons to be not zero, got:", len(show.Seasons))
+	}
 }
 
 func TestTvRageSearch(t *testing.T) {
