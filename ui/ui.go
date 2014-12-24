@@ -81,7 +81,7 @@ func isAllNil(errors []error) bool {
 	return true
 }
 
-func Lookup(m sources.Show) error {
+func Lookup(m *sources.Show) error {
 	fmt.Print("Looking up seasons and episodes")
 	c := startProgressBar()
 	defer stopProgressBar(c)
