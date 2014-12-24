@@ -21,6 +21,13 @@ func TestRegisterDuplicateSource(t *testing.T) {
 	sources.Register("one", searchTestFunction)
 }
 
+func TestDisplayTitle(t *testing.T) {
+	s := sources.Show{Title: "bar"}
+	if s.DisplayTitle() != s.Title {
+		t.Error("Expected DisplayTitle to return the Title, got: ", s.DisplayTitle())
+	}
+}
+
 func TestEpisodes(t *testing.T) {
 	season1 := &sources.Season{Episodes: []*sources.Episode{
 		{Episode: 1},
