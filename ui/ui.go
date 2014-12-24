@@ -61,7 +61,7 @@ func DisplayAlternatives(ms []sources.Match) *sources.Match {
 }
 
 func Download(torrents []search_engines.Torrent, watchDir string) (err error) {
-	fmt.Print("Downloading torrents")
+	fmt.Printf("Downloading %d torrents", len(torrents))
 	c := startProgressBar()
 	defer stopProgressBar(c)
 

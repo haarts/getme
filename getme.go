@@ -27,6 +27,11 @@ func handleShow(show *sources.Show) error {
 		return err
 	}
 
+	if len(show.Episodes()) == 0 {
+		fmt.Printf("No episodes could be found for %s.", show.DisplayTitle())
+		return nil
+	}
+
 	store.CreateShow(*show)
 
 	// We have two entry points. One on the first run and one when running as daemon.
@@ -35,12 +40,16 @@ func handleShow(show *sources.Show) error {
 
 	torrents, err := ui.SearchTorrents(show.Episodes())
 	if err != nil {
-		fmt.Println("Something went wrong looking for your torrents: ", err)
+		fmt.Println("Something went wrong looking for your torrents:", err)
 		return err
+	}
+	if len(torrents) == 0 {
+		fmt.Println("Didn't find any torrents for", show.DisplayTitle())
+		return nil
 	}
 	err = ui.Download(torrents, config.WatchDir)
 	if err != nil {
-		fmt.Println("Something went wrong downloading a torrent: ", err)
+		fmt.Println("Something went wrong downloading a torrent:", err)
 	}
 
 	return nil
