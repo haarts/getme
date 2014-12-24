@@ -64,7 +64,8 @@ func Search(episodes []*sources.Episode) ([]Torrent, error) {
 			continue
 		}
 
-		results = append(results, Torrent{best.torrentURL(), e, best.FileName})
+		torrent := Torrent{best.torrentURL(), e, best.FileName}
+		results = append(results, torrent)
 	}
 	return results, nil
 }

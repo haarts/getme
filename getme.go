@@ -51,6 +51,7 @@ func handleShow(show *sources.Show) error {
 	if err != nil {
 		fmt.Println("Something went wrong downloading a torrent:", err)
 	}
+	ui.DisplayPendingEpisodes(show)
 
 	return nil
 }

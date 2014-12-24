@@ -25,6 +25,13 @@ func GetQuery() string {
 	return query
 }
 
+func DisplayPendingEpisodes(show *sources.Show) {
+	es := show.PendingEpisodes()
+	for _, e := range es {
+		fmt.Println("Pending: ", e.QueryNames()[0])
+	}
+}
+
 func DisplayBestMatchConfirmation(matches []sources.Match) *sources.Match {
 	displayBestMatch(matches[0])
 	fmt.Print("Is this the one you want? [Y/n] ")
@@ -66,7 +73,10 @@ func Download(torrents []search_engines.Torrent, watchDir string) (err error) {
 	defer stopProgressBar(c)
 
 	for _, torrent := range torrents {
-		err = download(torrent, watchDir) // I know I'm shadowing
+		err = download(torrent, watchDir) // I know I'm shadowing err
+		if err == nil {
+			torrent.Episode.Pending = false
+		}
 	}
 
 	return err

@@ -49,6 +49,16 @@ func (s Show) Episodes() (episodes []*Episode) {
 	return
 }
 
+func (s Show) PendingEpisodes() (episodes []*Episode) {
+	allEpisodes := s.Episodes()
+	for _, e := range allEpisodes {
+		if e.Pending {
+			episodes = append(episodes, e)
+		}
+	}
+	return
+}
+
 type Season struct {
 	Show     *Show
 	Season   int
@@ -59,6 +69,7 @@ type Episode struct {
 	Title   string
 	Season  *Season
 	Episode int
+	Pending bool
 }
 
 type searchFun func(string) ([]Match, error)

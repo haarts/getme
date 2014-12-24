@@ -122,6 +122,7 @@ func getSeasonsOnTvRage(show *Show) error {
 	return nil
 }
 
+// TODO Quite a bit of duplication with the convertToMatches function.
 func convertFromTvRageSeasons(show *Show, ss []tvRageSeason) []*Season {
 	seasons := make([]*Season, len(ss))
 	for i, s := range ss {
@@ -131,7 +132,7 @@ func convertFromTvRageSeasons(show *Show, ss []tvRageSeason) []*Season {
 			Episodes: make([]*Episode, len(s.Episodes)),
 		}
 		for j, e := range s.Episodes {
-			season.Episodes[j] = &Episode{e.Title, &season, e.Episode}
+			season.Episodes[j] = &Episode{e.Title, &season, e.Episode, true}
 		}
 		seasons[i] = &season
 	}
