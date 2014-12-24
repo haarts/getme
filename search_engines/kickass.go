@@ -50,6 +50,7 @@ func constructURL(episode string) string { //NOTE this url concat is broken but 
 	return fmt.Sprintf(kickassSearchURL+"/usearch/%s/?rss=1", url.QueryEscape(episode))
 }
 
+// TODO Create a similar Register scheme as with the sources
 func Search(episodes []*sources.Episode) ([]Torrent, error) {
 	var results []Torrent
 	// TODO dont loop if a list of episodes span a complete season. Search for the season instead.
