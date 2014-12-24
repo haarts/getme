@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -59,24 +60,24 @@ func DisplayAlternatives(ms []sources.Match) *sources.Match {
 	return &ms[i-1]
 }
 
-func Download(torrents []search_engines.Torrent) (err error) {
+func Download(torrents []search_engines.Torrent, watchDir string) (err error) {
 	fmt.Print("Downloading torrents")
 	c := startProgressBar()
 	defer stopProgressBar(c)
 
 	for _, torrent := range torrents {
-		err = download(torrent) // I know I'm shadowing
+		err = download(torrent, watchDir) // I know I'm shadowing
 	}
 
 	return err
 }
 
 // This is an odd function here. Perhaps I'll group it with the 'getBody' function.
-func download(torrent search_engines.Torrent) error {
+func download(torrent search_engines.Torrent, watchDir string) error {
 	fileName := torrent.Episode.AsFileName() + ".torrent"
 
 	// TODO: check file existence first with io.IsExist
-	output, err := os.Create("/tmp/getme/" + fileName)
+	output, err := os.Create(path.Join(watchDir, fileName))
 	if err != nil {
 		return err
 	}

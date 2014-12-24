@@ -11,7 +11,7 @@ type Store struct {
 }
 
 // TODO deserialize from a bunch of files.
-func Open() *Store {
+func Open(stateDir string) *Store {
 	return &Store{
 		shows: make(map[string]Show),
 	}

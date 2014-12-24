@@ -16,7 +16,7 @@ import (
 )
 
 func handleShow(show *sources.Show) error {
-	store := store.Open()
+	store := store.Open(config.StateDir)
 	defer store.Close()
 
 	// Fetch the seasons/episodes associated with the found show.
@@ -38,7 +38,7 @@ func handleShow(show *sources.Show) error {
 		fmt.Println("Something went wrong looking for your torrents: ", err)
 		return err
 	}
-	err = ui.Download(torrents)
+	err = ui.Download(torrents, config.WatchDir)
 	if err != nil {
 		fmt.Println("Something went wrong downloading a torrent: ", err)
 	}
@@ -76,6 +76,8 @@ func defaultConfigData() []byte {
 	return []byte(`watch_dir = /tmp/torrents
 state_dir = /tmp/state`)
 }
+
+var config Config
 
 type Config struct {
 	WatchDir string
@@ -125,7 +127,7 @@ func main() {
 	if err != nil {
 		fmt.Println("Something went wrote reading the config file:", err)
 	}
-	fmt.Printf("conf %+v\n", conf)
+	config = conf
 
 	matches, errors := ui.Search(ui.GetQuery())
 	if errors != nil {
@@ -160,5 +162,7 @@ func main() {
 	default:
 		panic("Match is neither a Show or a Movie")
 	}
+
+	fmt.Println("All done!")
 	return
 }
