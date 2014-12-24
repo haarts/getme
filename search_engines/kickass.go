@@ -45,7 +45,7 @@ func constructURL(episode string) string { //NOTE this url concat is broken but 
 	return fmt.Sprintf(kickassSearchURL+"/usearch/%s/?rss=1", url.QueryEscape(episode))
 }
 
-func Search(episodes []sources.Episode) ([]TorrentURL, error) {
+func Search(episodes []*sources.Episode) ([]TorrentURL, error) {
 	var results []TorrentURL
 	var episodeResult []kickassResult
 	// TODO dont loop if a list of episodes span a complete season. Search for the season instead.
@@ -71,7 +71,7 @@ func Search(episodes []sources.Episode) ([]TorrentURL, error) {
 
 		onlyEnglish := xs[:0]
 		for _, x := range xs {
-			if isEnglish(x, e) {
+			if isEnglish(x, *e) {
 				onlyEnglish = append(onlyEnglish, x)
 			}
 		}
