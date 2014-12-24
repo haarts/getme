@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/haarts/getme/search_engines"
 	"github.com/haarts/getme/sources"
 )
 
@@ -54,6 +55,14 @@ func DisplayAlternatives(ms []sources.Match) *sources.Match {
 	}
 
 	return &ms[i-1]
+}
+
+func SearchTorrents(episodes []*sources.Episode) ([]search_engines.TorrentURL, error) {
+	fmt.Print("Searching for torrents")
+	c := startProgressBar()
+	defer stopProgressBar(c)
+
+	return search_engines.Search(episodes)
 }
 
 func Search(query string) ([]sources.Match, []error) {

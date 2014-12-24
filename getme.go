@@ -7,7 +7,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/haarts/getme/search_engines"
 	"github.com/haarts/getme/sources"
 	"github.com/haarts/getme/store"
 	"github.com/haarts/getme/ui"
@@ -31,7 +30,7 @@ func handleShow(show *sources.Show) error {
 	// So we create episodes based on seasons always. Then look at the disk/store and figure out
 	// what is missing.
 
-	torrents, err := search_engines.Search(show.Episodes())
+	torrents, err := ui.SearchTorrents(show.Episodes())
 	if err != nil {
 		fmt.Println("Something went wrong looking for your torrents.", err)
 		return err
