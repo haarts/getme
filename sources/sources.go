@@ -29,8 +29,11 @@ func (s *Show) GetSeasonsAndEpisodes() error {
 	return s.seasonsAndEpisodesFunc(s)
 }
 
-func (s Show) Episodes() []Episode {
-	return nil
+func (s Show) Episodes() (episodes []*Episode) {
+	for _, season := range s.Seasons {
+		episodes = append(episodes, season.Episodes...)
+	}
+	return
 }
 
 type Season struct {
