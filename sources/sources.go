@@ -25,6 +25,15 @@ type Show struct {
 	seasonsAndEpisodesFunc func(*Show) error
 }
 
+func (s *Show) String() string {
+	return fmt.Sprintf(
+		"Show: %s, number of Seasons: %d, number of episodes: %d",
+		s.Title,
+		len(s.Seasons),
+		len(s.Episodes()),
+	)
+}
+
 func (s Show) DisplayTitle() string {
 	return s.Title
 }
