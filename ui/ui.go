@@ -74,10 +74,10 @@ func Download(torrents []search_engines.Torrent, watchDir string) (err error) {
 
 // This is an odd function here. Perhaps I'll group it with the 'getBody' function.
 func download(torrent search_engines.Torrent, watchDir string) error {
-	fileName := torrent.Episode.AsFileName() + ".torrent"
+	//fileName := torrent.Episode.AsFileName() + ".torrent"
 
 	// TODO: check file existence first with io.IsExist
-	output, err := os.Create(path.Join(watchDir, fileName))
+	output, err := os.Create(path.Join(watchDir, torrent.OriginalName))
 	if err != nil {
 		return err
 	}
@@ -98,7 +98,7 @@ func download(torrent search_engines.Torrent, watchDir string) error {
 }
 
 func SearchTorrents(episodes []*sources.Episode) ([]search_engines.Torrent, error) {
-	fmt.Print("Searching for torrents")
+	fmt.Printf("Searching for %d torrents", len(episodes))
 	c := startProgressBar()
 	defer stopProgressBar(c)
 

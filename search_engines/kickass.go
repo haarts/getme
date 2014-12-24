@@ -14,8 +14,9 @@ import (
 )
 
 type Torrent struct {
-	URL     string
-	Episode *sources.Episode
+	URL          string
+	Episode      *sources.Episode
+	OriginalName string
 }
 
 type Item struct {
@@ -23,6 +24,7 @@ type Item struct {
 	InfoHash string `xml:"infoHash"`
 	Seeds    int    `xml:"seeds"`
 	Peers    int    `xml:"peers"`
+	FileName string `xml:"fileName"`
 }
 
 func (i Item) torrentURL() string {
@@ -61,7 +63,7 @@ func Search(episodes []*sources.Episode) ([]Torrent, error) {
 			continue
 		}
 
-		results = append(results, Torrent{best.torrentURL(), e})
+		results = append(results, Torrent{best.torrentURL(), e, best.FileName})
 	}
 	return results, nil
 }
