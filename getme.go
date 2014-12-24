@@ -33,7 +33,7 @@ func handleShow(show *sources.Show) error {
 
 	torrents, err := search_engines.Search(show.Episodes())
 	if err != nil {
-		fmt.Println("Something went wrong looking for your episodes.", err)
+		fmt.Println("Something went wrong looking for your torrents.", err)
 		return err
 	}
 	for _, torrent := range torrents {
