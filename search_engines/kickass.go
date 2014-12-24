@@ -13,7 +13,10 @@ import (
 	"github.com/haarts/getme/sources"
 )
 
-type TorrentURL string
+type Torrent struct {
+	URL     string
+	Episode *sources.Episode
+}
 
 type Item struct {
 	Title    string `xml:"title"`
@@ -22,8 +25,8 @@ type Item struct {
 	Peers    int    `xml:"peers"`
 }
 
-func (i Item) torrentURL() TorrentURL {
-	return TorrentURL(fmt.Sprintf(torCacheURL, i.InfoHash))
+func (i Item) torrentURL() string {
+	return fmt.Sprintf(torCacheURL, i.InfoHash)
 }
 
 type kickassSearchResult struct {
@@ -39,21 +42,26 @@ func (a BySeeds) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a BySeeds) Less(i, j int) bool { return a[i].Seeds > a[j].Seeds }
 
 var kickassSearchURL = "https://kickass.so"
-var torCacheURL = "https://torcache.net/torrent/%s.torrent"
+var torCacheURL = "http://torcache.net/torrent/%s.torrent"
 
 func constructURL(episode string) string { //NOTE this url concat is broken but it's for tests...
 	return fmt.Sprintf(kickassSearchURL+"/usearch/%s/?rss=1", url.QueryEscape(episode))
 }
 
-func Search(episodes []*sources.Episode) ([]TorrentURL, error) {
-	var results []TorrentURL
+func Search(episodes []*sources.Episode) ([]Torrent, error) {
+	var results []Torrent
 	// TODO dont loop if a list of episodes span a complete season. Search for the season instead.
+	// TODO parallel execution
 	for _, e := range episodes {
 		best, err := getBestTorrentForEpisode(e)
 		if err != nil {
 			return nil, err
 		}
-		results = append(results, best.torrentURL())
+		if best == nil {
+			continue
+		}
+
+		results = append(results, Torrent{best.torrentURL(), e})
 	}
 	return results, nil
 }
@@ -63,8 +71,8 @@ func getBestTorrentForEpisode(e *sources.Episode) (*Item, error) {
 	var results []Item
 	for _, q := range e.QueryNames() {
 		body, err := searchKickass(q)
-		if err != nil {
-			return nil, err
+		if err != nil { // No luck for this query.
+			continue
 		}
 
 		var result kickassSearchResult
@@ -75,7 +83,12 @@ func getBestTorrentForEpisode(e *sources.Episode) (*Item, error) {
 		results = append(results, result.Channel.Items...)
 	}
 
+	if len(results) == 0 {
+		return nil, nil //errors.New("Unable to find a result for this episode")
+	}
+
 	onlyEnglish := results[:0]
+
 	for _, x := range results {
 		if isEnglish(x, *e) {
 			onlyEnglish = append(onlyEnglish, x)
@@ -92,18 +105,10 @@ func getBest(xs []Item) Item {
 	return xs[0]
 }
 
-// English is when the title doesn't meantion any names
-// Except when in combination with Sub(s)
-// Except when the show name has a language in it
-// Impl:
-// get all languages from title
-// if language present check if is in showname
-// if language present check if title contains 'Subs'
-// Impl: getting language from title
-// create word boundaries
-// search for country codes as words
-// search for english name for language
-// search for native name for language
+// TODO
+// search for english name for foreign language
+// search for native name for foreign language
+// reject if found
 func isEnglish(i Item, e sources.Episode) bool {
 	// Too weak a check but it is the easiest
 	if strings.Contains(strings.ToLower(e.ShowName()), "french") {

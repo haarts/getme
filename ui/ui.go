@@ -57,7 +57,7 @@ func DisplayAlternatives(ms []sources.Match) *sources.Match {
 	return &ms[i-1]
 }
 
-func SearchTorrents(episodes []*sources.Episode) ([]search_engines.TorrentURL, error) {
+func SearchTorrents(episodes []*sources.Episode) ([]search_engines.Torrent, error) {
 	fmt.Print("Searching for torrents")
 	c := startProgressBar()
 	defer stopProgressBar(c)

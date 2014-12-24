@@ -5,8 +5,8 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strings"
 
+	"github.com/haarts/getme/search_engines"
 	"github.com/haarts/getme/sources"
 	"github.com/haarts/getme/store"
 	"github.com/haarts/getme/ui"
@@ -32,11 +32,14 @@ func handleShow(show *sources.Show) error {
 
 	torrents, err := ui.SearchTorrents(show.Episodes())
 	if err != nil {
-		fmt.Println("Something went wrong looking for your torrents.", err)
+		fmt.Println("Something went wrong looking for your torrents: ", err)
 		return err
 	}
 	for _, torrent := range torrents {
-		download(string(torrent))
+		err := download(torrent)
+		if err != nil {
+			fmt.Println("Something went wrong downloading a torrent: ", err)
+		}
 	}
 
 	return nil
@@ -79,31 +82,27 @@ func main() {
 }
 
 // This is an odd function here. Perhaps I'll group it with the 'getBody' function.
-func download(url string) {
-	tokens := strings.Split(url, "/")
-	fileName := tokens[len(tokens)-1]
-	fmt.Println("Downloading", url, "to", fileName)
+func download(torrent search_engines.Torrent) error {
+	fileName := torrent.Episode.AsFileName()
+	fmt.Println("Downloading", torrent.URL, "to", fileName)
 
 	// TODO: check file existence first with io.IsExist
 	output, err := os.Create("/tmp/getme/" + fileName)
 	if err != nil {
-		fmt.Println("Error while creating", fileName, "-", err)
-		return
+		return err
 	}
 	defer output.Close()
 
-	response, err := http.Get(url)
+	response, err := http.Get(torrent.URL)
 	if err != nil {
-		fmt.Println("Error while downloading", url, "-", err)
-		return
+		return err
 	}
 	defer response.Body.Close()
 
-	n, err := io.Copy(output, response.Body)
+	_, err = io.Copy(output, response.Body)
 	if err != nil {
-		fmt.Println("Error while downloading", url, "-", err)
-		return
+		return err
 	}
 
-	fmt.Println(n, "bytes downloaded.")
+	return nil
 }

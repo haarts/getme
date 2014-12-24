@@ -1,6 +1,9 @@
 package sources
 
-import "fmt"
+import (
+	"fmt"
+	"regexp"
+)
 
 type Match interface {
 	DisplayTitle() string
@@ -77,6 +80,11 @@ func Search(q string) (matches []Match, errors []error) {
 
 func (e *Episode) ShowName() string {
 	return e.Season.Show.Title
+}
+
+func (e *Episode) AsFileName() string {
+	re := regexp.MustCompile("[^a-zA-Z0-9]")
+	return string(re.ReplaceAll([]byte(e.QueryNames()[0]), []byte("_")))
 }
 
 func (e *Episode) QueryNames() []string {

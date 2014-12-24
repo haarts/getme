@@ -10,6 +10,16 @@ func searchTestFunction(_ string) ([]sources.Match, error) {
 	return make([]sources.Match, 0), nil
 }
 
+func TestAsFileName(t *testing.T) {
+	show := sources.Show{Title: "with & silly ! chars 123"}
+	season := sources.Season{Show: &show}
+	episode := sources.Episode{Season: &season}
+
+	if episode.AsFileName() != "with___silly___chars_123_S00E00" {
+		t.Error("Expected no silly characters, got:", episode.AsFileName())
+	}
+}
+
 func TestRegisterDuplicateSource(t *testing.T) {
 	defer func() {
 		str := recover()
