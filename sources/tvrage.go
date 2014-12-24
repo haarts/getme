@@ -51,6 +51,7 @@ func constructTvRageSeasonsURL(show *Show) string {
 }
 
 func searchTvRage(query string) ([]Match, error) {
+	fmt.Printf("tvRageURL %+v\n", tvRageURL)
 	resp, err := http.Get(constructTvRageSearchURL(query))
 	if err != nil {
 		return nil, err //TODO retry a couple of times when it's a timeout.
@@ -72,9 +73,16 @@ func searchTvRage(query string) ([]Match, error) {
 		return nil, err
 	}
 
-	// TODO sort popular serie on top
+	shows := convertTvRageToMatches(result.Shows)
+	i := popularShowAtIndex(shows)
+	if i != -1 {
+		popularShow := shows[i]
+		first := shows[0]
+		shows[0] = popularShow
+		shows[i] = first
+	}
 
-	return convertTvRageToMatches(result.Shows), nil
+	return shows, nil
 }
 
 func convertTvRageToMatches(ms []tvRageMatch) []Match {

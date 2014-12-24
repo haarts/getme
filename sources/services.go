@@ -11,7 +11,7 @@ func popularShowAtIndex(shows []Match) int {
 }
 
 func isPopularShow(showName string) bool {
-	for _, n := range shows {
+	for _, n := range SHOWS {
 		if showName == n {
 			return true
 		}

@@ -2,18 +2,6 @@
 
 <Results>
 <show>
-<showid>8511</showid>
-<name>The Big Bang Theory</name>
-<link>http://www.tvrage.com/The_Big_Bang_Theory</link>
-<country>US</country>
-<started>2007</started>
-<ended>0</ended>
-<seasons>8</seasons>
-<status>Returning Series</status>
-<classification>Scripted</classification>
-<genres><genre>Comedy</genre></genres>
-</show>
-<show>
 <showid>23312</showid>
 <name>Bang Goes The Theory</name>
 <link>http://www.tvrage.com/Bang_Goes_The_Theory</link>
@@ -24,6 +12,18 @@
 <status>Returning Series</status>
 <classification>Documentary</classification>
 <genres><genre>Discovery/Science</genre></genres>
+</show>
+<show>
+<showid>8511</showid>
+<name>The Big Bang Theory</name>
+<link>http://www.tvrage.com/The_Big_Bang_Theory</link>
+<country>US</country>
+<started>2007</started>
+<ended>0</ended>
+<seasons>8</seasons>
+<status>Returning Series</status>
+<classification>Scripted</classification>
+<genres><genre>Comedy</genre></genres>
 </show>
 <show>
 <showid>31483</showid>

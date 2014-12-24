@@ -3,7 +3,8 @@ package sources
 import "testing"
 
 func TestPopularShowAtIndex(t *testing.T) {
-	shows = [100]string{
+	oldShows := SHOWS
+	SHOWS = [100]string{
 		"one",
 		"two",
 		"three",
@@ -17,4 +18,5 @@ func TestPopularShowAtIndex(t *testing.T) {
 	if popularShowAtIndex(matches) != 1 {
 		t.Error("Expected to find the popular show at index 1, got:", popularShowAtIndex(matches))
 	}
+	SHOWS = oldShows // reset
 }
