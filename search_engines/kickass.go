@@ -124,7 +124,6 @@ func searchKickass(query string) ([]byte, error) {
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
-		fmt.Printf("resp.Request %+v\n", resp.Request)
 		return nil, errors.New(fmt.Sprintf("Search returned non 200 status code: %d", resp.StatusCode))
 	}
 
