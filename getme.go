@@ -2,11 +2,7 @@ package main
 
 import (
 	"fmt"
-	"io"
-	"net/http"
-	"os"
 
-	"github.com/haarts/getme/search_engines"
 	"github.com/haarts/getme/sources"
 	"github.com/haarts/getme/store"
 	"github.com/haarts/getme/ui"
@@ -35,11 +31,9 @@ func handleShow(show *sources.Show) error {
 		fmt.Println("Something went wrong looking for your torrents: ", err)
 		return err
 	}
-	for _, torrent := range torrents {
-		err := download(torrent)
-		if err != nil {
-			fmt.Println("Something went wrong downloading a torrent: ", err)
-		}
+	err = ui.Download(torrents)
+	if err != nil {
+		fmt.Println("Something went wrong downloading a torrent: ", err)
 	}
 
 	return nil
@@ -79,30 +73,5 @@ func main() {
 	default:
 		panic("Match is neither a Show or a Movie")
 	}
-}
-
-// This is an odd function here. Perhaps I'll group it with the 'getBody' function.
-func download(torrent search_engines.Torrent) error {
-	fileName := torrent.Episode.AsFileName() + ".torrent"
-	fmt.Println("Downloading", torrent.URL, "to", fileName)
-
-	// TODO: check file existence first with io.IsExist
-	output, err := os.Create("/tmp/getme/" + fileName)
-	if err != nil {
-		return err
-	}
-	defer output.Close()
-
-	response, err := http.Get(torrent.URL)
-	if err != nil {
-		return err
-	}
-	defer response.Body.Close()
-
-	_, err = io.Copy(output, response.Body)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return
 }

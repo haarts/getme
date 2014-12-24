@@ -3,6 +3,8 @@ package ui
 import (
 	"bufio"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -55,6 +57,43 @@ func DisplayAlternatives(ms []sources.Match) *sources.Match {
 	}
 
 	return &ms[i-1]
+}
+
+func Download(torrents []search_engines.Torrent) (err error) {
+	fmt.Print("Downloading torrents")
+	c := startProgressBar()
+	defer stopProgressBar(c)
+
+	for _, torrent := range torrents {
+		err = download(torrent) // I know I'm shadowing
+	}
+
+	return err
+}
+
+// This is an odd function here. Perhaps I'll group it with the 'getBody' function.
+func download(torrent search_engines.Torrent) error {
+	fileName := torrent.Episode.AsFileName() + ".torrent"
+
+	// TODO: check file existence first with io.IsExist
+	output, err := os.Create("/tmp/getme/" + fileName)
+	if err != nil {
+		return err
+	}
+	defer output.Close()
+
+	response, err := http.Get(torrent.URL)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	_, err = io.Copy(output, response.Body)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func SearchTorrents(episodes []*sources.Episode) ([]search_engines.Torrent, error) {
