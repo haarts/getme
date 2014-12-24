@@ -84,7 +84,7 @@ func Search(episodes []*sources.Episode) ([]TorrentURL, error) {
 	return results, nil
 }
 
-// pick 1080p if no there pick 720p
+// TODO pick 1080p if no there pick 720p
 func getBest(xs []Item) Item {
 	return xs[0]
 }
