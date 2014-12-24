@@ -52,10 +52,10 @@ func handleShow(show *sources.Show) error {
 }
 
 func main() {
-	matches, err := ui.Search(ui.GetQuery())
-	if err != nil {
+	matches, errors := ui.Search(ui.GetQuery())
+	if errors != nil {
 		fmt.Println("We've encountered a problem searching. The error:")
-		fmt.Println(" ", err)
+		fmt.Println(" ", errors)
 	}
 	if len(matches) == 0 {
 		fmt.Println("We haven't found what you were looking for.")
@@ -75,7 +75,7 @@ func main() {
 
 	switch m := (*match).(type) {
 	case sources.Show:
-		err = handleShow(&m)
+		err := handleShow(&m)
 		if err != nil {
 			return
 		}

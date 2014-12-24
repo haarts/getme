@@ -56,7 +56,7 @@ func DisplayAlternatives(ms []sources.Match) *sources.Match {
 	return &ms[i-1]
 }
 
-func Search(query string) ([]sources.Match, error) {
+func Search(query string) ([]sources.Match, []error) {
 	fmt.Print("Seaching: ")
 	fmt.Print(strings.Join(sources.ListSources(), ", "))
 	fmt.Print("\n")
@@ -66,7 +66,7 @@ func Search(query string) ([]sources.Match, error) {
 
 	matches, errors := sources.Search(query)
 	if !isAllNil(errors) {
-		return nil, errors[0] //TODO change the type to []error
+		return nil, errors
 	}
 
 	return matches, nil

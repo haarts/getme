@@ -64,7 +64,7 @@ func ListSources() (names []string) {
 }
 
 func Search(q string) (matches []Match, errors []error) {
-	for _, s := range sources {
+	for _, s := range sources { //TODO Make parallel
 		ms, err := s(q)
 		matches = append(matches, ms...)
 		errors = append(errors, err)
