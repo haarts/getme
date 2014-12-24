@@ -1,7 +1,14 @@
 package main
 
 import (
+	"bufio"
+	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"os/user"
+	"path"
+	"strings"
 
 	"github.com/haarts/getme/sources"
 	"github.com/haarts/getme/store"
@@ -39,7 +46,87 @@ func handleShow(show *sources.Show) error {
 	return nil
 }
 
+func configFilePath() string {
+	var u *user.User
+	if u, _ = user.Current(); u == nil {
+		return ""
+	}
+	dirPath := path.Join(u.HomeDir, ".config", "getme") // TODO What's the sane location for Windows?
+	filePath := path.Join(dirPath, "config.ini")
+	return filePath
+}
+
+func checkConfig() error {
+	_, err := os.Stat(configFilePath())
+	return err
+}
+
+func writeDefaultConfig() {
+	f := configFilePath()
+	dir, _ := path.Split(f)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return
+	}
+	if err := ioutil.WriteFile(f, defaultConfigData(), 0644); err != nil {
+		return
+	}
+}
+
+func defaultConfigData() []byte {
+	return []byte(`watch_dir = /tmp/torrents
+state_dir = /tmp/state`)
+}
+
+type Config struct {
+	WatchDir string
+	StateDir string
+}
+
+func readConfig() (Config, error) {
+	file, err := os.Open(configFilePath())
+	if err != nil {
+		return Config{}, err
+	}
+	defer file.Close()
+
+	conf := Config{}
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		text := scanner.Text()
+		parts := strings.Split(text, "=")
+		for i, _ := range parts {
+			parts[i] = strings.Trim(parts[i], " ")
+		}
+		switch parts[0] {
+		case "watch_dir":
+			conf.WatchDir = parts[1]
+		case "state_dir":
+			conf.StateDir = parts[1]
+		default:
+			return Config{}, errors.New("Found an unknown key in config.ini: " + parts[0])
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return Config{}, err
+	}
+	return conf, nil
+}
+
 func main() {
+	err := checkConfig()
+	if err != nil && os.IsNotExist(err) {
+		fmt.Println("It seems that there is no config file present at", configFilePath())
+		fmt.Println("Writing a default one, please inspect it and restart GetMe.")
+		writeDefaultConfig()
+		return
+	}
+	conf, err := readConfig()
+	if err != nil {
+		fmt.Println("Something went wrote reading the config file:", err)
+	}
+	fmt.Printf("conf %+v\n", conf)
+
 	matches, errors := ui.Search(ui.GetQuery())
 	if errors != nil {
 		fmt.Println("We've encountered a problem searching. The error:")
