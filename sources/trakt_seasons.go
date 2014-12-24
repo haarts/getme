@@ -40,15 +40,16 @@ func getSeasonsOnTrakt(show *Show) error {
 		return err
 	}
 
-	show.Seasons = convertToSeasons(ss)
+	show.Seasons = convertToSeasons(show, ss)
 	return nil
 }
 
 // Quite a bit of duplication with the convertToMatches function.
-func convertToSeasons(ss []traktSeason) []*Season {
+func convertToSeasons(show *Show, ss []traktSeason) []*Season {
 	seasons := make([]*Season, len(ss))
 	for i, s := range ss {
 		season := Season{
+			Show:     show,
 			Season:   s.Season,
 			Episodes: make([]*Episode, s.Episodes),
 		}
