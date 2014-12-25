@@ -3,7 +3,6 @@ package sources
 import (
 	"fmt"
 	"regexp"
-	"time"
 )
 
 type Match interface {
@@ -14,16 +13,32 @@ type Movie struct {
 	Title string
 }
 
-func (m Movie) DisplayTitle() string {
-	return m.Title
-}
-
 type Show struct {
 	Title                  string
 	URL                    string
 	ID                     int
 	Seasons                []*Season
 	seasonsAndEpisodesFunc func(*Show) error
+}
+
+type Season struct {
+	Show     *Show
+	Season   int
+	Episodes []*Episode
+}
+
+// TODO use TriedAt and Backoff to slowly stop trying to download episodes which prop never complete.
+type Episode struct {
+	Title   string
+	Season  *Season
+	Episode int
+	Pending bool
+	//TriedAt time.Time
+	//Backoff int
+}
+
+func (m Movie) DisplayTitle() string {
+	return m.Title
 }
 
 func (s *Show) String() string {
@@ -60,25 +75,14 @@ func (s Show) PendingEpisodes() (episodes []*Episode) {
 	return
 }
 
-type Season struct {
-	Show     *Show
-	Season   int
-	Episodes []*Episode
-}
-
 // TODO if so the downloader can decide to download a season instead of seperate episodes.
-func (s *Season) allEpisodesPending() bool {
-	return false
-}
-
-// TODO use TriedAt and Backoff to slowly stop trying to download episodes which prop never complete.
-type Episode struct {
-	Title   string
-	Season  *Season
-	Episode int
-	Pending bool
-	TriedAt time.Time
-	Backoff int
+func (s *Season) AllEpisodesPending() bool {
+	for _, e := range s.Episodes {
+		if !e.Pending {
+			return false
+		}
+	}
+	return true
 }
 
 type searchFun func(string) ([]Match, error)

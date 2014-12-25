@@ -10,6 +10,26 @@ func searchTestFunction(_ string) ([]sources.Match, error) {
 	return make([]sources.Match, 0), nil
 }
 
+func TestAllEpisodesPending(t *testing.T) {
+	episodes := []*sources.Episode{
+		{Pending: true},
+		{Pending: false},
+	}
+	season := sources.Season{Episodes: episodes}
+	if season.AllEpisodesPending() {
+		t.Error("Not all episodes are pending")
+	}
+
+	episodes = []*sources.Episode{
+		{Pending: true},
+		{Pending: true},
+	}
+	season = sources.Season{Episodes: episodes}
+	if !season.AllEpisodesPending() {
+		t.Error("All episodes are pending")
+	}
+}
+
 func TestAsFileName(t *testing.T) {
 	show := sources.Show{Title: "with & silly ! chars 123"}
 	season := sources.Season{Show: &show}

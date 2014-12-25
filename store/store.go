@@ -6,6 +6,7 @@ import (
 	"github.com/haarts/getme/sources"
 )
 
+// TODO deprecated this. Just use sources.Show
 type Show struct {
 	Title string
 }
