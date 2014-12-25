@@ -75,7 +75,6 @@ func (s Show) PendingEpisodes() (episodes []*Episode) {
 	return
 }
 
-// TODO if so the downloader can decide to download a season instead of seperate episodes.
 func (s *Season) AllEpisodesPending() bool {
 	for _, e := range s.Episodes {
 		if !e.Pending {
