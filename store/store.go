@@ -1,24 +1,34 @@
 package store
 
-import "github.com/haarts/getme/sources"
+import (
+	"fmt"
+
+	"github.com/haarts/getme/sources"
+)
 
 type Show struct {
 	Title string
 }
 
 type Store struct {
-	shows map[string]Show
+	shows    map[string]Show
+	stateDir string
 }
 
 // TODO deserialize from a bunch of files.
 func Open(stateDir string) *Store {
 	return &Store{
-		shows: make(map[string]Show),
+		shows:    make(map[string]Show),
+		stateDir: stateDir,
 	}
 }
 
 // TODO flush to disk
 func (s Store) Close() {
+	for _, show := range s.shows {
+
+		fmt.Printf("s %+v\n", show)
+	}
 }
 
 // TODO adds serialization to a bunch of JSON files.
@@ -26,7 +36,7 @@ func (s Store) Close() {
 // episode is a file in that. When an episode has been found and downloaded
 // just rename the file. The file contains some meta data.
 
-func (s *Store) CreateShow(m sources.Show) *Show {
+func (s *Store) CreateShow(m *sources.Show) *Show {
 	show := Show{m.Title}
 	s.shows[m.Title] = show
 	return &show
