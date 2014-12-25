@@ -65,6 +65,11 @@ type Season struct {
 	Episodes []*Episode
 }
 
+// TODO if so the downloader can decide to download a season instead of seperate episodes.
+func (s *Season) allEpisodesPending() bool {
+	return false
+}
+
 type Episode struct {
 	Title   string
 	Season  *Season
