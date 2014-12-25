@@ -44,6 +44,9 @@ func DisplayBestMatchConfirmation(matches []sources.Match) *sources.Match {
 	}
 }
 
+// TODO change arg type to [][]sources.Match
+// Then make len([][]Match) generators: generator([i][]Match, len([i-][]Match))
+// The second arg is to count the number for the user
 func DisplayAlternatives(ms []sources.Match) *sources.Match {
 	fmt.Println("Which one ARE you looking for?")
 	for i, m := range ms {
