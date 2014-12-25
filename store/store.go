@@ -6,20 +6,15 @@ import (
 	"github.com/haarts/getme/sources"
 )
 
-// TODO deprecated this. Just use sources.Show
-type Show struct {
-	Title string
-}
-
 type Store struct {
-	shows    map[string]Show
+	shows    map[string]*sources.Show
 	stateDir string
 }
 
 // TODO deserialize from a bunch of files.
 func Open(stateDir string) *Store {
 	return &Store{
-		shows:    make(map[string]Show),
+		shows:    make(map[string]*sources.Show),
 		stateDir: stateDir,
 	}
 }
@@ -37,8 +32,6 @@ func (s Store) Close() {
 // episode is a file in that. When an episode has been found and downloaded
 // just rename the file. The file contains some meta data.
 
-func (s *Store) CreateShow(m *sources.Show) *Show {
-	show := Show{m.Title}
-	s.shows[m.Title] = show
-	return &show
+func (s *Store) CreateShow(m *sources.Show) {
+	s.shows[m.Title] = m
 }
