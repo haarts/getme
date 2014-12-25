@@ -3,6 +3,7 @@ package sources
 import (
 	"fmt"
 	"regexp"
+	"time"
 )
 
 type Match interface {
@@ -70,11 +71,14 @@ func (s *Season) allEpisodesPending() bool {
 	return false
 }
 
+// TODO use TriedAt and Backoff to slowly stop trying to download episodes which prop never complete.
 type Episode struct {
 	Title   string
 	Season  *Season
 	Episode int
 	Pending bool
+	TriedAt time.Time
+	Backoff int
 }
 
 type searchFun func(string) ([]Match, error)
