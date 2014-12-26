@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 func init() {
@@ -36,8 +37,9 @@ type tvRageSeason struct {
 }
 
 type tvRageEpisode struct {
-	Episode int    `xml:"seasonnum"`
-	Title   string `xml:"title"`
+	Episode int       `xml:"seasonnum"`
+	Title   string    `xml:"title"`
+	AirDate time.Time `xml:"airdate"`
 }
 
 var tvRageURL = "http://services.tvrage.com"
@@ -73,6 +75,12 @@ func searchTvRage(query string) ([]Match, error) {
 	}
 
 	shows := convertTvRageToMatches(result.Shows)
+	putPopularShowOnTop(shows)
+
+	return shows, nil
+}
+
+func putPopularShowOnTop(shows []Match) {
 	i := popularShowAtIndex(shows)
 	if i != -1 {
 		popularShow := shows[i]
@@ -80,8 +88,6 @@ func searchTvRage(query string) ([]Match, error) {
 		shows[0] = popularShow
 		shows[i] = first
 	}
-
-	return shows, nil
 }
 
 func convertTvRageToMatches(ms []tvRageMatch) []Match {
@@ -132,7 +138,13 @@ func convertFromTvRageSeasons(show *Show, ss []tvRageSeason) []*Season {
 			Episodes: make([]*Episode, len(s.Episodes)),
 		}
 		for j, e := range s.Episodes {
-			season.Episodes[j] = &Episode{e.Title, &season, e.Episode, true}
+			season.Episodes[j] = &Episode{
+				Title:   e.Title,
+				Season:  &season,
+				Episode: e.Episode,
+				Pending: true,
+				AirDate: e.AirDate,
+			}
 		}
 		seasons[i] = &season
 	}

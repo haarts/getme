@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type traktSeason struct {
@@ -54,7 +55,13 @@ func convertToSeasons(show *Show, ss []traktSeason) []*Season {
 			Episodes: make([]*Episode, s.Episodes),
 		}
 		for j, _ := range season.Episodes {
-			season.Episodes[j] = &Episode{"", &season, j + 1, true}
+			season.Episodes[j] = &Episode{
+				Title:   "",
+				Season:  &season,
+				Episode: j + 1,
+				Pending: true,
+				AirDate: time.Time{},
+			}
 		}
 		seasons[i] = &season
 	}

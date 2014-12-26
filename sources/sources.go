@@ -3,6 +3,7 @@ package sources
 import (
 	"fmt"
 	"regexp"
+	"time"
 )
 
 type Match interface {
@@ -33,6 +34,7 @@ type Episode struct {
 	Season  *Season
 	Episode int
 	Pending bool
+	AirDate time.Time
 	//TriedAt time.Time
 	//Backoff int
 }
