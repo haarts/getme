@@ -9,6 +9,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"text/tabwriter"
 	"time"
 
 	"github.com/haarts/getme/search_engines"
@@ -32,13 +33,13 @@ func DisplayPendingEpisodes(show *sources.Show) {
 	}
 }
 
-func DisplayBestMatchConfirmation(matches []sources.Match) *sources.Match {
-	displayBestMatch(matches[0])
+func DisplayBestMatchConfirmation(matches [][]sources.Match) *sources.Match {
+	displayBestMatch(matches[0][0])
 	fmt.Print("Is this the one you want? [Y/n] ")
 	line := getUserInput()
 
 	if line == "" || line == "y" || line == "Y" {
-		return &matches[0]
+		return &matches[0][0]
 	} else {
 		return nil
 	}
@@ -47,11 +48,38 @@ func DisplayBestMatchConfirmation(matches []sources.Match) *sources.Match {
 // TODO change arg type to [][]sources.Match
 // Then make len([][]Match) generators: generator([i][]Match, len([i-][]Match))
 // The second arg is to count the number for the user
-func DisplayAlternatives(ms []sources.Match) *sources.Match {
+func DisplayAlternatives(ms [][]sources.Match) *sources.Match {
 	fmt.Println("Which one ARE you looking for?")
+	w := new(tabwriter.Writer)
+	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
+	fmt.Fprint(w, strings.Join(sources.ListSources(), "\t")+"\n")
+
+	var generators []func() (string, []interface{})
+	step := 1
 	for i, m := range ms {
-		fmt.Printf("[%d] %s\n", i+1, m.DisplayTitle())
+		if i > 0 {
+			step += len(ms[i-1])
+		}
+		generators = append(generators, createGenerator(m, step))
 	}
+
+	anyGeneratorAlive := true
+	for anyGeneratorAlive {
+		var collectorFmt []string
+		var collectorArgs []interface{}
+		anyGeneratorAlive = false
+		for _, g := range generators {
+			fmtString, args := g()
+			if fmtString != "" {
+				anyGeneratorAlive = true
+			}
+			collectorFmt = append(collectorFmt, fmtString)
+			collectorArgs = append(collectorArgs, args...)
+		}
+		fmt.Fprintf(w, strings.Join(collectorFmt, "\t")+"\n", collectorArgs...)
+	}
+
+	w.Flush()
 
 	fmt.Print("Enter the correct number: ")
 	line := getUserInput()
@@ -67,7 +95,28 @@ func DisplayAlternatives(ms []sources.Match) *sources.Match {
 		return DisplayAlternatives(ms)
 	}
 
-	return &ms[i-1]
+	var flatList []sources.Match
+	for _, m := range ms {
+		flatList = append(flatList, m...)
+	}
+
+	return &flatList[i-1]
+}
+
+func createGenerator(ms []sources.Match, step int) func() (string, []interface{}) {
+	i := 0
+	f := func() (string, []interface{}) {
+		var fmtString string
+		var args []interface{}
+		if i < len(ms) {
+			fmtString = "[%d] %s"
+			args = []interface{}{i + step, ms[i].DisplayTitle()}
+		}
+		i++
+		return fmtString, args
+	}
+
+	return f
 }
 
 func Download(torrents []search_engines.Torrent, watchDir string) (err error) {
@@ -118,7 +167,7 @@ func SearchTorrents(episodes []*sources.Episode) ([]search_engines.Torrent, erro
 	return search_engines.Search(episodes)
 }
 
-func Search(query string) ([]sources.Match, []error) {
+func Search(query string) ([][]sources.Match, []error) {
 	fmt.Print("Seaching: ")
 	fmt.Print(strings.Join(sources.ListSources(), ", "))
 	fmt.Print("\n")
@@ -144,7 +193,7 @@ func isAllNil(errors []error) bool {
 }
 
 func Lookup(m *sources.Show) error {
-	fmt.Print("Looking up seasons and episodes")
+	fmt.Print("Looking up seasons and episodes for ", m.Title)
 	c := startProgressBar()
 	defer stopProgressBar(c)
 

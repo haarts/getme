@@ -58,13 +58,17 @@ func ListSources() (names []string) {
 	return
 }
 
-func Search(q string) (matches []Match, errors []error) {
+func Search(q string) ([][]Match, []error) {
+	var matches = make([][]Match, len(sources))
+	var errors = make([]error, len(sources))
+	var i int
 	for _, s := range sources { //TODO Make parallel
 		ms, err := s(q)
-		matches = append(matches, ms...) // TODO This is pretty dumb of course, with multiple sources the first always wins.
+		matches[i] = ms
 		errors = append(errors, err)
+		i++
 	}
-	return
+	return matches, errors
 }
 
 func (m Movie) DisplayTitle() string {
