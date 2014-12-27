@@ -37,12 +37,28 @@ type tvRageSeason struct {
 }
 
 type tvRageEpisode struct {
-	Episode int       `xml:"seasonnum"`
-	Title   string    `xml:"title"`
-	AirDate time.Time `xml:"airdate"`
+	Episode int        `xml:"seasonnum"`
+	Title   string     `xml:"title"`
+	AirDate tvRageDate `xml:"airdate"`
+}
+
+type tvRageDate struct {
+	time.Time
 }
 
 var tvRageURL = "http://services.tvrage.com"
+
+func (t *tvRageDate) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	const dateFormat = "2006-01-02"
+	var s string
+	d.DecodeElement(&s, &start)
+	parse, err := time.Parse(dateFormat, s)
+	if err != nil {
+		return nil
+	}
+	*t = tvRageDate{parse}
+	return nil
+}
 
 func constructTvRageSearchURL(query string) string {
 	return fmt.Sprintf(tvRageURL+"/feeds/search.php?show=%s", url.QueryEscape(query))
@@ -143,7 +159,7 @@ func convertFromTvRageSeasons(show *Show, ss []tvRageSeason) []*Season {
 				Season:  &season,
 				Episode: e.Episode,
 				Pending: true,
-				AirDate: e.AirDate,
+				AirDate: e.AirDate.Time,
 			}
 		}
 		seasons[i] = &season
