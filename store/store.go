@@ -1,7 +1,10 @@
 package store
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
+	"path"
 
 	"github.com/haarts/getme/sources"
 )
@@ -22,9 +25,24 @@ func Open(stateDir string) *Store {
 // TODO flush to disk
 func (s Store) Close() {
 	for _, show := range s.shows {
-
-		fmt.Printf("s %+v\n", show)
+		s.store(show)
 	}
+}
+
+func (s Store) store(show *sources.Show) {
+	b, err := json.Marshal(show)
+	if err != nil {
+		fmt.Printf("err %+v\n", err) //TODO handle err properly
+	}
+
+	f, err := os.Create(path.Join(s.stateDir, "store.json"))
+	if err != nil {
+		fmt.Printf("err %+v\n", err)
+	}
+	defer f.Close()
+
+	f.Write(b)
+
 }
 
 // TODO adds serialization to a bunch of JSON files.

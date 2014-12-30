@@ -15,27 +15,27 @@ type Movie struct {
 }
 
 type Show struct {
-	Title                  string
-	URL                    string
-	ID                     int
-	Seasons                []*Season
+	Title                  string    `json:"title"`
+	URL                    string    `json:"url"`
+	ID                     int       `json:"id"`
+	Seasons                []*Season `json:""`
 	seasonsAndEpisodesFunc func(*Show) error
-	isDaily                bool
+	isDaily                bool `json:"is_daily"`
 }
 
 type Season struct {
 	Show     *Show
-	Season   int
-	Episodes []*Episode
+	Season   int        `json:"season"`
+	Episodes []*Episode `json:"episodes"`
 }
 
 // TODO use TriedAt and Backoff to slowly stop trying to download episodes which prop never complete.
 type Episode struct {
-	Title   string
 	Season  *Season
-	Episode int
-	Pending bool
-	AirDate time.Time
+	Title   string    `json:"title"`
+	Episode int       `json:"episode"`
+	Pending bool      `json:"pending"`
+	AirDate time.Time `json:"air_date"`
 	//TriedAt time.Time
 	//Backoff int
 }
