@@ -131,6 +131,7 @@ func (e *Episode) ShowName() string {
 	return e.Season.Show.Title
 }
 
+// TODO check if still used.
 func (e *Episode) AsFileName() string {
 	re := regexp.MustCompile("[^a-zA-Z0-9]")
 	return string(re.ReplaceAll([]byte(e.QueryNames()[0]), []byte("_")))

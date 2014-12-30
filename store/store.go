@@ -3,8 +3,10 @@ package store
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
+	"regexp"
 
 	"github.com/haarts/getme/sources"
 )
@@ -16,6 +18,10 @@ type Store struct {
 
 // TODO deserialize from a bunch of files.
 func Open(stateDir string) *Store {
+	err := os.Mkdir(stateDir, 0755)
+	if err != nil {
+		fmt.Printf("err %+v\n", err) // TODO handle err properly
+	}
 	return &Store{
 		shows:    make(map[string]*sources.Show),
 		stateDir: stateDir,
@@ -35,14 +41,15 @@ func (s Store) store(show *sources.Show) {
 		fmt.Printf("err %+v\n", err) //TODO handle err properly
 	}
 
-	f, err := os.Create(path.Join(s.stateDir, "store.json"))
+	err = ioutil.WriteFile(path.Join(s.stateDir, titleAsFileName(show.Title)+".json"), b, 0755)
 	if err != nil {
-		fmt.Printf("err %+v\n", err)
+		fmt.Printf("err %+v\n", err) //TODO handle err properly
 	}
-	defer f.Close()
+}
 
-	f.Write(b)
-
+func titleAsFileName(title string) string {
+	re := regexp.MustCompile("[^a-zA-Z0-9]")
+	return string(re.ReplaceAll([]byte(title), []byte("_")))
 }
 
 // TODO adds serialization to a bunch of JSON files.
