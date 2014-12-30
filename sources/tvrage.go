@@ -10,8 +10,12 @@ import (
 	"time"
 )
 
+type TvRage struct{}
+
+const TVRAGE = "tvrage"
+
 func init() {
-	Register("tvrage", searchTvRage)
+	Register(TVRAGE, TvRage{})
 }
 
 type tvRageResult struct {
@@ -48,27 +52,7 @@ type tvRageDate struct {
 
 var tvRageURL = "http://services.tvrage.com"
 
-func (t *tvRageDate) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	const dateFormat = "2006-01-02"
-	var s string
-	d.DecodeElement(&s, &start)
-	parse, err := time.Parse(dateFormat, s)
-	if err != nil {
-		return nil
-	}
-	*t = tvRageDate{parse}
-	return nil
-}
-
-func constructTvRageSearchURL(query string) string {
-	return fmt.Sprintf(tvRageURL+"/feeds/search.php?show=%s", url.QueryEscape(query))
-}
-
-func constructTvRageSeasonsURL(show *Show) string {
-	return fmt.Sprintf(tvRageURL+"/feeds/episode_list.php?sid=%d", show.ID)
-}
-
-func searchTvRage(query string) ([]Match, error) {
+func (t TvRage) Search(query string) ([]Match, error) {
 	resp, err := http.Get(constructTvRageSearchURL(query))
 	if err != nil {
 		return nil, err //TODO retry a couple of times when it's a timeout.
@@ -96,29 +80,7 @@ func searchTvRage(query string) ([]Match, error) {
 	return shows, nil
 }
 
-func putPopularShowOnTop(shows []Match) {
-	i := popularShowAtIndex(shows)
-	if i != -1 {
-		popularShow := shows[i]
-		first := shows[0]
-		shows[0] = popularShow
-		shows[i] = first
-	}
-}
-
-func convertTvRageToMatches(ms []tvRageMatch) []Match {
-	matches := make([]Match, len(ms))
-	for i, m := range ms {
-		matches[i] = Show{
-			Title: m.Title,
-			ID:    m.ID,
-			seasonsAndEpisodesFunc: getSeasonsOnTvRage,
-		}
-	}
-	return matches
-}
-
-func getSeasonsOnTvRage(show *Show) error {
+func (t TvRage) GetSeasonsAndEpisodes(show *Show) error {
 	resp, err := http.Get(constructTvRageSeasonsURL(show))
 	if err != nil {
 		return err //TODO retry a couple of times when it's a timeout.
@@ -142,6 +104,48 @@ func getSeasonsOnTvRage(show *Show) error {
 
 	show.Seasons = convertFromTvRageSeasons(show, result.EpisodeList.Seasons)
 	return nil
+}
+
+func (t *tvRageDate) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	const dateFormat = "2006-01-02"
+	var s string
+	d.DecodeElement(&s, &start)
+	parse, err := time.Parse(dateFormat, s)
+	if err != nil {
+		return nil
+	}
+	*t = tvRageDate{parse}
+	return nil
+}
+
+func constructTvRageSearchURL(query string) string {
+	return fmt.Sprintf(tvRageURL+"/feeds/search.php?show=%s", url.QueryEscape(query))
+}
+
+func constructTvRageSeasonsURL(show *Show) string {
+	return fmt.Sprintf(tvRageURL+"/feeds/episode_list.php?sid=%d", show.ID)
+}
+
+func putPopularShowOnTop(shows []Match) {
+	i := popularShowAtIndex(shows)
+	if i != -1 {
+		popularShow := shows[i]
+		first := shows[0]
+		shows[0] = popularShow
+		shows[i] = first
+	}
+}
+
+func convertTvRageToMatches(ms []tvRageMatch) []Match {
+	matches := make([]Match, len(ms))
+	for i, m := range ms {
+		matches[i] = Show{
+			Title:      m.Title,
+			ID:         m.ID,
+			SourceName: TVRAGE,
+		}
+	}
+	return matches
 }
 
 // TODO Quite a bit of duplication with the convertToMatches function.

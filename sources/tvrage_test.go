@@ -16,8 +16,8 @@ func TestTvRageSeasons(t *testing.T) {
 
 	tvRageURL = ts.URL
 
-	show := &Show{ID: 123}
-	getSeasonsOnTvRage(show)
+	show := &Show{ID: 123, SourceName: TVRAGE}
+	GetSeasonsAndEpisodes(show)
 
 	if len(show.Seasons) == 0 {
 		t.Fatal("Expected seasons to be not zero, got:", len(show.Seasons))
@@ -42,7 +42,7 @@ func TestTvRageSearch(t *testing.T) {
 
 	tvRageURL = ts.URL
 
-	matches, _ := searchTvRage("some query")
+	matches, _ := (TvRage{}).Search("some query")
 	if matches[0].DisplayTitle() != "The Big Bang Theory" {
 		t.Error("Best match is not The Big Bang Theory")
 	}

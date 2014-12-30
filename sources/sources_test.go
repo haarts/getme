@@ -6,10 +6,6 @@ import (
 	"github.com/haarts/getme/sources"
 )
 
-func searchTestFunction(_ string) ([]sources.Match, error) {
-	return make([]sources.Match, 0), nil
-}
-
 func TestAllEpisodesPending(t *testing.T) {
 	episodes := []*sources.Episode{
 		{Pending: true},
@@ -47,8 +43,8 @@ func TestRegisterDuplicateSource(t *testing.T) {
 			t.Error("Expected panic, got none.")
 		}
 	}()
-	sources.Register("one", searchTestFunction)
-	sources.Register("one", searchTestFunction)
+	sources.Register("one", sources.Trakt{})
+	sources.Register("one", sources.Trakt{})
 }
 
 func TestDisplayTitle(t *testing.T) {

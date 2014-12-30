@@ -45,6 +45,7 @@ func DisplayBestMatchConfirmation(matches [][]sources.Match) *sources.Match {
 	}
 }
 
+// TODO break this func up. Too long.
 func DisplayAlternatives(ms [][]sources.Match) *sources.Match {
 	fmt.Println("Which one ARE you looking for?")
 	w := new(tabwriter.Writer)
@@ -158,6 +159,7 @@ func download(torrent search_engines.Torrent, watchDir string) error {
 
 func SearchTorrents(episodes []*sources.Episode) ([]search_engines.Torrent, error) {
 	fmt.Printf("Searching for %d torrents", len(episodes))
+
 	c := startProgressBar()
 	defer stopProgressBar(c)
 
@@ -189,12 +191,13 @@ func isAllNil(errors []error) bool {
 	return true
 }
 
-func Lookup(m *sources.Show) error {
-	fmt.Print("Looking up seasons and episodes for ", m.Title)
+func Lookup(s *sources.Show) error {
+	fmt.Print("Looking up seasons and episodes for ", s.Title)
 	c := startProgressBar()
 	defer stopProgressBar(c)
 
-	return m.GetSeasonsAndEpisodes()
+	return sources.GetSeasonsAndEpisodes(s)
+	//return s.GetSeasonsAndEpisodes()
 }
 
 func displayBestMatch(bestMatch sources.Match) {

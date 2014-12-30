@@ -6,6 +6,11 @@ import (
 	"time"
 )
 
+type Source interface {
+	Search(string) ([]Match, error)
+	GetSeasonsAndEpisodes(*Show) error
+}
+
 type Match interface {
 	DisplayTitle() string
 }
@@ -15,12 +20,12 @@ type Movie struct {
 }
 
 type Show struct {
-	Title                  string    `json:"title"`
-	URL                    string    `json:"url"`
-	ID                     int       `json:"id"`
-	Seasons                []*Season `json:""`
-	seasonsAndEpisodesFunc func(*Show) error
-	isDaily                bool `json:"is_daily"`
+	Title      string    `json:"title"`
+	URL        string    `json:"url"`
+	ID         int       `json:"id"`
+	Seasons    []*Season `json:""`
+	SourceName string    `json:"source_name"`
+	isDaily    bool      `json:"is_daily"`
 }
 
 type Season struct {
@@ -40,11 +45,9 @@ type Episode struct {
 	//Backoff int
 }
 
-type searchFun func(string) ([]Match, error)
+var sources = make(map[string]Source)
 
-var sources = make(map[string]searchFun)
-
-func Register(name string, source searchFun) {
+func Register(name string, source Source) {
 	if _, dup := sources[name]; dup {
 		panic("source: Register called twice for source " + name)
 	}
@@ -63,12 +66,22 @@ func Search(q string) ([][]Match, []error) {
 	var errors = make([]error, len(sources))
 	var i int
 	for _, s := range sources { //TODO Make parallel
-		ms, err := s(q)
+		ms, err := s.Search(q)
 		matches[i] = ms
 		errors = append(errors, err)
 		i++
 	}
 	return matches, errors
+}
+
+func GetSeasonsAndEpisodes(s *Show) error {
+	source := sources[s.SourceName]
+	err := source.GetSeasonsAndEpisodes(s)
+	if err != nil {
+		return err
+	}
+	s.isDaily = s.determineIsDaily()
+	return nil
 }
 
 func (m Movie) DisplayTitle() string {
@@ -86,12 +99,6 @@ func (s *Show) String() string {
 
 func (s Show) DisplayTitle() string {
 	return s.Title
-}
-
-func (s *Show) GetSeasonsAndEpisodes() error {
-	err := s.seasonsAndEpisodesFunc(s)
-	s.isDaily = s.determineIsDaily()
-	return err
 }
 
 func (s Show) Episodes() (episodes []*Episode) {

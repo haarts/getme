@@ -16,7 +16,7 @@ type traktSeason struct {
 
 var traktSeasonsURL = "http://api.trakt.tv/show/seasons.json/5bc6254d3bbde304a49557cf2845d921/"
 
-func getSeasonsOnTrakt(show *Show) error {
+func (t Trakt) GetSeasonsAndEpisodes(show *Show) error {
 	parts := strings.Split(show.URL, "/")
 	traktIdentifier := parts[len(parts)-1]
 

@@ -10,8 +10,12 @@ import (
 	"sort"
 )
 
+type Trakt struct{}
+
+const TRAKT = "trakt"
+
 func init() {
-	Register("trakt", searchTrakt)
+	Register(TRAKT, Trakt{})
 }
 
 type ratings struct {
@@ -38,7 +42,7 @@ func constructURL(query string) string {
 	return traktSearchURL + "?query=" + escapedQuery.Encode()
 }
 
-func searchTrakt(query string) ([]Match, error) {
+func (t Trakt) Search(query string) ([]Match, error) {
 	resp, err := http.Get(constructURL(query))
 	if err != nil {
 		return nil, err //TODO retry a couple of times when it's a timeout.
@@ -69,9 +73,9 @@ func convertToMatches(ms []traktMatch) []Match {
 	matches := make([]Match, len(ms))
 	for i, m := range ms {
 		matches[i] = Show{
-			URL:   m.URL,
-			Title: m.Title,
-			seasonsAndEpisodesFunc: getSeasonsOnTrakt,
+			URL:        m.URL,
+			Title:      m.Title,
+			SourceName: TRAKT,
 		}
 	}
 	return matches
