@@ -32,7 +32,10 @@ func handleShow(show *sources.Show) error {
 		return nil
 	}
 
-	store.CreateShow(show)
+	err = store.CreateShow(show)
+	if err != nil {
+		fmt.Printf("err %+v\n", err)
+	}
 
 	// We have two entry points. One on the first run and one when running as daemon.
 	// So we create episodes based on seasons always. Then look at the disk/store and figure out

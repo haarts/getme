@@ -2,6 +2,7 @@ package store
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -17,34 +18,58 @@ type Store struct {
 }
 
 // TODO deserialize from a bunch of files.
-func Open(stateDir string) *Store {
-	err := os.Mkdir(stateDir, 0755)
+func Open(stateDir string) (*Store, error) {
+	err := ensureStateDir(stateDir)
 	if err != nil {
-		fmt.Printf("err %+v\n", err) // TODO handle err properly
+		return nil, err
 	}
+
 	return &Store{
 		shows:    make(map[string]*sources.Show),
 		stateDir: stateDir,
-	}
+	}, nil
 }
 
-// TODO flush to disk
-func (s Store) Close() {
+func (s Store) Close() error {
 	for _, show := range s.shows {
-		s.store(show)
+		err := s.store(show)
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
-func (s Store) store(show *sources.Show) {
+func ensureStateDir(stateDir string) error {
+	dirs := []string{
+		stateDir,
+		path.Join(stateDir, "shows"),
+		path.Join(stateDir, "movies"),
+	}
+
+	for _, d := range dirs {
+		err := os.Mkdir(d, 0755)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s Store) store(show *sources.Show) error {
 	b, err := json.Marshal(show)
 	if err != nil {
-		fmt.Printf("err %+v\n", err) //TODO handle err properly
+		return err
 	}
 
-	err = ioutil.WriteFile(path.Join(s.stateDir, titleAsFileName(show.Title)+".json"), b, 0755)
+	err = ioutil.WriteFile(path.Join(s.stateDir, "shows", titleAsFileName(show.Title)+".json"), b, 0755)
 	if err != nil {
-		fmt.Printf("err %+v\n", err) //TODO handle err properly
+		return err
 	}
+
+	return nil
 }
 
 func titleAsFileName(title string) string {
@@ -52,11 +77,10 @@ func titleAsFileName(title string) string {
 	return string(re.ReplaceAll([]byte(title), []byte("_")))
 }
 
-// TODO adds serialization to a bunch of JSON files.
-// Plan: each show is a dir in shows/. Each seasons is a dir in that. And each
-// episode is a file in that. When an episode has been found and downloaded
-// just rename the file. The file contains some meta data.
-
-func (s *Store) CreateShow(m *sources.Show) {
+func (s *Store) CreateShow(m *sources.Show) error {
+	if _, ok := s.shows[m.Title]; ok {
+		return errors.New(fmt.Sprintf("Show %s already exists.\n", m.Title))
+	}
 	s.shows[m.Title] = m
+	return nil
 }
