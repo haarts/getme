@@ -17,17 +17,20 @@ type Store struct {
 	stateDir string
 }
 
-// TODO deserialize from a bunch of files.
 func Open(stateDir string) (*Store, error) {
 	err := ensureStateDir(stateDir)
 	if err != nil {
 		return nil, err
 	}
-
-	return &Store{
+	store := &Store{
 		shows:    make(map[string]*sources.Show),
 		stateDir: stateDir,
-	}, nil
+	}
+
+	// TODO deserialize from a bunch of files.
+	//store.shows = ...
+
+	return store, nil
 }
 
 func (s Store) Close() error {
@@ -41,6 +44,20 @@ func (s Store) Close() error {
 	return nil
 }
 
+func (s *Store) CreateShow(m *sources.Show) error {
+	if _, ok := s.shows[m.Title]; ok {
+		return errors.New(fmt.Sprintf("Show %s already exists.\n", m.Title))
+	}
+
+	s.shows[m.Title] = m
+
+	return nil
+}
+
+func (s *Store) Shows() []*sources.Show {
+	return s.shows
+}
+
 func ensureStateDir(stateDir string) error {
 	dirs := []string{
 		stateDir,
@@ -50,7 +67,7 @@ func ensureStateDir(stateDir string) error {
 
 	for _, d := range dirs {
 		err := os.Mkdir(d, 0755)
-		if err != nil {
+		if err != nil && !os.IsExist(err) {
 			return err
 		}
 	}
@@ -75,12 +92,4 @@ func (s Store) store(show *sources.Show) error {
 func titleAsFileName(title string) string {
 	re := regexp.MustCompile("[^a-zA-Z0-9]")
 	return string(re.ReplaceAll([]byte(title), []byte("_")))
-}
-
-func (s *Store) CreateShow(m *sources.Show) error {
-	if _, ok := s.shows[m.Title]; ok {
-		return errors.New(fmt.Sprintf("Show %s already exists.\n", m.Title))
-	}
-	s.shows[m.Title] = m
-	return nil
 }
