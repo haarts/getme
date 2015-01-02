@@ -16,16 +16,6 @@ import (
 	"github.com/haarts/getme/sources"
 )
 
-func GetQuery() string {
-	if len(os.Args) != 2 {
-		fmt.Println("Please pass a search query.")
-		os.Exit(1)
-	}
-
-	query := os.Args[1]
-	return query
-}
-
 func DisplayPendingEpisodes(show *sources.Show) {
 	es := show.PendingEpisodes()
 	for _, e := range es {

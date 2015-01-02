@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"errors"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -133,21 +134,34 @@ func readConfig() (Config, error) {
 	return conf, nil
 }
 
-func main() {
-	err := checkConfig()
-	if err != nil && os.IsNotExist(err) {
-		fmt.Println("It seems that there is no config file present at", configFilePath())
-		fmt.Println("Writing a default one, please inspect it and restart GetMe.")
-		writeDefaultConfig()
+var daemon bool
+var mediaName string
+
+func init() {
+	const (
+		addUsage    = "The name of the show/movie to add."
+		daemonUsage = "Whether or not to run as a daemon."
+	)
+
+	flag.StringVar(&mediaName, "add", "", addUsage)
+	flag.StringVar(&mediaName, "a", "", addUsage+" (shorthand)")
+
+	flag.BoolVar(&daemon, "daemon", false, daemonUsage)
+	flag.BoolVar(&daemon, "d", false, daemonUsage+" (shorthand)")
+}
+
+func runAsDaemon() {
+	fmt.Println("Running as daemon.")
+	fmt.Println("Not implemented.")
+}
+
+func addMedia() {
+	if mediaName == "" {
+		fmt.Println("Please specify a name to add. Like so: ./getme -a 'My show'.")
 		return
 	}
-	conf, err := readConfig()
-	if err != nil {
-		fmt.Println("Something went wrote reading the config file:", err)
-	}
-	config = conf
 
-	matches, errors := ui.Search(ui.GetQuery())
+	matches, errors := ui.Search(mediaName)
 	if errors != nil {
 		fmt.Println("We've encountered a problem searching. The error:")
 		fmt.Println(" ", errors)
@@ -183,4 +197,27 @@ func main() {
 
 	fmt.Println("All done!")
 	return
+}
+
+func main() {
+	err := checkConfig()
+	if err != nil && os.IsNotExist(err) {
+		fmt.Println("It seems that there is no config file present at", configFilePath())
+		fmt.Println("Writing a default one, please inspect it and restart GetMe.")
+		writeDefaultConfig()
+		return
+	}
+	conf, err := readConfig()
+	if err != nil {
+		fmt.Println("Something went wrong reading the config file:", err)
+	}
+	config = conf
+
+	flag.Parse()
+
+	if daemon {
+		runAsDaemon()
+	} else {
+		addMedia()
+	}
 }
