@@ -150,27 +150,27 @@ func loadConfig() {
 	config = conf
 }
 
-var daemon bool
+var update bool
 var mediaName string
 
 func init() {
 	const (
 		addUsage    = "The name of the show/movie to add."
-		daemonUsage = "Whether or not to run as a daemon."
+		updateUsage = "Update the already added shows/movies and download pending torrents."
 	)
 
 	flag.StringVar(&mediaName, "add", "", addUsage)
 	flag.StringVar(&mediaName, "a", "", addUsage+" (shorthand)")
 
-	flag.BoolVar(&daemon, "daemon", false, daemonUsage)
-	flag.BoolVar(&daemon, "d", false, daemonUsage+" (shorthand)")
+	flag.BoolVar(&update, "update", false, updateUsage)
+	flag.BoolVar(&update, "u", false, updateUsage+" (shorthand)")
 
 	//flag.BoolVar(&remove, "remove", false, removeUsage))
 	//flag.BoolVar(&remove, "r", false, removeUsage+" (shorthand)")
 }
 
-func runAsDaemon() {
-	fmt.Println("Running as daemon.")
+func updateMedia() {
+	fmt.Println("Updating media from sources and downloading pending torrents.")
 	fmt.Println("Not implemented.")
 }
 
@@ -223,8 +223,8 @@ func main() {
 
 	flag.Parse()
 
-	if daemon {
-		runAsDaemon()
+	if update {
+		updateMedia()
 	} else {
 		addMedia()
 	}
