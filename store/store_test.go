@@ -1,7 +1,6 @@
 package store_test
 
 import (
-	"fmt"
 	"os"
 	"path"
 	"testing"
@@ -44,7 +43,6 @@ func TestCreateDuplicateShow(t *testing.T) {
 func TestReadShows(t *testing.T) {
 	testDir := "test_state_dir"
 	defer func() {
-		fmt.Printf("testDir %+v\n", testDir)
 		os.RemoveAll(testDir)
 	}()
 
@@ -52,4 +50,10 @@ func TestReadShows(t *testing.T) {
 	os.Link(path.Join("fixtures", "my_show.json"), path.Join(testDir, "shows", "my_show.json"))
 
 	s, _ := store.Open(testDir)
+	if len(s.Shows()) != 1 {
+		t.Error("Expected to have read 1 show, got:", len(s.Shows()))
+	}
+	if _, ok := s.Shows()["my show"]; !ok {
+		t.Error("Expected to find 'my show'.")
+	}
 }

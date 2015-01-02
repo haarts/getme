@@ -27,8 +27,7 @@ func Open(stateDir string) (*Store, error) {
 		stateDir: stateDir,
 	}
 
-	// TODO deserialize from a bunch of files.
-	//store.shows = ...
+	store.deserializeShows()
 
 	return store, nil
 }
@@ -54,8 +53,38 @@ func (s *Store) CreateShow(m *sources.Show) error {
 	return nil
 }
 
-func (s *Store) Shows() []*sources.Show {
+func (s *Store) Shows() map[string]*sources.Show {
 	return s.shows
+}
+
+//TODO handle err
+func (s *Store) deserializeShows() {
+	files, err := ioutil.ReadDir(path.Join(s.stateDir, "shows"))
+	if err != nil {
+		fmt.Printf("err %+v\n", err)
+	}
+
+	for _, f := range files {
+		matched, err := regexp.MatchString(".*.json", f.Name())
+		if err != nil {
+			fmt.Printf("err %+v\n", err)
+		}
+		if !matched {
+			continue
+		}
+
+		var show sources.Show
+		d, err := ioutil.ReadFile(path.Join(s.stateDir, "shows", f.Name()))
+		if err != nil {
+			fmt.Printf("err %+v\n", err)
+		}
+		err = json.Unmarshal(d, &show)
+		if err != nil {
+			fmt.Printf("err %+v\n", err)
+		}
+
+		s.shows[show.Title] = &show
+	}
 }
 
 func ensureStateDir(stateDir string) error {
@@ -81,7 +110,7 @@ func (s Store) store(show *sources.Show) error {
 		return err
 	}
 
-	err = ioutil.WriteFile(path.Join(s.stateDir, "shows", titleAsFileName(show.Title)+".json"), b, 0755)
+	err = ioutil.WriteFile(path.Join(s.stateDir, "shows", titleAsFileName(show.Title)+".json"), b, 0644)
 	if err != nil {
 		return err
 	}

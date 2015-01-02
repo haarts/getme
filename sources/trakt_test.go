@@ -24,11 +24,18 @@ func TestOrdering(t *testing.T) {
 		fmt.Fprintln(w, readFixture("fixtures/trakt_search.json"))
 	}))
 	defer ts.Close()
+	defer func() {
+		sources = make(map[string]Source)
+		Register(TVRAGE, TvRage{})
+		Register(TRAKT, Trakt{})
+	}()
 
 	traktSearchURL = ts.URL
 
+	sources = make(map[string]Source)
+	Register(TRAKT, Trakt{})
 	matches, _ := Search("some query")
 	if matches[0][0].DisplayTitle() != "The Big Bang Theory" {
-		t.Fatal("best match is not The Big Bang Theory")
+		t.Fatal("best match is not The Big Bang Theory, got:", matches[0][0].DisplayTitle())
 	}
 }

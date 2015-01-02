@@ -16,11 +16,16 @@ import (
 )
 
 func handleShow(show *sources.Show) error {
-	store := store.Open(config.StateDir)
+	store, err := store.Open(config.StateDir)
+	if err != nil {
+		fmt.Println("We've failed to open the data store. The error:")
+		fmt.Println(" ", err)
+		return err
+	}
 	defer store.Close()
 
 	// Fetch the seasons/episodes associated with the found show.
-	err := ui.Lookup(show)
+	err = ui.Lookup(show)
 	if err != nil {
 		fmt.Println("We've encountered a problem looking up seasons for the show. The error:")
 		fmt.Println(" ", err)
