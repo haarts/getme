@@ -34,15 +34,29 @@ func DisplayPendingEpisodes(show *sources.Show) {
 }
 
 func DisplayBestMatchConfirmation(matches [][]sources.Match) *sources.Match {
-	displayBestMatch(matches[0][0])
+	nonNilMatch := firstNonNilMatch(matches)
+	if nonNilMatch == nil {
+		return nil
+	}
+
+	displayBestMatch(*nonNilMatch)
 	fmt.Print("Is this the one you want? [Y/n] ")
 	line := getUserInput()
 
 	if line == "" || line == "y" || line == "Y" {
-		return &matches[0][0]
+		return nonNilMatch
 	} else {
 		return nil
 	}
+}
+
+func firstNonNilMatch(matches [][]sources.Match) *sources.Match {
+	for _, ms := range matches {
+		if len(ms) != 0 {
+			return &ms[0]
+		}
+	}
+	return nil // This really shouldn't happen.
 }
 
 // TODO break this func up. Too long.
