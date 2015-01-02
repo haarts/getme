@@ -134,6 +134,22 @@ func readConfig() (Config, error) {
 	return conf, nil
 }
 
+func loadConfig() {
+	err := checkConfig()
+	if err != nil && os.IsNotExist(err) {
+		fmt.Println("It seems that there is no config file present at", configFilePath())
+		fmt.Println("Writing a default one, please inspect it and restart GetMe.")
+		writeDefaultConfig()
+		os.Exit(1)
+	}
+	conf, err := readConfig()
+	if err != nil {
+		fmt.Println("Something went wrong reading the config file:", err)
+		os.Exit(1)
+	}
+	config = conf
+}
+
 var daemon bool
 var mediaName string
 
@@ -148,6 +164,9 @@ func init() {
 
 	flag.BoolVar(&daemon, "daemon", false, daemonUsage)
 	flag.BoolVar(&daemon, "d", false, daemonUsage+" (shorthand)")
+
+	//flag.BoolVar(&remove, "remove", false, removeUsage))
+	//flag.BoolVar(&remove, "r", false, removeUsage+" (shorthand)")
 }
 
 func runAsDaemon() {
@@ -200,18 +219,7 @@ func addMedia() {
 }
 
 func main() {
-	err := checkConfig()
-	if err != nil && os.IsNotExist(err) {
-		fmt.Println("It seems that there is no config file present at", configFilePath())
-		fmt.Println("Writing a default one, please inspect it and restart GetMe.")
-		writeDefaultConfig()
-		return
-	}
-	conf, err := readConfig()
-	if err != nil {
-		fmt.Println("Something went wrong reading the config file:", err)
-	}
-	config = conf
+	loadConfig()
 
 	flag.Parse()
 
