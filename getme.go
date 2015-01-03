@@ -176,7 +176,7 @@ func updateMedia() {
 	if err != nil {
 		fmt.Println("We've failed to open the data store. The error:")
 		fmt.Println(" ", err)
-		return err
+		return
 	}
 	defer store.Close()
 

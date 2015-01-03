@@ -194,7 +194,7 @@ func Lookup(s *sources.Show) error {
 	return sources.GetSeasonsAndEpisodes(s)
 }
 
-func UpdateShows(shows []*sources.Show) {
+func UpdateShows(shows map[string]*sources.Show) {
 	for _, show := range shows {
 		fmt.Printf("show %+v\n", show)
 		// ... get updated info
@@ -207,7 +207,7 @@ func UpdateShows(shows []*sources.Show) {
 }
 
 // TODO this is easier since we don't have to check for new episodes etc. Just pending.
-func UpdateMovies(movies []*sources.Movie) {
+func UpdateMovies(movies map[string]*sources.Movie) {
 	for _, movie := range movies {
 		fmt.Printf("movie %+v\n", movie)
 		// ... get updated info
