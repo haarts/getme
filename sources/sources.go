@@ -23,20 +23,20 @@ type Show struct {
 	Title      string    `json:"title"`
 	URL        string    `json:"url"`
 	ID         int       `json:"id"`
-	Seasons    []*Season `json:""`
+	Seasons    []*Season `json:"seasons"`
 	SourceName string    `json:"source_name"`
 	isDaily    bool      `json:"is_daily"`
 }
 
 type Season struct {
-	Show     *Show
+	Show     *Show      `json:"-"`
 	Season   int        `json:"season"`
 	Episodes []*Episode `json:"episodes"`
 }
 
 // TODO use TriedAt and Backoff to slowly stop trying to download episodes which prop never complete.
 type Episode struct {
-	Season  *Season
+	Season  *Season   `json:"-"`
 	Title   string    `json:"title"`
 	Episode int       `json:"episode"`
 	Pending bool      `json:"pending"`
