@@ -15,7 +15,7 @@ type Trakt struct{}
 const TRAKT = "trakt"
 
 func init() {
-	Register(TRAKT, Trakt{})
+	//Register(TRAKT, Trakt{})
 }
 
 type ratings struct {
