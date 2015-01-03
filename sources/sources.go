@@ -8,7 +8,7 @@ import (
 
 type Source interface {
 	Search(string) ([]Match, error)
-	GetSeasonsAndEpisodes(*Show) error
+	AllSeasonsAndEpisodes(Show) ([]*Season, error)
 }
 
 type Match interface {
@@ -74,13 +74,72 @@ func Search(q string) ([][]Match, []error) {
 	return matches, errors
 }
 
+// Initial adding of episodes.
 func GetSeasonsAndEpisodes(s *Show) error {
-	source := sources[s.SourceName]
-	err := source.GetSeasonsAndEpisodes(s)
+	err := UpdateSeasonsAndEpisodes(s)
 	if err != nil {
 		return err
 	}
+
 	s.isDaily = s.determineIsDaily()
+	return nil
+}
+
+// Subsequent updates of episodes
+func UpdateSeasonsAndEpisodes(s *Show) error {
+	source := sources[s.SourceName]
+	seasons, err := source.AllSeasonsAndEpisodes(*s)
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < len(seasons); i++ {
+		season := seasons[i]
+		existingSeason := findExistingSeason(s.Seasons, season)
+		if existingSeason == nil {
+			addSeason(s, season)
+		} else {
+			updateEpisodes(existingSeason, season)
+		}
+	}
+
+	return nil
+}
+
+func addSeason(show *Show, season *Season) {
+	season.Show = show
+	show.Seasons = append(show.Seasons, season)
+}
+
+func updateEpisodes(existingSeason *Season, newSeason *Season) {
+	if len(existingSeason.Episodes) == len(newSeason.Episodes) {
+		return
+	}
+
+	for _, episode := range newSeason.Episodes {
+		if !contains(existingSeason.Episodes, episode) {
+			newEpisode := *episode
+			newEpisode.Season = existingSeason
+			existingSeason.Episodes = append(existingSeason.Episodes, &newEpisode)
+		}
+	}
+}
+
+func contains(ss []*Episode, e *Episode) bool {
+	for _, a := range ss {
+		if a.Episode == e.Episode {
+			return true
+		}
+	}
+	return false
+}
+
+func findExistingSeason(existing []*Season, other *Season) *Season {
+	for _, season := range existing {
+		if season.Season == other.Season {
+			return season
+		}
+	}
 	return nil
 }
 

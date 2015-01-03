@@ -80,30 +80,29 @@ func (t TvRage) Search(query string) ([]Match, error) {
 	return shows, nil
 }
 
-func (t TvRage) GetSeasonsAndEpisodes(show *Show) error {
-	resp, err := http.Get(constructTvRageSeasonsURL(show))
+func (t TvRage) AllSeasonsAndEpisodes(show Show) ([]*Season, error) {
+	resp, err := http.Get(constructTvRageSeasonsURL(show.ID))
 	if err != nil {
-		return err //TODO retry a couple of times when it's a timeout.
+		return nil, err //TODO retry a couple of times when it's a timeout.
 	}
 	if resp.StatusCode != 200 {
-		return errors.New("Search return non 200 status code")
+		return nil, errors.New("Search return non 200 status code")
 	}
 
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var result tvRageSeasonResult
 	err = xml.Unmarshal(body, &result)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	show.Seasons = convertFromTvRageSeasons(show, result.EpisodeList.Seasons)
-	return nil
+	return convertFromTvRageSeasons(result.EpisodeList.Seasons), nil
 }
 
 func (t *tvRageDate) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
@@ -122,8 +121,8 @@ func constructTvRageSearchURL(query string) string {
 	return fmt.Sprintf(tvRageURL+"/feeds/search.php?show=%s", url.QueryEscape(query))
 }
 
-func constructTvRageSeasonsURL(show *Show) string {
-	return fmt.Sprintf(tvRageURL+"/feeds/episode_list.php?sid=%d", show.ID)
+func constructTvRageSeasonsURL(ID int) string {
+	return fmt.Sprintf(tvRageURL+"/feeds/episode_list.php?sid=%d", ID)
 }
 
 func putPopularShowOnTop(shows []Match) {
@@ -149,24 +148,23 @@ func convertTvRageToMatches(ms []tvRageMatch) []Match {
 }
 
 // TODO Quite a bit of duplication with the convertToMatches function.
-func convertFromTvRageSeasons(show *Show, ss []tvRageSeason) []*Season {
+func convertFromTvRageSeasons(ss []tvRageSeason) []*Season {
 	seasons := make([]*Season, len(ss))
 	for i, s := range ss {
-		season := Season{
-			Show:     show,
+		season := &Season{
 			Season:   s.Season,
 			Episodes: make([]*Episode, len(s.Episodes)),
 		}
 		for j, e := range s.Episodes {
 			season.Episodes[j] = &Episode{
 				Title:   e.Title,
-				Season:  &season,
+				Season:  season,
 				Episode: e.Episode,
 				Pending: true,
 				AirDate: e.AirDate.Time,
 			}
 		}
-		seasons[i] = &season
+		seasons[i] = season
 	}
 	return seasons
 }

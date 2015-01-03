@@ -1,6 +1,9 @@
 package sources
 
 import (
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 )
@@ -27,5 +30,33 @@ func TestIsDaily(t *testing.T) {
 	show = Show{Seasons: []*Season{season}}
 	if show.determineIsDaily() {
 		t.Error("Expected the show to be NOT daily.")
+	}
+}
+
+func TestUpdateSeasonsAndEpisodes(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		// Contains 1 new episode in season 2 and 1 new season.
+		fmt.Fprintln(w, readFixture("fixtures/updated_seasons.json"))
+	}))
+	defer ts.Close()
+
+	traktSeasonsURL = ts.URL + "/"
+
+	season1 := &Season{Season: 1, Episodes: []*Episode{
+		{Episode: 1},
+		{Episode: 2}}}
+	season2 := &Season{Season: 2, Episodes: []*Episode{
+		{Episode: 1},
+		{Episode: 2}}}
+	s := Show{SourceName: TRAKT, Seasons: []*Season{season1, season2}}
+
+	UpdateSeasonsAndEpisodes(&s)
+
+	if len(s.Seasons) != 3 {
+		t.Error("Expected 3 seasons (1 new), got:", len(s.Seasons))
+	}
+	if len(s.Episodes()) != 7 {
+		t.Error("Expected 7 episodes (3 new), got:", len(s.Episodes()))
 	}
 }

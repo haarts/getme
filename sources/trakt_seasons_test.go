@@ -16,7 +16,7 @@ func TestExpandShow(t *testing.T) {
 
 	traktSeasonsURL = ts.URL + "/"
 
-	show := &Show{URL: "boo/some-url", SourceName: TRAKT}
+	show := &Show{URL: "boo/some-url", SourceName: TRAKT, Title: "Awesome"}
 	GetSeasonsAndEpisodes(show)
 	if len(show.Seasons) != 6 {
 		t.Fatal("Expected 6 seasons, got:", len(show.Seasons))
@@ -34,8 +34,15 @@ func TestExpandShow(t *testing.T) {
 		t.Fatal("Expected 9 episodes, got:", len(show.Seasons[0].Episodes))
 	}
 
-	episode := show.Seasons[0].Episodes[0]
+	episode := season.Episodes[0]
+	fmt.Printf("show.Seasons[0] %p\n", show.Seasons[0])
+	fmt.Printf("episode.Season %p\n", episode.Season)
 	if show.Seasons[0] != episode.Season {
-		t.Error("Expected episode to point to parent Season, got:", episode.Season, show.Seasons[0])
+		t.Error(
+			"Expected episode to point to parent Season, got:",
+			episode.Season,
+			"and",
+			show.Seasons[0],
+		)
 	}
 }

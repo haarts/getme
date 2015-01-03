@@ -165,13 +165,23 @@ func init() {
 	flag.BoolVar(&update, "update", false, updateUsage)
 	flag.BoolVar(&update, "u", false, updateUsage+" (shorthand)")
 
+	// TODO add a remove flag. (could just remove the file in stateDir)
 	//flag.BoolVar(&remove, "remove", false, removeUsage))
 	//flag.BoolVar(&remove, "r", false, removeUsage+" (shorthand)")
 }
 
 func updateMedia() {
 	fmt.Println("Updating media from sources and downloading pending torrents.")
-	fmt.Println("Not implemented.")
+	store, err := store.Open(config.StateDir)
+	if err != nil {
+		fmt.Println("We've failed to open the data store. The error:")
+		fmt.Println(" ", err)
+		return err
+	}
+	defer store.Close()
+
+	ui.UpdateShows(store.Shows())
+	ui.UpdateMovies(store)
 }
 
 func addMedia() {

@@ -186,6 +186,35 @@ func Search(query string) ([][]sources.Match, []error) {
 	return matches, nil
 }
 
+func Lookup(s *sources.Show) error {
+	fmt.Print("Looking up seasons and episodes for ", s.Title)
+	c := startProgressBar()
+	defer stopProgressBar(c)
+
+	return sources.GetSeasonsAndEpisodes(s)
+}
+
+func UpdateShows(shows []*sources.Show) {
+	for _, show := range shows {
+		fmt.Printf("show %+v\n", show)
+		// ... get updated info
+		//sources.UpdateSeasonsAndEpisodes(show)
+		//ts, err := SearchTorrents(show.PendingEpisodes())
+		//err = Download(torrents, watchDir)
+		//DisplayPendingEpisodes(show)
+		//store.UpdateShow(updatedShow)
+	}
+}
+
+// TODO this is easier since we don't have to check for new episodes etc. Just pending.
+func UpdateMovies(movies []*sources.Movie) {
+	for _, movie := range movies {
+		fmt.Printf("movie %+v\n", movie)
+		// ... get updated info
+		//store.UpdateMovie(updatedMovie)
+	}
+}
+
 func isAllNil(errors []error) bool {
 	for _, e := range errors {
 		if e != nil {
@@ -193,15 +222,6 @@ func isAllNil(errors []error) bool {
 		}
 	}
 	return true
-}
-
-func Lookup(s *sources.Show) error {
-	fmt.Print("Looking up seasons and episodes for ", s.Title)
-	c := startProgressBar()
-	defer stopProgressBar(c)
-
-	return sources.GetSeasonsAndEpisodes(s)
-	//return s.GetSeasonsAndEpisodes()
 }
 
 func displayBestMatch(bestMatch sources.Match) {
