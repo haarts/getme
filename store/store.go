@@ -14,6 +14,7 @@ import (
 
 type Store struct {
 	shows    map[string]*sources.Show
+	movies   map[string]*sources.Movie
 	stateDir string
 }
 
@@ -55,6 +56,10 @@ func (s *Store) CreateShow(m *sources.Show) error {
 
 func (s *Store) Shows() map[string]*sources.Show {
 	return s.shows
+}
+
+func (s *Store) Movies() map[string]*sources.Movie {
+	return s.movies
 }
 
 //TODO handle err
