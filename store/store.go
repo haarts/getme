@@ -110,7 +110,7 @@ func ensureStateDir(stateDir string) error {
 }
 
 func (s Store) store(show *sources.Show) error {
-	b, err := json.Marshal(show)
+	b, err := json.MarshalIndent(show, "", "  ")
 	if err != nil {
 		return err
 	}
