@@ -63,6 +63,7 @@ func (s *Store) Movies() map[string]*sources.Movie {
 }
 
 //TODO handle err
+// TODO add another pass after deserialization to set the pointers to seasons and show right.
 func (s *Store) deserializeShows() {
 	files, err := ioutil.ReadDir(path.Join(s.stateDir, "shows"))
 	if err != nil {

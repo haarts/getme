@@ -14,6 +14,7 @@ import (
 
 	"github.com/haarts/getme/search_engines"
 	"github.com/haarts/getme/sources"
+	"github.com/haarts/getme/store"
 )
 
 func DisplayPendingEpisodes(show *sources.Show) {
@@ -194,20 +195,25 @@ func Lookup(s *sources.Show) error {
 	return sources.GetSeasonsAndEpisodes(s)
 }
 
-func UpdateShows(shows map[string]*sources.Show) {
+func Update(store *store.Store, watchDir string) {
+	updateShows(store.Shows(), watchDir)
+	updateMovies(store.Movies(), watchDir)
+}
+
+func updateShows(shows map[string]*sources.Show, watchDir string) {
 	for _, show := range shows {
-		fmt.Printf("show %+v\n", show)
+		//fmt.Printf("show %+v\n", show)
 		// ... get updated info
-		//sources.UpdateSeasonsAndEpisodes(show)
-		//ts, err := SearchTorrents(show.PendingEpisodes())
-		//err = Download(torrents, watchDir)
-		//DisplayPendingEpisodes(show)
-		//store.UpdateShow(updatedShow)
+		sources.UpdateSeasonsAndEpisodes(show)
+		torrents, _ := SearchTorrents(show.PendingEpisodes()) // TODO This really should return an error, handle errors in ui package.
+		Download(torrents, watchDir)                          // TODO This really should return an error, handle errors in ui package.
+		DisplayPendingEpisodes(show)
+		//store.UpdateShow(show)
 	}
 }
 
 // TODO this is easier since we don't have to check for new episodes etc. Just pending.
-func UpdateMovies(movies map[string]*sources.Movie) {
+func updateMovies(movies map[string]*sources.Movie, watchDir string) {
 	for _, movie := range movies {
 		fmt.Printf("movie %+v\n", movie)
 		// ... get updated info

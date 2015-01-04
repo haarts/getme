@@ -180,8 +180,7 @@ func updateMedia() {
 	}
 	defer store.Close()
 
-	ui.UpdateShows(store.Shows())
-	ui.UpdateMovies(store.Movies())
+	ui.Update(store, config.WatchDir)
 }
 
 func addMedia() {
