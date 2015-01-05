@@ -14,7 +14,7 @@ func TestExpandShow(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	traktSeasonsURL = ts.URL + "/"
+	traktSeasonsURL = ts.URL + "/shows/%s/seasons?extended=full"
 
 	show := &Show{URL: "boo/some-url", SourceName: TRAKT, Title: "Awesome"}
 	err := GetSeasonsAndEpisodes(show)
@@ -25,16 +25,16 @@ func TestExpandShow(t *testing.T) {
 		t.Fatal("Expected 6 seasons, got:", len(show.Seasons))
 	}
 
-	if show.Seasons[0].Season == 0 {
-		t.Error("Expected Season field to be not default, got:", show.Seasons[0])
+	if show.Seasons[1].Season == 0 {
+		t.Error("Expected Season field to be not default, got:", show.Seasons[1])
 	}
 
 	season := show.Seasons[0]
 	if season.Show != show {
 		t.Error("Expect Show to point to parent Show, got:", season.Show)
 	}
-	if len(season.Episodes) != 9 {
-		t.Fatal("Expected 9 episodes, got:", len(show.Seasons[0].Episodes))
+	if len(season.Episodes) != 10 {
+		t.Fatal("Expected 10 episodes, got:", len(show.Seasons[0].Episodes))
 	}
 
 	episode := season.Episodes[0]

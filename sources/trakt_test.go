@@ -30,12 +30,12 @@ func TestOrdering(t *testing.T) {
 		Register(TRAKT, Trakt{})
 	}()
 
-	traktSearchURL = ts.URL
+	traktSearchURL = ts.URL + "/search?type=show"
 
 	sources = make(map[string]Source)
 	Register(TRAKT, Trakt{})
 	matches, _ := Search("some query")
-	if matches[0][0].DisplayTitle() != "The Big Bang Theory" {
-		t.Fatal("best match is not The Big Bang Theory, got:", matches[0][0].DisplayTitle())
+	if matches[0][0].DisplayTitle() != "Game of Thrones" {
+		t.Fatal("best match is not Game of Thrones, got:", matches[0][0].DisplayTitle())
 	}
 }

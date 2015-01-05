@@ -41,7 +41,7 @@ func TestUpdateSeasonsAndEpisodes(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	traktSeasonsURL = ts.URL + "/"
+	traktSeasonsURL = ts.URL + "/shows/%s/seasons?extended=full"
 
 	season1 := &Season{Season: 1, Episodes: []*Episode{
 		{Episode: 1},

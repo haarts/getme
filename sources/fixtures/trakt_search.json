@@ -1,34 +1,5 @@
 [
     {
-        "score": 16.544271,
-        "show": {
-            "ids": {
-                "imdb": "tt0944947",
-                "slug": "game-of-thrones",
-                "tmdb": 1399,
-                "trakt": 1390,
-                "tvdb": 121361,
-                "tvrage": 24493
-            },
-            "images": {
-                "fanart": {
-                    "full": "https://walter.trakt.us/images/shows/000/001/390/fanarts/original/37dac5845b.jpg?1420106062",
-                    "medium": "https://walter.trakt.us/images/shows/000/001/390/fanarts/medium/37dac5845b.jpg?1420106062",
-                    "thumb": "https://walter.trakt.us/images/shows/000/001/390/fanarts/thumb/37dac5845b.jpg?1420106062"
-                },
-                "poster": {
-                    "full": "https://walter.trakt.us/images/shows/000/001/390/posters/original/e2e8d04f11.jpg?1420106058",
-                    "medium": "https://walter.trakt.us/images/shows/000/001/390/posters/medium/e2e8d04f11.jpg?1420106058",
-                    "thumb": "https://walter.trakt.us/images/shows/000/001/390/posters/thumb/e2e8d04f11.jpg?1420106058"
-                }
-            },
-            "overview": "Seven noble families fight for control of the mythical land of Westeros. Friction between the houses leads to full-scale war. All while a very ancient evil awakens in the farthest north. Amidst the war, a neglected military order of misfits, the Night's Watch, is all that stands between the realms of men and icy horrors beyond.",
-            "title": "Game of Thrones",
-            "year": 2011
-        },
-        "type": "show"
-    },
-    {
         "score": 0.6081599,
         "show": {
             "ids": {
@@ -53,6 +24,35 @@
             },
             "overview": "A companion series to Game of Thrones; each 10 minute show features interviews with members of the cast and crew, as well as with fans of the books and television series, alongside a review of the previous episode of Game of Thrones.From the second series, a duo of fans called Elio and Linda are featured via satellite and give their thoughts on the episode.",
             "title": "Thronecast",
+            "year": 2011
+        },
+        "type": "show"
+    },
+    {
+        "score": 16.544271,
+        "show": {
+            "ids": {
+                "imdb": "tt0944947",
+                "slug": "game-of-thrones",
+                "tmdb": 1399,
+                "trakt": 1390,
+                "tvdb": 121361,
+                "tvrage": 24493
+            },
+            "images": {
+                "fanart": {
+                    "full": "https://walter.trakt.us/images/shows/000/001/390/fanarts/original/37dac5845b.jpg?1420106062",
+                    "medium": "https://walter.trakt.us/images/shows/000/001/390/fanarts/medium/37dac5845b.jpg?1420106062",
+                    "thumb": "https://walter.trakt.us/images/shows/000/001/390/fanarts/thumb/37dac5845b.jpg?1420106062"
+                },
+                "poster": {
+                    "full": "https://walter.trakt.us/images/shows/000/001/390/posters/original/e2e8d04f11.jpg?1420106058",
+                    "medium": "https://walter.trakt.us/images/shows/000/001/390/posters/medium/e2e8d04f11.jpg?1420106058",
+                    "thumb": "https://walter.trakt.us/images/shows/000/001/390/posters/thumb/e2e8d04f11.jpg?1420106058"
+                }
+            },
+            "overview": "Seven noble families fight for control of the mythical land of Westeros. Friction between the houses leads to full-scale war. All while a very ancient evil awakens in the farthest north. Amidst the war, a neglected military order of misfits, the Night's Watch, is all that stands between the realms of men and icy horrors beyond.",
+            "title": "Game of Thrones",
             "year": 2011
         },
         "type": "show"

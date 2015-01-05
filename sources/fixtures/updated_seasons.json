@@ -1,14 +1,14 @@
 [
 	{
-		"season": 1,
-		"episodes": 2
+		"number": 1,
+		"episode_count": 2
 	},
 	{
-		"season": 2,
-		"episodes": 3
+		"number": 2,
+		"episode_count": 3
 	},
 	{
-		"season": 3,
-		"episodes": 2
+		"number": 3,
+		"episode_count": 2
 	}
 ]

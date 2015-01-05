@@ -60,14 +60,11 @@ func traktRequest(URL string) (*http.Request, error) {
 
 func (t Trakt) Search(query string) ([]Match, error) {
 	req, err := traktRequest(constructURL(query))
-	fmt.Printf("req %+v\n", req)
-	fmt.Printf("err %+v\n", err)
 	if err != nil {
 		return nil, err
 	}
 
 	resp, err := http.DefaultClient.Do(req)
-	fmt.Printf("err %+v\n", err)
 	if err != nil {
 		return nil, err //TODO retry a couple of times when it's a timeout.
 	}
