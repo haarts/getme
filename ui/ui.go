@@ -18,9 +18,9 @@ import (
 )
 
 func DisplayPendingEpisodes(show *sources.Show) {
-	es := show.PendingEpisodes()
-	for _, e := range es {
-		fmt.Println("Pending: ", e.QueryNames()[0])
+	items := show.PendingItems()
+	for _, item := range items {
+		fmt.Println("Pending: ", item.QueryNames[0])
 	}
 }
 
