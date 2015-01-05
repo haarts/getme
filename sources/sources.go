@@ -26,7 +26,7 @@ type Show struct {
 	ID         int       `json:"id"`
 	Seasons    []*Season `json:"seasons"`
 	SourceName string    `json:"source_name"`
-	isDaily    bool      `json:"is_daily"`
+	IsDaily    bool      `json:"is_daily"`
 }
 
 type Season struct {
@@ -90,7 +90,7 @@ func GetSeasonsAndEpisodes(s *Show) error {
 		return err
 	}
 
-	s.isDaily = s.determineIsDaily()
+	s.IsDaily = s.determineIsDaily()
 	return nil
 }
 
@@ -190,10 +190,10 @@ func (p *PendingItem) Done() {
 // PendingItems returns a list of items which are to be downloaded.
 // The list consists of a mix of episodes and seasons.
 // A season is included when it is NOT the last season of the Show and when all containing episodes
-// are pending.
+// are pending and it is NOT a daily show.
 func (show Show) PendingItems() (pendingItems []PendingItem) {
 	for _, season := range show.Seasons {
-		if !show.isLastSeason(season) && season.allEpisodesPending() {
+		if !show.IsDaily && !show.isLastSeason(season) && season.allEpisodesPending() {
 			item := PendingItem{
 				QueryNames: []string{fmt.Sprintf("%s season %d", show.Title, season.Season)},
 				episodes:   season.Episodes,
@@ -207,7 +207,7 @@ func (show Show) PendingItems() (pendingItems []PendingItem) {
 					episodes:  []*Episode{episode},
 					ShowTitle: show.Title,
 				}
-				if show.isDaily {
+				if show.IsDaily {
 					y, m, d := episode.AirDate.Date()
 					item.QueryNames = []string{fmt.Sprintf("%s %d %d %d", show.Title, y, m, d)}
 				} else {
@@ -300,7 +300,7 @@ func isNextDay(d1, d2 time.Time) bool {
 
 // TODO deprecated
 func (e *Episode) QueryNames() []string {
-	if e.Season.Show.isDaily { // Potential train wreck
+	if e.Season.Show.IsDaily { // Potential train wreck
 		y, m, d := e.AirDate.Date()
 		return []string{fmt.Sprintf("%s %d %d %d", e.ShowName(), y, m, d)}
 	} else {
