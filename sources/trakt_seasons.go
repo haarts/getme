@@ -16,6 +16,7 @@ type traktSeason struct {
 
 var traktSeasonsURL = traktURL + "/shows/%s/seasons?extended=full"
 
+// AllSeasonsAndEpisodes finds the seasons and episodes for a show with this source.
 func (t Trakt) AllSeasonsAndEpisodes(show Show) ([]*Season, error) {
 	req, err := traktRequest(fmt.Sprintf(traktSeasonsURL, show.URL))
 	if err != nil {
@@ -54,7 +55,7 @@ func convertToSeasons(ss []traktSeason) []*Season {
 			Season:   s.Season,
 			Episodes: make([]*Episode, s.Episodes),
 		}
-		for j, _ := range season.Episodes {
+		for j := range season.Episodes {
 			season.Episodes[j] = &Episode{
 				Title:   "",
 				Season:  season,

@@ -2,7 +2,6 @@ package sources
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -10,8 +9,10 @@ import (
 	"sort"
 )
 
+// Trakt is the struct which implements the Source interface.
 type Trakt struct{}
 
+// TRAKT defines the name of this source.
 const TRAKT = "trakt"
 
 func init() {
@@ -34,8 +35,8 @@ func (a byScore) Len() int           { return len(a) }
 func (a byScore) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a byScore) Less(i, j int) bool { return a[i].Score > a[j].Score }
 
-var access_token = "3b6f5bdba2fa56b086712d5f3f15b4e967f99ab049a6d3a4c2e56dc9c3c90462"
-var client_id = "01045164ed603042b53acf841b590f0e7b728dbff319c8d128f8649e2427cbe9" //AKA trakt-api-key
+var accessToken = "3b6f5bdba2fa56b086712d5f3f15b4e967f99ab049a6d3a4c2e56dc9c3c90462"
+var clientID = "01045164ed603042b53acf841b590f0e7b728dbff319c8d128f8649e2427cbe9" //AKA trakt-api-key
 var traktURL = "https://api.trakt.tv"
 var traktSearchURL = traktURL + "/search?type=show"
 
@@ -50,14 +51,15 @@ func traktRequest(URL string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Add("Authorization", "Bearer "+access_token)
+	req.Header.Add("Authorization", "Bearer "+accessToken)
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("trakt-api-version", "2")
-	req.Header.Add("trakt-api-key", client_id)
+	req.Header.Add("trakt-api-key", clientID)
 
 	return req, nil
 }
 
+// Search returns matches found by this source based on the query.
 func (t Trakt) Search(query string) ([]Match, error) {
 	req, err := traktRequest(constructURL(query))
 	if err != nil {
@@ -69,7 +71,7 @@ func (t Trakt) Search(query string) ([]Match, error) {
 		return nil, err //TODO retry a couple of times when it's a timeout.
 	}
 	if resp.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("Search returned non 200 status code: %d", resp.StatusCode))
+		return nil, fmt.Errorf("Search returned non 200 status code: %d", resp.StatusCode)
 	}
 
 	defer resp.Body.Close()

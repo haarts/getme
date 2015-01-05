@@ -10,8 +10,10 @@ import (
 	"time"
 )
 
+// TvRage is the struct which implements the Source interface.
 type TvRage struct{}
 
+// TVRAGE defines the name of this source.
 const TVRAGE = "tvrage"
 
 func init() {
@@ -52,13 +54,14 @@ type tvRageDate struct {
 
 var tvRageURL = "http://services.tvrage.com"
 
+// Search returns matches found by this source based on the query.
 func (t TvRage) Search(query string) ([]Match, error) {
 	resp, err := http.Get(constructTvRageSearchURL(query))
 	if err != nil {
 		return nil, err //TODO retry a couple of times when it's a timeout.
 	}
 	if resp.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("Search returned non 200 status code: %d", resp.StatusCode))
+		return nil, fmt.Errorf("Search returned non 200 status code: %d", resp.StatusCode)
 	}
 
 	defer resp.Body.Close()
@@ -80,6 +83,7 @@ func (t TvRage) Search(query string) ([]Match, error) {
 	return shows, nil
 }
 
+// AllSeasonsAndEpisodes finds the seasons and episodes for a show with this source.
 func (t TvRage) AllSeasonsAndEpisodes(show Show) ([]*Season, error) {
 	resp, err := http.Get(constructTvRageSeasonsURL(show.ID))
 	if err != nil {
