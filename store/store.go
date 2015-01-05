@@ -2,7 +2,6 @@ package store
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -12,12 +11,14 @@ import (
 	"github.com/haarts/getme/sources"
 )
 
+// Store is the main access point for everything storage related.
 type Store struct {
 	shows    map[string]*sources.Show
 	movies   map[string]*sources.Movie
 	stateDir string
 }
 
+// Open gets the serialized data from disk and reconstitutes them.
 func Open(stateDir string) (*Store, error) {
 	err := ensureStateDir(stateDir)
 	if err != nil {
@@ -38,6 +39,8 @@ func Open(stateDir string) (*Store, error) {
 	return store, nil
 }
 
+// Close writes the, in memory, store value to disk. Do NOT forget to call this
+// if you want to persist your data!
 func (s Store) Close() error {
 	for _, show := range s.shows {
 		err := s.store(show)
@@ -49,9 +52,11 @@ func (s Store) Close() error {
 	return nil
 }
 
+// CreateShow adds a show to the store. It does NOT persist it to disk yet! Use
+// Close for this.
 func (s *Store) CreateShow(m *sources.Show) error {
 	if _, ok := s.shows[m.Title]; ok {
-		return errors.New(fmt.Sprintf("Show %s already exists.\n", m.Title))
+		return fmt.Errorf("Show %s already exists.\n", m.Title)
 	}
 
 	s.shows[m.Title] = m
@@ -59,10 +64,13 @@ func (s *Store) CreateShow(m *sources.Show) error {
 	return nil
 }
 
+// Shows returns a list of shows.
 func (s *Store) Shows() map[string]*sources.Show {
 	return s.shows
 }
 
+// Movies returns a list of movies. Currently nothing will every be returned
+// since it's impossible to store anything.
 func (s *Store) Movies() map[string]*sources.Movie {
 	return s.movies
 }
