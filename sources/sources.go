@@ -209,7 +209,7 @@ func (show Show) PendingItems() (pendingItems []PendingItem) {
 				}
 				if show.IsDaily {
 					y, m, d := episode.AirDate.Date()
-					item.QueryNames = []string{fmt.Sprintf("%s %d %d %d", show.Title, y, m, d)}
+					item.QueryNames = []string{fmt.Sprintf("%s %d %d %02d", show.Title, y, m, d)}
 				} else {
 					s1 := fmt.Sprintf("%s S%02dE%02d", show.Title, season.Season, episode.Episode)
 					s2 := fmt.Sprintf("%s %dx%d", show.Title, season.Season, episode.Episode)
