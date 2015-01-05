@@ -15,7 +15,7 @@ import (
 
 type Torrent struct {
 	URL          string
-	Episode      *sources.Episode
+	PendingItem  sources.PendingItem
 	OriginalName string
 }
 
@@ -51,12 +51,12 @@ func constructSearchURL(episode string) string {
 }
 
 // TODO Create a similar Register scheme as with the sources
-func Search(episodes []*sources.Episode) ([]Torrent, error) {
+func Search(items []sources.PendingItem) ([]Torrent, error) {
 	var results []Torrent
 	// TODO dont loop if a list of episodes span a complete season. Search for the season instead.
 	// TODO parallel execution
-	for _, e := range episodes {
-		best, err := getBestTorrentForEpisode(e)
+	for _, item := range items {
+		best, err := getBestTorrentFor(item)
 		if err != nil {
 			return nil, err
 		}
@@ -64,16 +64,15 @@ func Search(episodes []*sources.Episode) ([]Torrent, error) {
 			continue
 		}
 
-		torrent := Torrent{best.torrentURL(), e, best.FileName}
+		torrent := Torrent{best.torrentURL(), item, best.FileName}
 		results = append(results, torrent)
 	}
 	return results, nil
 }
 
-func getBestTorrentForEpisode(e *sources.Episode) (*Item, error) {
-	//var episodeSpecificResult []kickassSearchResult
+func getBestTorrentFor(e sources.PendingItem) (*Item, error) {
 	var results []Item
-	for _, q := range e.QueryNames() {
+	for _, q := range e.QueryNames {
 		body, err := searchKickass(q)
 		if err != nil { // No luck for this query.
 			continue
@@ -88,13 +87,14 @@ func getBestTorrentForEpisode(e *sources.Episode) (*Item, error) {
 	}
 
 	if len(results) == 0 {
-		return nil, nil //errors.New("Unable to find a result for this episode")
+		// NOTE Just return nil, nil. Having no search results isn't an error.
+		return nil, nil
 	}
 
 	onlyEnglish := results[:0]
 
 	for _, x := range results {
-		if isEnglish(x, *e) {
+		if isEnglish(x, e) {
 			onlyEnglish = append(onlyEnglish, x)
 		}
 	}
@@ -113,9 +113,9 @@ func getBest(xs []Item) Item {
 // search for english name for foreign language
 // search for native name for foreign language
 // reject if found
-func isEnglish(i Item, e sources.Episode) bool {
+func isEnglish(i Item, e sources.PendingItem) bool {
 	// Too weak a check but it is the easiest
-	if strings.Contains(strings.ToLower(e.ShowName()), "french") {
+	if strings.Contains(strings.ToLower(e.ShowTitle), "french") {
 		return true
 	}
 

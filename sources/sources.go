@@ -1,6 +1,7 @@
 package sources
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"time"
@@ -45,6 +46,14 @@ type Episode struct {
 	//Backoff int
 }
 
+type PendingItem struct {
+	//NOTE Perhaps we could return a set of fields in the future and let the search
+	//engine construct the string they want,
+	QueryNames []string
+	ShowTitle  string
+	episodes   []*Episode
+}
+
 var sources = make(map[string]Source)
 
 func Register(name string, source Source) {
@@ -87,6 +96,10 @@ func GetSeasonsAndEpisodes(s *Show) error {
 
 // Subsequent updates of episodes
 func UpdateSeasonsAndEpisodes(s *Show) error {
+	if _, ok := sources[s.SourceName]; !ok {
+		return errors.New(fmt.Sprintf("Source defined by show(%s) is not registered.", s.SourceName))
+	}
+
 	source := sources[s.SourceName]
 	seasons, err := source.AllSeasonsAndEpisodes(*s)
 	if err != nil {
@@ -167,6 +180,58 @@ func (s Show) Episodes() (episodes []*Episode) {
 	return
 }
 
+func (p *PendingItem) Done() {
+	for _, episode := range p.episodes {
+		episode.Pending = false
+	}
+}
+
+// TODO cut this method up.
+// PendingItems returns a list of items which are to be downloaded.
+// The list consists of a mix of episodes and seasons.
+// A season is included when it is NOT the last season of the Show and when all containing episodes
+// are pending.
+func (show Show) PendingItems() (pendingItems []PendingItem) {
+	for _, season := range show.Seasons {
+		if !show.isLastSeason(season) && season.allEpisodesPending() {
+			item := PendingItem{
+				QueryNames: []string{fmt.Sprintf("%s season %d", show.Title, season.Season)},
+				episodes:   season.Episodes,
+				ShowTitle:  show.Title,
+			}
+			pendingItems = append(pendingItems, item)
+		} else {
+			episodes := season.PendingEpisodes()
+			for _, episode := range episodes {
+				item := PendingItem{
+					episodes:  []*Episode{episode},
+					ShowTitle: show.Title,
+				}
+				if show.isDaily {
+					y, m, d := episode.AirDate.Date()
+					item.QueryNames = []string{fmt.Sprintf("%s %d %d %d", show.Title, y, m, d)}
+				} else {
+					s1 := fmt.Sprintf("%s S%02dE%02d", show.Title, season.Season, episode.Episode)
+					s2 := fmt.Sprintf("%s %dx%d", show.Title, season.Season, episode.Episode)
+					item.QueryNames = []string{s1, s2}
+				}
+				pendingItems = append(pendingItems, item)
+			}
+		}
+	}
+	return
+}
+
+func (season Season) PendingEpisodes() (episodes []*Episode) {
+	for _, e := range season.Episodes {
+		if e.Pending {
+			episodes = append(episodes, e)
+		}
+	}
+	return
+}
+
+// TODO deprecated
 func (s Show) PendingEpisodes() (episodes []*Episode) {
 	allEpisodes := s.Episodes()
 	for _, e := range allEpisodes {
@@ -177,7 +242,7 @@ func (s Show) PendingEpisodes() (episodes []*Episode) {
 	return
 }
 
-func (s *Season) AllEpisodesPending() bool {
+func (s *Season) allEpisodesPending() bool {
 	for _, e := range s.Episodes {
 		if !e.Pending {
 			return false
@@ -186,17 +251,28 @@ func (s *Season) AllEpisodesPending() bool {
 	return true
 }
 
+// NOTE Can't assume ordering.
+func (show Show) isLastSeason(season *Season) bool {
+	for _, s := range show.Seasons {
+		if s.Season > season.Season {
+			return false
+		}
+	}
+	return true
+}
+
+// TODO deprecated?
 func (e *Episode) ShowName() string {
 	return e.Season.Show.Title
 }
 
-// TODO check if still used.
+// TODO deprecated?
 func (e *Episode) AsFileName() string {
 	re := regexp.MustCompile("[^a-zA-Z0-9]")
 	return string(re.ReplaceAll([]byte(e.QueryNames()[0]), []byte("_")))
 }
 
-// This is a heuristic really.
+// NOTE This is a heuristic really.
 func (s *Show) determineIsDaily() bool {
 	season := s.Seasons[0]
 	// If there are more than 30 episodes in a season it MIGHT be a daily.
@@ -222,6 +298,7 @@ func isNextDay(d1, d2 time.Time) bool {
 	return d.Hours()/24 == -1
 }
 
+// TODO deprecated
 func (e *Episode) QueryNames() []string {
 	if e.Season.Show.isDaily { // Potential train wreck
 		y, m, d := e.AirDate.Date()

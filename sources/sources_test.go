@@ -6,23 +6,27 @@ import (
 	"github.com/haarts/getme/sources"
 )
 
-func TestAllEpisodesPending(t *testing.T) {
+func TestPendingItems(t *testing.T) {
+	show := sources.Show{}
 	episodes := []*sources.Episode{
 		{Pending: true},
-		{Pending: false},
+		{Pending: true},
+		{Pending: true},
 	}
-	season := sources.Season{Episodes: episodes}
-	if season.AllEpisodesPending() {
-		t.Error("Not all episodes are pending")
+	season1 := sources.Season{Season: 1, Episodes: episodes}
+	show.Seasons = append(show.Seasons, &season1)
+	if len(show.PendingItems()) != 3 {
+		t.Error("All episodes are pending")
 	}
 
 	episodes = []*sources.Episode{
 		{Pending: true},
 		{Pending: true},
 	}
-	season = sources.Season{Episodes: episodes}
-	if !season.AllEpisodesPending() {
-		t.Error("All episodes are pending")
+	season2 := sources.Season{Season: 2, Episodes: episodes}
+	show.Seasons = append(show.Seasons, &season2)
+	if len(show.PendingItems()) != 3 {
+		t.Error("Expected 2 items representing the episodes of the last season and 1 item representing the first season.")
 	}
 }
 
