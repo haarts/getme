@@ -4,7 +4,6 @@ package sources
 
 import (
 	"fmt"
-	"regexp"
 	"time"
 )
 
@@ -270,19 +269,12 @@ func (season *Season) allEpisodesPending() bool {
 
 // NOTE Can't assume ordering.
 func (s Show) isLastSeason(currentSeason *Season) bool {
-	for _, season := range show.Seasons {
+	for _, season := range s.Seasons {
 		if season.Season > currentSeason.Season {
 			return false
 		}
 	}
 	return true
-}
-
-// AsFileName turns an episode into a filesystem save filename.
-// TODO deprecated?
-func (e *Episode) AsFileName() string {
-	re := regexp.MustCompile("[^a-zA-Z0-9]")
-	return string(re.ReplaceAll([]byte(e.QueryNames()[0]), []byte("_")))
 }
 
 // NOTE This is a heuristic really.
@@ -309,17 +301,4 @@ func (s *Show) determineIsDaily() bool {
 func isNextDay(d1, d2 time.Time) bool {
 	d := d1.Sub(d2)
 	return d.Hours()/24 == -1
-}
-
-// QueryNames is probably deprecated.
-// TODO deprecated
-func (e *Episode) QueryNames() []string {
-	if e.Season.Show.IsDaily { // Potential train wreck
-		y, m, d := e.AirDate.Date()
-		return []string{fmt.Sprintf("%s %d %d %d", e.ShowName(), y, m, d)}
-	}
-
-	s1 := fmt.Sprintf("%s S%02dE%02d", e.ShowName(), e.Season.Season, e.Episode)
-	s2 := fmt.Sprintf("%s %dx%d", e.ShowName(), e.Season.Season, e.Episode)
-	return []string{s1, s2}
 }

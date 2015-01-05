@@ -12,9 +12,9 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/haarts/getme/search_engines"
 	"github.com/haarts/getme/sources"
 	"github.com/haarts/getme/store"
+	"github.com/haarts/getme/torrents"
 )
 
 func DisplayPendingEpisodes(show *sources.Show) {
