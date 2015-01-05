@@ -17,6 +17,8 @@ import (
 	"github.com/haarts/getme/torrents"
 )
 
+// DisplayPendingEpisodes shows, on stdout, the episodes pending for a
+// particular show.
 func DisplayPendingEpisodes(show *sources.Show) {
 	items := show.PendingItems()
 	for _, item := range items {
@@ -24,6 +26,8 @@ func DisplayPendingEpisodes(show *sources.Show) {
 	}
 }
 
+// DisplayBestMatchConfirmation asks the user to confirm the, what we THINK, is
+// the best match.
 func DisplayBestMatchConfirmation(matches [][]sources.Match) *sources.Match {
 	nonNilMatch := firstNonNilMatch(matches)
 	if nonNilMatch == nil {
@@ -36,9 +40,8 @@ func DisplayBestMatchConfirmation(matches [][]sources.Match) *sources.Match {
 
 	if line == "" || line == "y" || line == "Y" {
 		return nonNilMatch
-	} else {
-		return nil
 	}
+	return nil
 }
 
 func firstNonNilMatch(matches [][]sources.Match) *sources.Match {
@@ -50,6 +53,8 @@ func firstNonNilMatch(matches [][]sources.Match) *sources.Match {
 	return nil // This really shouldn't happen.
 }
 
+// DisplayAlternatives shows as many lists as there are sources with found
+// matches. The user is asked to select one of them.
 // TODO break this func up. Too long.
 func DisplayAlternatives(ms [][]sources.Match) *sources.Match {
 	fmt.Println("Which one ARE you looking for?")
@@ -123,6 +128,8 @@ func createGenerator(ms []sources.Match, step int) func() (string, []interface{}
 	return f
 }
 
+// Download goes about downloading torrents found based on the pending
+// episodes/seasons.
 func Download(torrents []torrents.Torrent, watchDir string) (err error) {
 	fmt.Printf("Downloading %d torrents", len(torrents))
 	c := startProgressBar()
@@ -164,6 +171,8 @@ func download(torrent torrents.Torrent, watchDir string) error {
 	return nil
 }
 
+// SearchTorrents provides some feedback to the user and searches for torrents
+// for the pending items.
 func SearchTorrents(pendingItems []sources.PendingItem) ([]torrents.Torrent, error) {
 	fmt.Printf("Searching for %d torrents", len(pendingItems))
 
@@ -173,6 +182,8 @@ func SearchTorrents(pendingItems []sources.PendingItem) ([]torrents.Torrent, err
 	return torrents.Search(pendingItems)
 }
 
+// Search converts a user provided search string into a linked list of
+// potential matches.
 func Search(query string) ([][]sources.Match, []error) {
 	fmt.Print("Seaching: ")
 	fmt.Print(strings.Join(sources.ListSources(), ", "))
@@ -189,6 +200,8 @@ func Search(query string) ([][]sources.Match, []error) {
 	return matches, nil
 }
 
+// Lookup takes a show previously selected by the user and finds the seasons
+// and episodes with it.
 func Lookup(s *sources.Show) error {
 	fmt.Print("Looking up seasons and episodes for ", s.Title)
 	c := startProgressBar()
@@ -197,6 +210,7 @@ func Lookup(s *sources.Show) error {
 	return sources.GetSeasonsAndEpisodes(s)
 }
 
+// Update takes all the shows stored on disk and adds any new episodes to them.
 func Update(store *store.Store, watchDir string) {
 	fmt.Println("Updating media from sources and downloading pending torrents.")
 	c := startProgressBar()
