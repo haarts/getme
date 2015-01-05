@@ -13,6 +13,14 @@ import (
 	"github.com/haarts/getme/sources"
 )
 
+type Kickass struct{}
+
+const KICKASS = "kickass"
+
+func init() {
+	Register(KICKASS, Kickass{})
+}
+
 type Torrent struct {
 	URL          string
 	PendingItem  sources.PendingItem
@@ -25,10 +33,6 @@ type Item struct {
 	Seeds    int    `xml:"seeds"`
 	Peers    int    `xml:"peers"`
 	FileName string `xml:"fileName"`
-}
-
-func (i Item) torrentURL() string {
-	return fmt.Sprintf(torCacheURL, i.InfoHash)
 }
 
 type kickassSearchResult struct {
@@ -46,14 +50,8 @@ func (a BySeeds) Less(i, j int) bool { return a[i].Seeds > a[j].Seeds }
 var kickassURL = "https://kickass.so"
 var torCacheURL = "http://torcache.net/torrent/%s.torrent"
 
-func constructSearchURL(episode string) string {
-	return fmt.Sprintf(kickassURL+"/usearch/%s/?rss=1", url.QueryEscape(episode))
-}
-
-// TODO Create a similar Register scheme as with the sources
-func Search(items []sources.PendingItem) ([]Torrent, error) {
+func (k Kickass) Search(items []sources.PendingItem) ([]Torrent, error) {
 	var results []Torrent
-	// TODO dont loop if a list of episodes span a complete season. Search for the season instead.
 	// TODO parallel execution
 	for _, item := range items {
 		best, err := getBestTorrentFor(item)
@@ -68,6 +66,14 @@ func Search(items []sources.PendingItem) ([]Torrent, error) {
 		results = append(results, torrent)
 	}
 	return results, nil
+}
+
+func (i Item) torrentURL() string {
+	return fmt.Sprintf(torCacheURL, i.InfoHash)
+}
+
+func constructSearchURL(episode string) string {
+	return fmt.Sprintf(kickassURL+"/usearch/%s/?rss=1", url.QueryEscape(episode))
 }
 
 func getBestTorrentFor(e sources.PendingItem) (*Item, error) {
