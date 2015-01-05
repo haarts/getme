@@ -29,6 +29,11 @@ func Open(stateDir string) (*Store, error) {
 	}
 
 	store.deserializeShows()
+	//for k, v := range store.shows {
+	//fmt.Printf("k %+v\n", k)
+	//fmt.Printf("v %+v\n", v)
+	//fmt.Printf("v.Seasons[0] %+v\n", v.Seasons[0])
+	//}
 
 	return store, nil
 }
