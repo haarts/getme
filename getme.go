@@ -98,6 +98,8 @@ func defaultConfigData(homeDir string) []byte {
 
 var config Config
 
+// Config contains WHERE downloaded torrents should be copied too. And WHERE
+// the state should be stored.
 type Config struct {
 	WatchDir string
 	StateDir string
@@ -115,7 +117,7 @@ func readConfig() (Config, error) {
 	for scanner.Scan() {
 		text := scanner.Text()
 		parts := strings.Split(text, "=")
-		for i, _ := range parts {
+		for i := range parts {
 			parts[i] = strings.Trim(parts[i], " ")
 		}
 		switch parts[0] {
