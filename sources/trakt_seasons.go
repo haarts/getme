@@ -3,24 +3,26 @@ package sources
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
 	"time"
 )
 
 type traktSeason struct {
-	Season   int `json:"season"`
-	Episodes int `json:"episodes"`
+	Season   int `json:"number"`
+	Episodes int `json:"episode_count"`
 }
 
-var traktSeasonsURL = "http://api.trakt.tv/show/seasons.json/5bc6254d3bbde304a49557cf2845d921/"
+var traktSeasonsURL = traktURL + "/shows/%s/seasons?extended=full"
 
 func (t Trakt) AllSeasonsAndEpisodes(show Show) ([]*Season, error) {
-	parts := strings.Split(show.URL, "/")
-	traktIdentifier := parts[len(parts)-1]
+	req, err := traktRequest(fmt.Sprintf(traktSeasonsURL, show.URL))
+	if err != nil {
+		return nil, err
+	}
 
-	resp, err := http.Get(traktSeasonsURL + traktIdentifier)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err //TODO retry a couple of times when it's a timeout.
 	}
