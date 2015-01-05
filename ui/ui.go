@@ -123,7 +123,7 @@ func createGenerator(ms []sources.Match, step int) func() (string, []interface{}
 	return f
 }
 
-func Download(torrents []search_engines.Torrent, watchDir string) (err error) {
+func Download(torrents []torrents.Torrent, watchDir string) (err error) {
 	fmt.Printf("Downloading %d torrents", len(torrents))
 	c := startProgressBar()
 	defer stopProgressBar(c)
@@ -140,7 +140,7 @@ func Download(torrents []search_engines.Torrent, watchDir string) (err error) {
 }
 
 // This is an odd function here. Perhaps I'll group it with the 'getBody' function.
-func download(torrent search_engines.Torrent, watchDir string) error {
+func download(torrent torrents.Torrent, watchDir string) error {
 	//fileName := torrent.Episode.AsFileName() + ".torrent"
 
 	// TODO: check file existence first with io.IsExist
@@ -164,13 +164,13 @@ func download(torrent search_engines.Torrent, watchDir string) error {
 	return nil
 }
 
-func SearchTorrents(pendingItems []sources.PendingItem) ([]search_engines.Torrent, error) {
+func SearchTorrents(pendingItems []sources.PendingItem) ([]torrents.Torrent, error) {
 	fmt.Printf("Searching for %d torrents", len(pendingItems))
 
 	c := startProgressBar()
 	defer stopProgressBar(c)
 
-	return search_engines.Search(pendingItems)
+	return torrents.Search(pendingItems)
 }
 
 func Search(query string) ([][]sources.Match, []error) {

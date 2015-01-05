@@ -1,4 +1,4 @@
-package search_engines
+package torrents
 
 import (
 	"fmt"

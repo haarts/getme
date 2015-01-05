@@ -1,6 +1,6 @@
 // Package search_engines provides the ability to search for torrents given a
 // list of required items.
-package search_engines
+package torrents
 
 import "github.com/haarts/getme/sources"
 
