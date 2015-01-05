@@ -95,6 +95,7 @@ func DisplayAlternatives(ms [][]sources.Match) *sources.Match {
 	i, err := strconv.Atoi(line)
 	// User mis-typed, try again
 	if err != nil {
+		fmt.Printf("Didn't understand '%s'. Try again (ENTER quits).\n", line)
 		return DisplayAlternatives(ms)
 	}
 
@@ -197,6 +198,10 @@ func Lookup(s *sources.Show) error {
 }
 
 func Update(store *store.Store, watchDir string) {
+	fmt.Println("Updating media from sources and downloading pending torrents.")
+	c := startProgressBar()
+	defer stopProgressBar(c)
+
 	updateShows(store.Shows(), watchDir)
 	updateMovies(store.Movies(), watchDir)
 }

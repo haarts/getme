@@ -171,7 +171,6 @@ func init() {
 }
 
 func updateMedia() {
-	fmt.Println("Updating media from sources and downloading pending torrents.")
 	store, err := store.Open(config.StateDir)
 	if err != nil {
 		fmt.Println("We've failed to open the data store. The error:")
