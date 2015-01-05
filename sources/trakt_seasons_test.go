@@ -17,7 +17,10 @@ func TestExpandShow(t *testing.T) {
 	traktSeasonsURL = ts.URL + "/"
 
 	show := &Show{URL: "boo/some-url", SourceName: TRAKT, Title: "Awesome"}
-	GetSeasonsAndEpisodes(show)
+	err := GetSeasonsAndEpisodes(show)
+	if err != nil {
+		t.Fatal("Expected not an error, got:", err)
+	}
 	if len(show.Seasons) != 6 {
 		t.Fatal("Expected 6 seasons, got:", len(show.Seasons))
 	}

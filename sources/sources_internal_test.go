@@ -36,7 +36,7 @@ func TestIsDaily(t *testing.T) {
 func TestUpdateSeasonsAndEpisodes(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		// Contains 1 new episode in season 2 and 1 new season.
+		// Fixture contains 1 new episode in season 2 and 1 new season.
 		fmt.Fprintln(w, readFixture("fixtures/updated_seasons.json"))
 	}))
 	defer ts.Close()
@@ -51,7 +51,10 @@ func TestUpdateSeasonsAndEpisodes(t *testing.T) {
 		{Episode: 2}}}
 	s := Show{SourceName: TRAKT, Seasons: []*Season{season1, season2}}
 
-	UpdateSeasonsAndEpisodes(&s)
+	err := UpdateSeasonsAndEpisodes(&s)
+	if err != nil {
+		t.Fatal("Expected not an error, got:", err)
+	}
 
 	if len(s.Seasons) != 3 {
 		t.Error("Expected 3 seasons (1 new), got:", len(s.Seasons))
