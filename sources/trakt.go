@@ -2,6 +2,7 @@ package sources
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -59,7 +60,15 @@ func traktRequest(URL string) (*http.Request, error) {
 	return req, nil
 }
 
-func get(req *http.Request, target interface{}) error {
+func getJSON(req *http.Request, target interface{}) error {
+	return get(req, target, json.Unmarshal)
+}
+
+func getXML(req *http.Request, target interface{}) error {
+	return get(req, target, xml.Unmarshal)
+}
+
+func get(req *http.Request, target interface{}, unmarshalFunc func([]byte, interface{}) error) error {
 	resp, err := http.DefaultClient.Do(req)
 	defer resp.Body.Close()
 	if err != nil {
@@ -74,7 +83,7 @@ func get(req *http.Request, target interface{}) error {
 		return err
 	}
 
-	err = json.Unmarshal(body, target)
+	err = unmarshalFunc(body, target)
 	if err != nil {
 		return err
 	}
@@ -91,7 +100,7 @@ func (t Trakt) Search(query string) ([]Match, error) {
 
 	ms := &([]traktMatch{})
 
-	err = get(req, ms)
+	err = getJSON(req, ms)
 	if err != nil {
 		return nil, err
 	}

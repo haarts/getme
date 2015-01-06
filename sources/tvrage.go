@@ -2,9 +2,7 @@ package sources
 
 import (
 	"encoding/xml"
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"time"
@@ -54,25 +52,25 @@ type tvRageDate struct {
 
 var tvRageURL = "http://services.tvrage.com"
 
+func tvRageRequest(URL string) (*http.Request, error) {
+	req, err := http.NewRequest("GET", URL, nil)
+	if err != nil {
+		return nil, err
+	}
+	return req, nil
+}
+
 // Search returns matches found by this source based on the query.
 func (t TvRage) Search(query string) ([]Match, error) {
-	resp, err := http.Get(constructTvRageSearchURL(query))
-	if err != nil {
-		return nil, err //TODO retry a couple of times when it's a timeout.
-	}
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Search returned non 200 status code: %d", resp.StatusCode)
-	}
+	req, err := tvRageRequest(constructTvRageSearchURL(query))
 
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	var result tvRageResult
-	err = xml.Unmarshal(body, &result)
+	result := &tvRageResult{}
+
+	err = getXML(req, result)
 	if err != nil {
 		return nil, err
 	}
@@ -85,23 +83,13 @@ func (t TvRage) Search(query string) ([]Match, error) {
 
 // AllSeasonsAndEpisodes finds the seasons and episodes for a show with this source.
 func (t TvRage) AllSeasonsAndEpisodes(show Show) ([]*Season, error) {
-	resp, err := http.Get(constructTvRageSeasonsURL(show.ID))
-	if err != nil {
-		return nil, err //TODO retry a couple of times when it's a timeout.
-	}
-	if resp.StatusCode != 200 {
-		return nil, errors.New("Search return non 200 status code")
-	}
-
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
+	req, err := tvRageRequest(constructTvRageSeasonsURL(show.ID))
 	if err != nil {
 		return nil, err
 	}
 
-	var result tvRageSeasonResult
-	err = xml.Unmarshal(body, &result)
+	result := &tvRageSeasonResult{}
+	err = getXML(req, result)
 	if err != nil {
 		return nil, err
 	}

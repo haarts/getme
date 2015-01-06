@@ -28,7 +28,7 @@ func (t Trakt) AllSeasonsAndEpisodes(show Show) ([]*Season, error) {
 
 	ss := &([]traktSeason{})
 
-	err = get(req, ss)
+	err = getJSON(req, ss)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func addEpisodes(seasons []*Season, show Show) error {
 		}
 
 		episodes := &([]traktEpisode{})
-		err = get(req, episodes)
+		err = getJSON(req, episodes)
 		if err != nil {
 			return err
 		}
