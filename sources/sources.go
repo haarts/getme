@@ -36,7 +36,6 @@ type Show struct {
 
 // Season is _always_ part of a Show and contains meta data on a season in the show.
 type Season struct {
-	Show     *Show      `json:"-"`
 	Season   int        `json:"season"`
 	Episodes []*Episode `json:"episodes"`
 }
@@ -44,7 +43,6 @@ type Season struct {
 // Episode is _always_ part of a Season and contains meta data on an episode in the show.
 // TODO use TriedAt and Backoff to slowly stop trying to download episodes which prop never complete.
 type Episode struct {
-	Season  *Season   `json:"-"`
 	Title   string    `json:"title"`
 	Episode int       `json:"episode"`
 	Pending bool      `json:"pending"`
@@ -138,7 +136,6 @@ func UpdateSeasonsAndEpisodes(s *Show) error {
 }
 
 func addSeason(show *Show, season *Season) {
-	season.Show = show
 	show.Seasons = append(show.Seasons, season)
 }
 
@@ -150,7 +147,6 @@ func updateEpisodes(existingSeason *Season, newSeason *Season) {
 	for _, episode := range newSeason.Episodes {
 		if !contains(existingSeason.Episodes, episode) {
 			newEpisode := *episode
-			newEpisode.Season = existingSeason
 			existingSeason.Episodes = append(existingSeason.Episodes, &newEpisode)
 		}
 	}

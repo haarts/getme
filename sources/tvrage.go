@@ -162,7 +162,6 @@ func convertFromTvRageSeasons(ss []tvRageSeason) []*Season {
 		for j, e := range s.Episodes {
 			season.Episodes[j] = &Episode{
 				Title:   e.Title,
-				Season:  season,
 				Episode: e.Episode,
 				Pending: true,
 				AirDate: e.AirDate.Time,
