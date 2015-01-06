@@ -17,7 +17,7 @@ func Register(name string, searchEngine SearchEngine) {
 	searchEngines[name] = searchEngine
 }
 
-// TODO this is only a staring point for pull torrents for the same search
+// TODO this is only a starting point for pull torrents for the same search
 // engines. I need to come up with a way to pick the best on duplciates.
 func Search(items []sources.PendingItem) ([]Torrent, error) {
 	var torrents []Torrent
