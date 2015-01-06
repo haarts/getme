@@ -1,11 +1,7 @@
 package sources
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"time"
 )
 
@@ -14,7 +10,14 @@ type traktSeason struct {
 	Episodes int `json:"episode_count"`
 }
 
+type traktEpisode struct {
+	Number     int        `json:"number"`
+	Title      string     `json:"title"`
+	FirstAired *time.Time `json:"first_aired"`
+}
+
 var traktSeasonsURL = traktURL + "/shows/%s/seasons?extended=full"
+var traktSeasonURL = traktURL + "/shows/%s/seasons/%d?extended=full"
 
 // AllSeasonsAndEpisodes finds the seasons and episodes for a show with this source.
 func (t Trakt) AllSeasonsAndEpisodes(show Show) ([]*Season, error) {
@@ -23,28 +26,19 @@ func (t Trakt) AllSeasonsAndEpisodes(show Show) ([]*Season, error) {
 		return nil, err
 	}
 
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err //TODO retry a couple of times when it's a timeout.
-	}
-	if resp.StatusCode != 200 {
-		return nil, errors.New("Search return non 200 status code")
-	}
+	ss := &([]traktSeason{})
 
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
+	err = get(req, ss)
 	if err != nil {
 		return nil, err
 	}
 
-	var ss []traktSeason
-	err = json.Unmarshal(body, &ss)
+	seasons := convertToSeasons(*ss)
+	err = addEpisodes(seasons, show)
 	if err != nil {
 		return nil, err
 	}
-
-	return convertToSeasons(ss), nil
+	return seasons, nil
 }
 
 // TODO Quite a bit of duplication with the convertToMatches function.
@@ -55,16 +49,35 @@ func convertToSeasons(ss []traktSeason) []*Season {
 			Season:   s.Season,
 			Episodes: make([]*Episode, s.Episodes),
 		}
-		for j := range season.Episodes {
-			season.Episodes[j] = &Episode{
-				Title:   "",
-				Season:  season,
-				Episode: j + 1,
-				Pending: true, // NOTE Do not forget to set pending to true!
-				AirDate: time.Time{},
-			}
-		}
 		seasons[i] = season
 	}
 	return seasons
+}
+
+func addEpisodes(seasons []*Season, show Show) error {
+	for _, season := range seasons {
+		req, err := traktRequest(fmt.Sprintf(traktSeasonURL, show.URL, season.Season))
+		if err != nil {
+			return err
+		}
+
+		episodes := &([]traktEpisode{})
+		err = get(req, episodes)
+		if err != nil {
+			return err
+		}
+
+		for _, episode := range *episodes {
+			if episode.FirstAired == nil {
+				episode.FirstAired = &time.Time{}
+			}
+			season.Episodes[episode.Number-1] = &Episode{
+				Title:   episode.Title,
+				Episode: episode.Number,
+				Pending: true, // NOTE Do not forget to set pending to true!
+				AirDate: *episode.FirstAired,
+			}
+		}
+	}
+	return nil
 }
