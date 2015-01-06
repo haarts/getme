@@ -4,6 +4,7 @@ package sources
 
 import (
 	"fmt"
+	"math"
 	"time"
 )
 
@@ -275,7 +276,8 @@ func (s Show) isLastSeason(currentSeason *Season) bool {
 
 // NOTE This is a heuristic really.
 func (s *Show) determineIsDaily() bool {
-	season := s.Seasons[0]
+	// Prefer the second to last season. If not there get the first.
+	season := s.Seasons[int(math.Max(0, float64(len(s.Seasons)-2)))]
 	// If there are more than 30 episodes in a season it MIGHT be a daily.
 	if len(season.Episodes) > 30 {
 
