@@ -216,32 +216,42 @@ func (p *PendingItem) Done() {
 func (s Show) PendingItems() (pendingItems []PendingItem) {
 	for _, season := range s.Seasons {
 		if !s.IsDaily && !s.isLastSeason(season) && season.allEpisodesPending() {
-			item := PendingItem{
-				QueryNames: []string{fmt.Sprintf("%s season %d", s.Title, season.Season)},
-				episodes:   season.Episodes,
-				ShowTitle:  s.Title,
-			}
-			pendingItems = append(pendingItems, item)
+			pendingItems = append(pendingItems, itemForEntireSeason(s, season))
 		} else {
 			episodes := season.PendingEpisodes()
 			for _, episode := range episodes {
-				item := PendingItem{
-					episodes:  []*Episode{episode},
-					ShowTitle: s.Title,
-				}
-				if s.IsDaily {
-					y, m, d := episode.AirDate.Date()
-					item.QueryNames = []string{fmt.Sprintf("%s %d %d %02d", s.Title, y, m, d)}
-				} else {
-					s1 := fmt.Sprintf("%s S%02dE%02d", s.Title, season.Season, episode.Episode)
-					s2 := fmt.Sprintf("%s %dx%d", s.Title, season.Season, episode.Episode)
-					item.QueryNames = []string{s1, s2}
-				}
+				item := itemForEpisode(s, season, episode)
 				pendingItems = append(pendingItems, item)
 			}
 		}
 	}
 	return
+}
+
+func itemForEpisode(show Show, season *Season, episode *Episode) PendingItem {
+	item := PendingItem{
+		episodes:  []*Episode{episode},
+		ShowTitle: show.Title,
+	}
+
+	if show.IsDaily {
+		y, m, d := episode.AirDate.Date()
+		item.QueryNames = []string{fmt.Sprintf("%s %d %d %02d", show.Title, y, m, d)}
+	} else {
+		s1 := fmt.Sprintf("%s S%02dE%02d", show.Title, season.Season, episode.Episode)
+		s2 := fmt.Sprintf("%s %dx%d", show.Title, season.Season, episode.Episode)
+		item.QueryNames = []string{s1, s2}
+	}
+
+	return item
+}
+
+func itemForEntireSeason(show Show, season *Season) PendingItem {
+	return PendingItem{
+		QueryNames: []string{fmt.Sprintf("%s season %d", show.Title, season.Season)},
+		episodes:   season.Episodes,
+		ShowTitle:  show.Title,
+	}
 }
 
 // PendingEpisodes returns all the episodes of this show which are still
