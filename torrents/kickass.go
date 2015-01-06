@@ -135,14 +135,14 @@ func isEnglish(i Item, e sources.PendingItem) bool {
 
 func searchKickass(query string) ([]byte, error) {
 	resp, err := http.Get(constructSearchURL(query))
+	defer resp.Body.Close()
+
 	if err != nil {
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
 		return nil, errors.New(fmt.Sprintf("Search returned non 200 status code: %d", resp.StatusCode))
 	}
-
-	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
