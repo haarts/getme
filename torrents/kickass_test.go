@@ -55,7 +55,10 @@ func Test404(t *testing.T) {
 	//matches, err := Search([]*sources.Episode{{Title: "", Season: &season, Episode: 1}})
 	matches, err := Search([]sources.PendingItem{{ShowTitle: "My Show", QueryNames: []string{"bar"}}})
 
-	// TODO Add proper tests
-	fmt.Printf("err %+v\n", err)
-	fmt.Printf("matches %+v\n", matches)
+	if err != nil {
+		t.Error("Not finding a torrent is not a big deal. Just continue. Got:", err)
+	}
+	if len(matches) != 0 {
+		t.Error("Not finding a torrent is not a big deal. Just continue. Got:", matches)
+	}
 }
