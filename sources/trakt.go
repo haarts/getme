@@ -59,6 +59,30 @@ func traktRequest(URL string) (*http.Request, error) {
 	return req, nil
 }
 
+func get(req *http.Request, target interface{}) error {
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err //TODO retry a couple of times when it's a timeout.
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Search returned non 200 status code: %d", resp.StatusCode)
+	}
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(body, target)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Search returns matches found by this source based on the query.
 func (t Trakt) Search(query string) ([]Match, error) {
 	req, err := traktRequest(constructURL(query))
@@ -66,30 +90,16 @@ func (t Trakt) Search(query string) ([]Match, error) {
 		return nil, err
 	}
 
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err //TODO retry a couple of times when it's a timeout.
-	}
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Search returned non 200 status code: %d", resp.StatusCode)
-	}
+	ms := &([]traktMatch{})
 
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
+	err = get(req, ms)
 	if err != nil {
 		return nil, err
 	}
 
-	var ms []traktMatch
-	err = json.Unmarshal(body, &ms)
-	if err != nil {
-		return nil, err
-	}
+	sort.Sort(byScore(*ms))
 
-	sort.Sort(byScore(ms))
-
-	return convertToMatches(ms), nil
+	return convertToMatches(*ms), nil
 }
 
 func convertToMatches(ms []traktMatch) []Match {
