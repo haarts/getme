@@ -61,14 +61,13 @@ func traktRequest(URL string) (*http.Request, error) {
 
 func get(req *http.Request, target interface{}) error {
 	resp, err := http.DefaultClient.Do(req)
+	defer resp.Body.Close()
 	if err != nil {
 		return err //TODO retry a couple of times when it's a timeout.
 	}
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("Search returned non 200 status code: %d", resp.StatusCode)
 	}
-
-	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
