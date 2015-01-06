@@ -67,11 +67,11 @@ func addEpisodes(seasons []*Season, show Show) error {
 			return err
 		}
 
-		for _, episode := range *episodes {
+		for i, episode := range *episodes {
 			if episode.FirstAired == nil {
 				episode.FirstAired = &time.Time{}
 			}
-			season.Episodes[episode.Number-1] = &Episode{
+			season.Episodes[i] = &Episode{
 				Title:   episode.Title,
 				Episode: episode.Number,
 				Pending: true, // NOTE Do not forget to set pending to true!
