@@ -1,10 +1,6 @@
 package sources
 
 import (
-	"encoding/json"
-	"encoding/xml"
-	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"sort"
@@ -59,37 +55,6 @@ func traktRequest(URL string) (*http.Request, error) {
 	req.Header.Add("trakt-api-key", clientID)
 
 	return req, nil
-}
-
-func getJSON(req *http.Request, target interface{}) error {
-	return get(req, target, json.Unmarshal)
-}
-
-func getXML(req *http.Request, target interface{}) error {
-	return get(req, target, xml.Unmarshal)
-}
-
-func get(req *http.Request, target interface{}, unmarshalFunc func([]byte, interface{}) error) error {
-	resp, err := http.DefaultClient.Do(req)
-	defer resp.Body.Close()
-	if err != nil {
-		return err //TODO retry a couple of times when it's a timeout.
-	}
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("Search returned non 200 status code: %d", resp.StatusCode)
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	err = unmarshalFunc(body, target)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // Search returns matches found by this source based on the query.
