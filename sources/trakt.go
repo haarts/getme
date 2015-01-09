@@ -36,6 +36,7 @@ func (a byScore) Len() int           { return len(a) }
 func (a byScore) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a byScore) Less(i, j int) bool { return a[i].Score > a[j].Score }
 
+// NOTE Yes, you can use this access token for you're own app...
 var accessToken = "3b6f5bdba2fa56b086712d5f3f15b4e967f99ab049a6d3a4c2e56dc9c3c90462"
 var clientID = "01045164ed603042b53acf841b590f0e7b728dbff319c8d128f8649e2427cbe9" //AKA trakt-api-key
 var traktURL = "https://api.trakt.tv"
