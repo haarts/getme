@@ -22,7 +22,7 @@ func init() {
 }
 
 // TODO rename to SearchResult. Item is too generic.
-type Item struct {
+type SearchResult struct {
 	Title    string `xml:"title"`
 	InfoHash string `xml:"infoHash"`
 	Seeds    int    `xml:"seeds"`
@@ -32,11 +32,11 @@ type Item struct {
 
 type kickassSearchResult struct {
 	Channel struct {
-		Items []Item `xml:"item"`
+		Items []SearchResult `xml:"item"`
 	} `xml:"channel"`
 }
 
-type BySeeds []Item
+type BySeeds []SearchResult
 
 func (a BySeeds) Len() int           { return len(a) }
 func (a BySeeds) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
@@ -238,7 +238,7 @@ func max(snippets []sources.Snippet) sources.Snippet {
 	return bestSnippet
 }
 
-func (i Item) torrentURL() string {
+func (i SearchResult) torrentURL() string {
 	return fmt.Sprintf(torCacheURL, i.InfoHash)
 }
 
@@ -297,7 +297,7 @@ func searchKickass(query string) ([]Torrent, error) {
 	return torrents, nil
 }
 
-func isEnglish(i Item) bool {
+func isEnglish(i SearchResult) bool {
 	// Too weak a check but it is the easiest. I hope there aren't any series
 	// with 'french' in the title.
 	if strings.Contains(strings.ToLower(i.FileName), "french") {
