@@ -12,10 +12,10 @@ import (
 type TvRage struct{}
 
 // TVRAGE defines the name of this source.
-const TVRAGE = "tvrage"
+const tvRageName = "tvrage"
 
 func init() {
-	Register(TVRAGE, TvRage{})
+	Register(tvRageName, TvRage{})
 }
 
 type tvRageResult struct {
@@ -133,7 +133,7 @@ func convertTvRageToMatches(ms []tvRageMatch) []Match {
 		matches[i] = Show{
 			Title:      m.Title,
 			ID:         m.ID,
-			SourceName: TVRAGE,
+			SourceName: tvRageName,
 		}
 	}
 	return matches

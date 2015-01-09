@@ -15,7 +15,7 @@ import (
 
 type Kickass struct{}
 
-const KICKASS = "kickass"
+const kickassName = "kickass"
 
 func init() {
 	Register(KICKASS, Kickass{})

@@ -14,10 +14,10 @@ import (
 type Trakt struct{}
 
 // TRAKT defines the name of this source.
-const TRAKT = "trakt"
+const traktName = "trakt"
 
 func init() {
-	Register(TRAKT, Trakt{})
+	Register(traktName, Trakt{})
 }
 
 type traktMatch struct {
@@ -117,7 +117,7 @@ func convertToMatches(ms []traktMatch) []Match {
 		matches[i] = Show{
 			URL:        m.Show.IDs.Slug,
 			Title:      m.Show.Title,
-			SourceName: TRAKT,
+			SourceName: traktName,
 		}
 	}
 	return matches
