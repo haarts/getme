@@ -20,9 +20,13 @@ import (
 // DisplayPendingEpisodes shows, on stdout, the episodes pending for a
 // particular show.
 func DisplayPendingEpisodes(show *sources.Show) {
-	items := show.PendingItems()
-	for _, item := range items {
-		fmt.Println("Pending: ", item.QueryNames[0])
+	xs := show.PendingSeasons()
+	for _, x := range xs {
+		fmt.Printf("Pending: %s season %d\n", show.Title, x.Season)
+	}
+	ys := show.PendingEpisodes()
+	for _, y := range ys {
+		fmt.Printf("Pending: %s season %d episode %d\n", show.Title, y.Season(), y.Episode)
 	}
 }
 
