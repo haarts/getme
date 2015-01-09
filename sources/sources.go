@@ -31,12 +31,24 @@ type Movie struct {
 // Show contains all the relevant information for a TV show. A value is Show is
 // the main way on interfacing with the show, seasons AND episodes.
 type Show struct {
-	Title      string    `json:"title"`
-	URL        string    `json:"url"`
-	ID         int       `json:"id"`
-	Seasons    []*Season `json:"seasons"`
-	SourceName string    `json:"source_name"`
-	IsDaily    bool      `json:"is_daily"`
+	Title         string        `json:"title"`
+	URL           string        `json:"url"`
+	ID            int           `json:"id"`
+	Seasons       []*Season     `json:"seasons"`
+	SourceName    string        `json:"source_name"`
+	IsDaily       bool          `json:"is_daily"`
+	QuerySnippets QuerySnippets `json:"query_snippets"`
+}
+
+type QuerySnippets struct {
+	ForEpisode []Snippet `json:"for_episode"`
+	ForSeason  []Snippet `json:"for_season"`
+}
+
+type Snippet struct {
+	Score         int    `json:"score"`
+	TitleSnippet  string `json:"title_snippet"`
+	FormatSnippet string `json:"format_snippet"`
 }
 
 // Season is _always_ part of a Show and contains meta data on a season in the show.
@@ -45,25 +57,22 @@ type Season struct {
 	Episodes []*Episode `json:"episodes"`
 }
 
-// Episode is _always_ part of a Season and contains meta data on an episode in the show.
-// TODO use TriedAt and Backoff to slowly stop trying to download episodes which prop never complete.
+// Episode is _always_ part of a Season and contains meta data on an episode in
+// the show.
+// TODO use TriedAt and Backoff to slowly stop trying to download episodes
+// which prop never complete.
 type Episode struct {
 	Title   string    `json:"title"`
 	Episode int       `json:"episode"`
 	Pending bool      `json:"pending"`
 	AirDate time.Time `json:"air_date"`
+	season  int
 	//TriedAt time.Time
 	//Backoff int
 }
 
-// PendingItem is a generalisation of something which hasn't been downloaded
-// yet. This can be a single episode OR an entire season.
-type PendingItem struct {
-	//NOTE Perhaps we could return a set of fields in the future and let the search
-	//engine construct the string they want,
-	QueryNames []string
-	ShowTitle  string
-	episodes   []*Episode
+func (e *Episode) Season() int {
+	return e.season
 }
 
 var sources = make(map[string]Source)
@@ -206,71 +215,65 @@ func (s Show) Episodes() (episodes []*Episode) {
 
 // Done flags an episode as 'downloaded' and thus done. This episode is
 // never looked up on a search engine agian.
-func (p *PendingItem) Done() {
-	for _, episode := range p.episodes {
+func (s *Season) Done() {
+	for _, episode := range s.Episodes {
 		episode.Pending = false
 	}
 }
 
-// PendingItems returns a list of items which are to be downloaded.
-// The list consists of a mix of episodes and seasons.
-// A season is included when it is NOT the last season of the Show and when all containing episodes
-// are pending and it is NOT a daily show.
-// TODO cut this method up.
-func (s Show) PendingItems() (pendingItems []PendingItem) {
+// Done flags an episode as 'downloaded' and thus done. This episode is
+// never looked up on a search engine agian.
+func (e *Episode) Done() {
+	e.Pending = false
+}
+
+// PendingSeasons return a list which is to be downloaded.
+// A season is included when it is NOT the last season of the Show (high
+// likelyhood of being still running and thus incomplete) and when all
+// containing episodes are pending and it is NOT a daily show (people don't
+// tend to bundle these).
+func (s *Show) PendingSeasons() []*Season {
+	var seasons []*Season
 	for _, season := range s.Seasons {
-		if !s.IsDaily && !s.isLastSeason(season) && season.allEpisodesPending() {
-			pendingItems = append(pendingItems, itemForEntireSeason(s, season))
-		} else {
-			episodes := season.PendingEpisodes()
-			for _, episode := range episodes {
-				item := itemForEpisode(s, season, episode)
-				pendingItems = append(pendingItems, item)
-			}
+		if s.isPending(season) {
+			seasons = append(seasons, season)
 		}
 	}
-	return
+	return seasons
 }
 
-func itemForEpisode(show Show, season *Season, episode *Episode) PendingItem {
-	item := PendingItem{
-		episodes:  []*Episode{episode},
-		ShowTitle: show.Title,
+// PendingEpisodes return a list which is to be downloaded.
+func (s *Show) PendingEpisodes() []*Episode {
+	var episodes []*Episode
+	for _, season := range s.Seasons {
+		if !s.isPending(season) {
+			episodes = append(episodes, season.PendingEpisodes()...)
+		}
 	}
-
-	if show.IsDaily {
-		y, m, d := episode.AirDate.Date()
-		item.QueryNames = []string{fmt.Sprintf("%s %d %d %02d", show.Title, y, m, d)}
-	} else {
-		s1 := fmt.Sprintf("%s S%02dE%02d", show.Title, season.Season, episode.Episode)
-		s2 := fmt.Sprintf("%s %dx%d", show.Title, season.Season, episode.Episode)
-		item.QueryNames = []string{s1, s2}
-	}
-
-	return item
+	return episodes
 }
 
-func itemForEntireSeason(show Show, season *Season) PendingItem {
-	return PendingItem{
-		QueryNames: []string{fmt.Sprintf("%s season %d", show.Title, season.Season)},
-		episodes:   season.Episodes,
-		ShowTitle:  show.Title,
+func (s *Show) isPending(season *Season) bool {
+	if !s.IsDaily && !s.isLastSeason(season) && season.allEpisodesPending() {
+		return true
 	}
+	return false
 }
 
 // PendingEpisodes returns all the episodes of this show which are still
 // pending for download.
-func (season Season) PendingEpisodes() (episodes []*Episode) {
-	for _, e := range season.Episodes {
+func (s *Season) PendingEpisodes() (episodes []*Episode) {
+	for _, e := range s.Episodes {
 		if e.Pending {
+			e.season = s.Season
 			episodes = append(episodes, e)
 		}
 	}
 	return
 }
 
-func (season *Season) allEpisodesPending() bool {
-	for _, e := range season.Episodes {
+func (s *Season) allEpisodesPending() bool {
+	for _, e := range s.Episodes {
 		if !e.Pending {
 			return false
 		}

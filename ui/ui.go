@@ -139,7 +139,7 @@ func Download(torrents []torrents.Torrent, watchDir string) (err error) {
 		err = download(torrent, watchDir) // I know I'm shadowing err
 		if err == nil {
 			//torrent.Episode.Pending = false
-			torrent.PendingItem.Done()
+			torrent.AssociatedMedia.Done()
 		}
 	}
 
@@ -173,13 +173,15 @@ func download(torrent torrents.Torrent, watchDir string) error {
 
 // SearchTorrents provides some feedback to the user and searches for torrents
 // for the pending items.
-func SearchTorrents(pendingItems []sources.PendingItem) ([]torrents.Torrent, error) {
-	fmt.Printf("Searching for %d torrents", len(pendingItems))
+func SearchTorrents(show *sources.Show) ([]torrents.Torrent, error) {
+	fmt.Printf(
+		"Searching for %d torrents",
+		len(show.PendingSeasons())+len(show.PendingEpisodes()))
 
 	c := startProgressBar()
 	defer stopProgressBar(c)
 
-	return torrents.Search(pendingItems)
+	return torrents.Search(show)
 }
 
 // Search converts a user provided search string into a linked list of
@@ -225,8 +227,8 @@ func updateShows(shows map[string]*sources.Show, watchDir string) {
 		//fmt.Printf("show %+v\n", show)
 		// ... get updated info
 		sources.UpdateSeasonsAndEpisodes(show)
-		torrents, _ := SearchTorrents(show.PendingItems()) // TODO This really should return an error, handle errors in ui package.
-		Download(torrents, watchDir)                       // TODO This really should return an error, handle errors in ui package.
+		torrents, _ := SearchTorrents(show) // TODO This really should return an error, handle errors in ui package.
+		Download(torrents, watchDir)        // TODO This really should return an error, handle errors in ui package.
 		DisplayPendingEpisodes(show)
 		//store.UpdateShow(show)
 	}

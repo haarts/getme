@@ -47,7 +47,7 @@ func handleShow(show *sources.Show) error {
 	// So we create episodes based on seasons always. Then look at the disk/store and figure out
 	// what is missing.
 
-	torrents, err := ui.SearchTorrents(show.PendingItems())
+	torrents, err := ui.SearchTorrents(show)
 	if err != nil {
 		fmt.Println("Something went wrong looking for your torrents:", err)
 		return err
