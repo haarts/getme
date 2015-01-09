@@ -1,4 +1,5 @@
 GetMe downloads your favourite TV shows in the easiest way possible.
+[![GoDoc](https://godoc.org/github.com/haarts/getme?status.svg)](https://godoc.org/github.com/haarts/getme) 
 
 Just run:
 ```
