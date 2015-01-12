@@ -44,7 +44,7 @@ var episodeQueryAlternatives = map[string]func(string, *sources.Episode) string{
 
 //var dailyEpisodeQueryAlternatives = [...]string{}
 
-var titleMorpher = [...]func(string) string{
+var titleMorphers = [...]func(string) string{
 	func(title string) string { //noop
 		return title
 	},

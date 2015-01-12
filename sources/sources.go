@@ -221,6 +221,48 @@ func (s *Season) Done() {
 	}
 }
 
+func (s *Show) BestSeasonSnippet() *Snippet {
+	var best Snippet
+	for _, snippet := range s.QuerySnippets.ForSeason {
+		if snippet.Score >= best.Score {
+			best = snippet
+		}
+	}
+	return &best
+}
+
+func (s *Show) StoreSeasonSnippet(snippet Snippet) {
+	for i, snip := range s.QuerySnippets.ForSeason {
+		if snip.TitleSnippet == snippet.TitleSnippet && snip.FormatSnippet == snippet.FormatSnippet {
+			s.QuerySnippets.ForSeason[i] = snippet
+			return
+		}
+	}
+
+	s.QuerySnippets.ForSeason = append(s.QuerySnippets.ForSeason, snippet)
+}
+
+func (s *Show) BestEpisodeSnippet() *Snippet {
+	var best Snippet
+	for _, snippet := range s.QuerySnippets.ForEpisode {
+		if snippet.Score >= best.Score {
+			best = snippet
+		}
+	}
+	return &best
+}
+
+func (s *Show) StoreEpisodeSnippet(snippet Snippet) {
+	for i, snip := range s.QuerySnippets.ForEpisode {
+		if snip.TitleSnippet == snippet.TitleSnippet && snip.FormatSnippet == snippet.FormatSnippet {
+			s.QuerySnippets.ForEpisode[i] = snippet
+			return
+		}
+	}
+
+	s.QuerySnippets.ForEpisode = append(s.QuerySnippets.ForEpisode, snippet)
+}
+
 // Done flags an episode as 'downloaded' and thus done. This episode is
 // never looked up on a search engine agian.
 func (e *Episode) Done() {
