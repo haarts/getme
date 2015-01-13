@@ -95,6 +95,7 @@ func torrentsForEpisodes(show *sources.Show) ([]Torrent, error) {
 		best := alts(as).best()
 		if best != nil {
 			best.torrent.AssociatedMedia = s
+			best.snippet.Score = best.torrent.Seeds
 			show.StoreEpisodeSnippet(best.snippet)
 			torrents = append(torrents, best.torrent)
 		}
@@ -149,6 +150,7 @@ func torrentsForSeasons(show *sources.Show) ([]Torrent, error) {
 		best := alts(as).best()
 		if best != nil {
 			best.torrent.AssociatedMedia = s
+			best.snippet.Score = best.torrent.Seeds
 			show.StoreSeasonSnippet(best.snippet)
 			torrents = append(torrents, best.torrent)
 		}
