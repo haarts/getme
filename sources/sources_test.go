@@ -15,8 +15,11 @@ func TestPendingItems(t *testing.T) {
 	}
 	season1 := sources.Season{Season: 1, Episodes: episodes}
 	show.Seasons = append(show.Seasons, &season1)
-	if len(show.PendingItems()) != 3 {
-		t.Error("All episodes are pending")
+	if len(show.PendingSeasons()) != 0 {
+		t.Error("All episodes are pending but it's from the last seasons thus no seasons should be returned, got:", len(show.PendingSeasons()))
+	}
+	if len(show.PendingEpisodes()) != 3 {
+		t.Error("All episodes are pending, got:", len(show.PendingEpisodes()))
 	}
 
 	episodes = []*sources.Episode{
@@ -25,18 +28,11 @@ func TestPendingItems(t *testing.T) {
 	}
 	season2 := sources.Season{Season: 2, Episodes: episodes}
 	show.Seasons = append(show.Seasons, &season2)
-	if len(show.PendingItems()) != 3 {
+	if len(show.PendingSeasons()) != 1 {
 		t.Error("Expected 2 items representing the episodes of the last season and 1 item representing the first season.")
 	}
-}
-
-func TestAsFileName(t *testing.T) {
-	show := sources.Show{Title: "with & silly ! chars 123"}
-	season := sources.Season{Show: &show}
-	episode := sources.Episode{Season: &season}
-
-	if episode.AsFileName() != "with___silly___chars_123_S00E00" {
-		t.Error("Expected no silly characters, got:", episode.AsFileName())
+	if len(show.PendingEpisodes()) != 2 {
+		t.Error("Expected 2 items representing the episodes of the last season and 1 item representing the first season.")
 	}
 }
 

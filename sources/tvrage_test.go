@@ -16,7 +16,7 @@ func TestTvRageSeasons(t *testing.T) {
 
 	tvRageURL = ts.URL
 
-	show := &Show{ID: 123, SourceName: TVRAGE}
+	show := &Show{ID: 123, SourceName: tvRageName}
 	GetSeasonsAndEpisodes(show)
 
 	if len(show.Seasons) == 0 {
@@ -24,10 +24,6 @@ func TestTvRageSeasons(t *testing.T) {
 	}
 
 	season := show.Seasons[0]
-	if season.Show != show {
-		t.Error("Expected reference to original show, got:", season.Show)
-	}
-
 	if season.Season == 0 {
 		t.Error("Expected Season number not to be zero, got:", season.Season)
 	}

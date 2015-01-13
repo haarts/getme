@@ -26,14 +26,14 @@ func TestOrdering(t *testing.T) {
 	defer ts.Close()
 	defer func() {
 		sources = make(map[string]Source)
-		Register(TVRAGE, TvRage{})
-		Register(TRAKT, Trakt{})
+		Register(tvRageName, TvRage{})
+		Register(traktName, Trakt{})
 	}()
 
 	traktSearchURL = ts.URL + "/search?type=show"
 
 	sources = make(map[string]Source)
-	Register(TRAKT, Trakt{})
+	Register(traktName, Trakt{})
 	matches, _ := Search("some query")
 	if matches[0][0].DisplayTitle() != "Game of Thrones" {
 		t.Fatal("best match is not Game of Thrones, got:", matches[0][0].DisplayTitle())

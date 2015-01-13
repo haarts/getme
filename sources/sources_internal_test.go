@@ -49,7 +49,7 @@ func TestUpdateSeasonsAndEpisodes(t *testing.T) {
 	season2 := &Season{Season: 2, Episodes: []*Episode{
 		{Episode: 1},
 		{Episode: 2}}}
-	s := Show{SourceName: TRAKT, Seasons: []*Season{season1, season2}}
+	s := Show{SourceName: traktName, Seasons: []*Season{season1, season2}}
 
 	err := UpdateSeasonsAndEpisodes(&s)
 	if err != nil {

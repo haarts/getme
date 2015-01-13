@@ -29,10 +29,10 @@ func TestSearching(t *testing.T) {
 
 	kickassURL = ts.URL
 
-	//show := sources.Show{Title: "Title", URL: "url", Seasons: nil}
+	show := sources.Show{Title: "Title", URL: "url", Seasons: nil}
 	//season := sources.Season{&show, 1, nil}
 	//matches, err := Search([]*sources.Episode{{Title: "", Season: &season, Episode: 1}})
-	matches, err := Search([]sources.PendingItem{{ShowTitle: "My Show", QueryNames: []string{"bar"}}})
+	matches, err := Search(&show)
 	if err != nil {
 		t.Error("Expected error to be nil, got:", err)
 	}
@@ -50,10 +50,10 @@ func Test404(t *testing.T) {
 
 	kickassURL = ts.URL
 
-	//show := sources.Show{Title: "Title", URL: "url", Seasons: nil}
+	show := sources.Show{Title: "Title", URL: "url", Seasons: nil}
 	//season := sources.Season{&show, 1, nil}
 	//matches, err := Search([]*sources.Episode{{Title: "", Season: &season, Episode: 1}})
-	matches, err := Search([]sources.PendingItem{{ShowTitle: "My Show", QueryNames: []string{"bar"}}})
+	matches, err := Search(&show)
 
 	if err != nil {
 		t.Error("Not finding a torrent is not a big deal. Just continue. Got:", err)
