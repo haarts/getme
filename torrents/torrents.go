@@ -32,13 +32,13 @@ var episodeQueryAlternatives = map[string]func(string, *sources.Episode) string{
 		return fmt.Sprintf("%s S%02dE%02d", title, episode.Season(), episode.Episode)
 	},
 	"%s %dx%d": func(title string, episode *sources.Episode) string {
-		return fmt.Sprintf("%s S%02dE%02d", title, episode.Season(), episode.Episode)
+		return fmt.Sprintf("%s %dx%d", title, episode.Season(), episode.Episode)
 	},
 	// This is a bit of a gamble. I, now, no longer make the
 	// distinction between a daily series and a regular one:
 	"%s %d %02d %02d": func(title string, episode *sources.Episode) string {
 		y, m, d := episode.AirDate.Date()
-		return fmt.Sprintf("%s %d %d %02d", title, y, m, d)
+		return fmt.Sprintf("%s %d %02d %02d", title, y, m, d)
 	},
 }
 
