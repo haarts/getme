@@ -73,26 +73,23 @@ func torrentsForEpisodes(show *sources.Show) ([]Torrent, error) {
 	for _, s := range show.PendingEpisodes() {
 		bestSnippet := show.BestEpisodeSnippet()
 		var as []alt
-		if _, ok := seasonQueryAlternatives[bestSnippet.FormatSnippet]; ok {
+		if _, ok := episodeQueryAlternatives[bestSnippet.FormatSnippet]; ok {
 			as = append(as, alt{snippet: *bestSnippet})
 		} else {
-			for k, _ := range seasonQueryAlternatives {
+			for k, _ := range episodeQueryAlternatives {
 				for _, morpher := range titleMorphers {
-					as = append(as, alt{
-						snippet: sources.Snippet{
-							Score:         0,
-							TitleSnippet:  morpher(show.Title),
-							FormatSnippet: k,
-						}})
+					as = addIfNew(as, morpher(show.Title), k)
 				}
 			}
 		}
 
-		for _, a := range as {
+		for i := 0; i < len(as); i++ {
 			results, _ := searchKickass(
-				episodeQueryAlternatives[a.snippet.FormatSnippet](a.snippet.TitleSnippet, s),
+				episodeQueryAlternatives[as[i].snippet.FormatSnippet](as[i].snippet.TitleSnippet, s),
 			)
-			a.torrent = selectBest(results)
+			if len(results) != 0 {
+				as[i].torrent = selectBest(results)
+			}
 		}
 
 		best := alts(as).best()
@@ -106,6 +103,24 @@ func torrentsForEpisodes(show *sources.Show) ([]Torrent, error) {
 	return torrents, nil
 }
 
+func addIfNew(as []alt, title, format string) []alt {
+	newAlt := alt{
+		snippet: sources.Snippet{
+			Score:         0,
+			TitleSnippet:  title,
+			FormatSnippet: format,
+		},
+	}
+	for _, existing := range as {
+		if newAlt.snippet.TitleSnippet == existing.snippet.TitleSnippet &&
+			newAlt.snippet.FormatSnippet == existing.snippet.FormatSnippet {
+			return as
+		}
+	}
+
+	return append(as, newAlt)
+}
+
 func torrentsForSeasons(show *sources.Show) ([]Torrent, error) {
 	var torrents []Torrent
 
@@ -117,21 +132,18 @@ func torrentsForSeasons(show *sources.Show) ([]Torrent, error) {
 		} else {
 			for k, _ := range seasonQueryAlternatives {
 				for _, morpher := range titleMorphers {
-					as = append(as, alt{
-						snippet: sources.Snippet{
-							Score:         0,
-							TitleSnippet:  morpher(show.Title),
-							FormatSnippet: k,
-						}})
+					as = addIfNew(as, morpher(show.Title), k)
 				}
 			}
 		}
 
-		for _, a := range as {
+		for i := 0; i < len(as); i++ {
 			results, _ := searchKickass(
-				seasonQueryAlternatives[a.snippet.FormatSnippet](a.snippet.TitleSnippet, s),
+				seasonQueryAlternatives[as[i].snippet.FormatSnippet](as[i].snippet.TitleSnippet, s),
 			)
-			a.torrent = selectBest(results)
+			if len(results) != 0 {
+				as[i].torrent = selectBest(results)
+			}
 		}
 
 		best := alts(as).best()
@@ -153,13 +165,13 @@ type alt struct {
 type alts []alt
 
 func (as alts) best() *alt {
-	var best *alt
+	var best alt
 	for _, a := range as {
 		if a.torrent.seeds > best.torrent.seeds {
-			best = &a
+			best = a
 		}
 	}
-	return best
+	return &best
 }
 
 func (i SearchResult) torrentURL() string {
