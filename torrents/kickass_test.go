@@ -29,9 +29,8 @@ func TestSearching(t *testing.T) {
 
 	kickassURL = ts.URL
 
-	show := sources.Show{Title: "Title", URL: "url", Seasons: nil}
-	//season := sources.Season{&show, 1, nil}
-	//matches, err := Search([]*sources.Episode{{Title: "", Season: &season, Episode: 1}})
+	season := sources.Season{1, []*sources.Episode{{Pending: true, Episode: 1}}}
+	show := sources.Show{Title: "Title", URL: "url", Seasons: []*sources.Season{&season}}
 	matches, err := Search(&show)
 	if err != nil {
 		t.Error("Expected error to be nil, got:", err)
@@ -50,9 +49,8 @@ func Test404(t *testing.T) {
 
 	kickassURL = ts.URL
 
-	show := sources.Show{Title: "Title", URL: "url", Seasons: nil}
-	//season := sources.Season{&show, 1, nil}
-	//matches, err := Search([]*sources.Episode{{Title: "", Season: &season, Episode: 1}})
+	season := sources.Season{1, []*sources.Episode{{Pending: true, Episode: 1}}}
+	show := sources.Show{Title: "Title", URL: "url", Seasons: []*sources.Season{&season}}
 	matches, err := Search(&show)
 
 	if err != nil {

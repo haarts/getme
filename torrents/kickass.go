@@ -63,8 +63,8 @@ func (k Kickass) Search(show *sources.Show) ([]Torrent, error) {
 	return append(seasonTorrents, episodeTorrents...), err
 }
 
-func selectBest(torrents []Torrent) Torrent {
-	return torrents[0] //most peers
+func selectBest(torrents []Torrent) *Torrent {
+	return &(torrents[0]) //most peers
 }
 
 func torrentsForEpisodes(show *sources.Show) ([]Torrent, error) {
@@ -92,12 +92,12 @@ func torrentsForEpisodes(show *sources.Show) ([]Torrent, error) {
 			}
 		}
 
-		best := alts(as).best()
+		best := bestAlt(as)
 		if best != nil {
 			best.torrent.AssociatedMedia = s
 			best.snippet.Score = best.torrent.seeds
 			show.StoreEpisodeSnippet(best.snippet)
-			torrents = append(torrents, best.torrent)
+			torrents = append(torrents, *best.torrent)
 		}
 	}
 
@@ -147,12 +147,12 @@ func torrentsForSeasons(show *sources.Show) ([]Torrent, error) {
 			}
 		}
 
-		best := alts(as).best()
+		best := bestAlt(as)
 		if best != nil {
 			best.torrent.AssociatedMedia = s
 			best.snippet.Score = best.torrent.seeds
 			show.StoreSeasonSnippet(best.snippet)
-			torrents = append(torrents, best.torrent)
+			torrents = append(torrents, *best.torrent)
 		}
 	}
 
@@ -160,15 +160,28 @@ func torrentsForSeasons(show *sources.Show) ([]Torrent, error) {
 }
 
 type alt struct {
-	torrent Torrent
+	torrent *Torrent
 	snippet sources.Snippet
 }
 
-type alts []alt
+func bestAlt(as []alt) *alt {
+	if len(as) == 0 {
+		return nil
+	}
 
-func (as alts) best() *alt {
+	withTorrents := as[:0]
+	for _, x := range as {
+		if x.torrent != nil {
+			withTorrents = append(withTorrents, x)
+		}
+	}
+
+	if len(withTorrents) == 0 {
+		return nil
+	}
+
 	var best alt
-	for _, a := range as {
+	for _, a := range withTorrents {
 		if a.torrent.seeds > best.torrent.seeds {
 			best = a
 		}
