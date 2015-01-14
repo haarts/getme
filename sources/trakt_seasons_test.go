@@ -9,13 +9,13 @@ import (
 
 func TestExpandShow(t *testing.T) {
 	stack := []string{
-		"fixtures/trakt/seasons.json",
-		"fixtures/trakt/season_0.json",
-		"fixtures/trakt/season_1.json",
-		"fixtures/trakt/season_2.json",
-		"fixtures/trakt/season_3.json",
-		"fixtures/trakt/season_4.json",
-		"fixtures/trakt/season_5.json",
+		"testdata/trakt/seasons.json",
+		"testdata/trakt/season_0.json",
+		"testdata/trakt/season_1.json",
+		"testdata/trakt/season_2.json",
+		"testdata/trakt/season_3.json",
+		"testdata/trakt/season_4.json",
+		"testdata/trakt/season_5.json",
 	}
 
 	var f string

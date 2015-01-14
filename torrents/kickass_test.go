@@ -23,7 +23,7 @@ func readFixture(file string) string {
 func TestSearching(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintln(w, readFixture("fixtures/kickass.xml"))
+		fmt.Fprintln(w, readFixture("testdata/kickass.xml"))
 	}))
 	defer ts.Close()
 

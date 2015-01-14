@@ -10,7 +10,7 @@ import (
 func TestTvRageSeasons(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/xml")
-		fmt.Fprintln(w, readFixture("fixtures/tvrage_seasons.xml"))
+		fmt.Fprintln(w, readFixture("testdata/tvrage_seasons.xml"))
 	}))
 	defer ts.Close()
 
@@ -32,7 +32,7 @@ func TestTvRageSeasons(t *testing.T) {
 func TestTvRageSearch(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/xml")
-		fmt.Fprintln(w, readFixture("fixtures/tvrage_search.xml"))
+		fmt.Fprintln(w, readFixture("testdata/tvrage_search.xml"))
 	}))
 	defer ts.Close()
 

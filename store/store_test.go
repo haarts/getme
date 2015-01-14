@@ -47,7 +47,7 @@ func TestReadShows(t *testing.T) {
 	}()
 
 	os.MkdirAll(path.Join(testDir, "shows"), 0755)
-	os.Link(path.Join("fixtures", "my_show.json"), path.Join(testDir, "shows", "my_show.json"))
+	os.Link(path.Join("testdata", "my_show.json"), path.Join(testDir, "shows", "my_show.json"))
 
 	s, _ := store.Open(testDir)
 	if len(s.Shows()) != 1 {

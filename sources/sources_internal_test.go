@@ -35,10 +35,10 @@ func TestIsDaily(t *testing.T) {
 
 func TestUpdateSeasonsAndEpisodes(t *testing.T) {
 	stack := []string{
-		"fixtures/updated_seasons.json", // Fixture contains 1 new episode in season 2 and 1 new season.
-		"fixtures/updated_season_1.json",
-		"fixtures/updated_season_2.json",
-		"fixtures/updated_season_3.json",
+		"testdata/updated_seasons.json", // Fixture contains 1 new episode in season 2 and 1 new season.
+		"testdata/updated_season_1.json",
+		"testdata/updated_season_2.json",
+		"testdata/updated_season_3.json",
 	}
 	var f string
 

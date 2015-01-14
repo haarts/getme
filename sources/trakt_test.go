@@ -21,7 +21,7 @@ func readFixture(file string) string {
 func TestOrdering(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintln(w, readFixture("fixtures/trakt_search.json"))
+		fmt.Fprintln(w, readFixture("testdata/trakt_search.json"))
 	}))
 	defer ts.Close()
 	defer func() {
