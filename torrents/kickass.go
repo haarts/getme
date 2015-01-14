@@ -180,7 +180,7 @@ func bestAlt(as []alt) *alt {
 		return nil
 	}
 
-	var best alt
+	best := withTorrents[0]
 	for _, a := range withTorrents {
 		if a.torrent.seeds > best.torrent.seeds {
 			best = a
