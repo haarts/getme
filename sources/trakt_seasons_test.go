@@ -8,13 +8,25 @@ import (
 )
 
 func TestExpandShow(t *testing.T) {
+	stack := []string{
+		"fixtures/trakt/seasons.json",
+		"fixtures/trakt/season_0.json",
+		"fixtures/trakt/season_1.json",
+		"fixtures/trakt/season_2.json",
+		"fixtures/trakt/season_3.json",
+		"fixtures/trakt/season_4.json",
+		"fixtures/trakt/season_5.json",
+	}
+
+	var f string
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintln(w, readFixture("fixtures/trakt_seasons.json"))
+		f, stack = stack[0], stack[1:len(stack)] // *POP*
+		fmt.Fprintln(w, readFixture(f))
 	}))
 	defer ts.Close()
 
-	traktSeasonsURL = ts.URL + "/shows/%s/seasons?extended=full"
+	traktURL = ts.URL
 
 	show := &Show{URL: "boo/some-url", SourceName: traktName, Title: "Awesome"}
 	err := GetSeasonsAndEpisodes(show)
@@ -35,7 +47,7 @@ func TestExpandShow(t *testing.T) {
 	}
 
 	episode := season.Episodes[0]
-	if episode.Episode != 10 {
+	if episode.Episode != 1 {
 		t.Error(
 			"Expected episode number to equal 10, got:",
 			episode.Episode,

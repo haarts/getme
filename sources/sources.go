@@ -131,7 +131,7 @@ func UpdateSeasonsAndEpisodes(s *Show) error {
 	}
 
 	source := sources[s.SourceName]
-	seasons, err := source.AllSeasonsAndEpisodes(*s)
+	seasons, err := source.AllSeasonsAndEpisodes(*s) // pass a copy
 	if err != nil {
 		return err
 	}

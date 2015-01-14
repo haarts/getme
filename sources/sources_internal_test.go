@@ -34,14 +34,22 @@ func TestIsDaily(t *testing.T) {
 }
 
 func TestUpdateSeasonsAndEpisodes(t *testing.T) {
+	stack := []string{
+		"fixtures/updated_seasons.json", // Fixture contains 1 new episode in season 2 and 1 new season.
+		"fixtures/updated_season_1.json",
+		"fixtures/updated_season_2.json",
+		"fixtures/updated_season_3.json",
+	}
+	var f string
+
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		// Fixture contains 1 new episode in season 2 and 1 new season.
-		fmt.Fprintln(w, readFixture("fixtures/updated_seasons.json"))
+		f, stack = stack[0], stack[1:len(stack)] // *POP*
+		fmt.Fprintln(w, readFixture(f))
 	}))
 	defer ts.Close()
 
-	traktSeasonsURL = ts.URL + "/shows/%s/seasons?extended=full"
+	traktURL = ts.URL
 
 	season1 := &Season{Season: 1, Episodes: []*Episode{
 		{Episode: 1},

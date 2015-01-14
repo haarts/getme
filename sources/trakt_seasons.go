@@ -16,12 +16,17 @@ type traktEpisode struct {
 	FirstAired *time.Time `json:"first_aired"`
 }
 
-var traktSeasonsURL = traktURL + "/shows/%s/seasons?extended=full"
-var traktSeasonURL = traktURL + "/shows/%s/seasons/%d?extended=full"
+func (t Trakt) seasonURL(show Show, season Season) string {
+	return fmt.Sprintf(traktURL+"/shows/%s/seasons/%d?extended=full", show.URL, season.Season)
+}
+
+func (t Trakt) seasonsURL(show Show) string {
+	return fmt.Sprintf(traktURL+"/shows/%s/seasons?extended=full", show.URL)
+}
 
 // AllSeasonsAndEpisodes finds the seasons and episodes for a show with this source.
 func (t Trakt) AllSeasonsAndEpisodes(show Show) ([]*Season, error) {
-	req, err := traktRequest(fmt.Sprintf(traktSeasonsURL, show.URL))
+	req, err := traktRequest(t.seasonsURL(show))
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +39,7 @@ func (t Trakt) AllSeasonsAndEpisodes(show Show) ([]*Season, error) {
 	}
 
 	seasons := convertToSeasons(*ss)
-	err = addEpisodes(seasons, show)
+	err = t.addEpisodes(seasons, show)
 	if err != nil {
 		return nil, err
 	}
@@ -54,9 +59,9 @@ func convertToSeasons(ss []traktSeason) []*Season {
 	return seasons
 }
 
-func addEpisodes(seasons []*Season, show Show) error {
+func (t Trakt) addEpisodes(seasons []*Season, show Show) error {
 	for _, season := range seasons {
-		req, err := traktRequest(fmt.Sprintf(traktSeasonURL, show.URL, season.Season))
+		req, err := traktRequest(t.seasonURL(show, *season))
 		if err != nil {
 			return err
 		}
