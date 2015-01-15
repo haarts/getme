@@ -21,6 +21,8 @@ import (
 // NOTE no log calls should appear here. That stuff should be handled in the
 // underlying layer.
 
+var conf = config.Config()
+
 // EnsureConfig tries to load the config file. If there is no such file it will
 // create one and exits.
 func EnsureConfig() {
@@ -32,7 +34,9 @@ func EnsureConfig() {
 		os.Exit(1)
 	}
 
-	config.Config() // This will os.Exit(1) on any error.
+	if config.Config() == nil {
+		os.Exit(1)
+	}
 }
 
 // DisplayPendingEpisodes shows, on stdout, the episodes pending for a
@@ -158,7 +162,7 @@ func Download(torrents []torrents.Torrent) (err error) {
 	defer stopProgressBar(c)
 
 	for _, torrent := range torrents {
-		err = download(torrent, config.Config().WatchDir) // I know I'm shadowing err
+		err = download(torrent, conf.WatchDir) // I know I'm shadowing err
 		if err == nil {
 			//torrent.Episode.Pending = false
 			torrent.AssociatedMedia.Done()

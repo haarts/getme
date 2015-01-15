@@ -35,14 +35,14 @@ func Config() *Conf {
 	file, err := os.Open(ConfigFile())
 	if err != nil {
 		fmt.Println("Something went wrong reading the config file:", err) //TODO replace with log.Fatal()
-		os.Exit(1)
+		return nil
 	}
 	defer file.Close()
 
 	f, err := os.Open(path.Join(logDir(), "getme.log"))
 	if err != nil {
 		fmt.Println("Something went wrong opening the logfile file:", err) //TODO replace with log.Fatal()
-		os.Exit(1)
+		return nil
 	}
 
 	log := logrus.New()
@@ -63,7 +63,7 @@ func Config() *Conf {
 			conf.WatchDir = parts[1]
 		default:
 			fmt.Println("Found an unknown key in config.ini: " + parts[0])
-			os.Exit(1)
+			return nil
 		}
 	}
 

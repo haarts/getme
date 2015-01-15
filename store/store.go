@@ -12,6 +12,9 @@ import (
 	"github.com/haarts/getme/sources"
 )
 
+var conf = config.Config()
+var log = conf.Logger
+
 // Store is the main access point for everything storage related.
 type Store struct {
 	shows    map[string]*sources.Show
@@ -21,7 +24,7 @@ type Store struct {
 
 // Open gets the serialized data from disk and reconstitutes them.
 func Open() (*Store, error) {
-	stateDir := config.Config().StateDir
+	stateDir := conf.StateDir
 	err := ensureStateDir(stateDir)
 	if err != nil {
 		return nil, err
