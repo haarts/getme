@@ -65,23 +65,39 @@ func handleShow(show *sources.Show) error {
 	return nil
 }
 
-func configFilePath() string {
+func userHomeDir() string {
 	var u *user.User
 	if u, _ = user.Current(); u == nil {
-		return ""
+		return "" // TODO handle err
 	}
-	dirPath := path.Join(u.HomeDir, ".config", "getme") // TODO What's the sane location for Windows?
+	return u.HomeDir
+}
+
+// NOTE this is not XGD standard but suggested by Debian. See:
+// https://stackoverflow.com/questions/25897836/where-should-i-write-a-user-specific-log-file-to-and-be-xdg-base-directory-comp/27965014#27965014
+func logDir() string {
+	dir := path.Join(userHomeDir(), ".local", "state", "getme") // TODO What's the sane location for Windows?
+	return dir
+}
+
+func stateDir() string {
+	dir := path.Join(userHomeDir(), ".local", "share", "getme") // TODO What's the sane location for Windows?
+	return dir
+}
+
+func configFile() string {
+	dirPath := path.Join(userHomeDir(), ".config", "getme") // TODO What's the sane location for Windows?
 	filePath := path.Join(dirPath, "config.ini")
 	return filePath
 }
 
 func checkConfig() error {
-	_, err := os.Stat(configFilePath())
+	_, err := os.Stat(configFile())
 	return err
 }
 
 func writeDefaultConfig() {
-	f := configFilePath()
+	f := configFile()
 	dir, _ := path.Split(f)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return
@@ -93,7 +109,7 @@ func writeDefaultConfig() {
 
 func defaultConfigData(homeDir string) []byte {
 	watchDir := fmt.Sprintln("watch_dir = /tmp/torrents")
-	return []byte(watchDir + fmt.Sprintf("state_dir = %sstate\n", homeDir))
+	return []byte(watchDir)
 }
 
 var config Config
@@ -103,16 +119,20 @@ var config Config
 type Config struct {
 	WatchDir string
 	StateDir string
+	LogDir   string
 }
 
 func readConfig() (Config, error) {
-	file, err := os.Open(configFilePath())
+	file, err := os.Open(configFile())
 	if err != nil {
 		return Config{}, err
 	}
 	defer file.Close()
 
-	conf := Config{}
+	conf := Config{
+		LogDir:   logDir(),
+		StateDir: stateDir(),
+	}
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		text := scanner.Text()
@@ -123,8 +143,6 @@ func readConfig() (Config, error) {
 		switch parts[0] {
 		case "watch_dir":
 			conf.WatchDir = parts[1]
-		case "state_dir":
-			conf.StateDir = parts[1]
 		default:
 			return Config{}, errors.New("Found an unknown key in config.ini: " + parts[0])
 		}
@@ -139,7 +157,7 @@ func readConfig() (Config, error) {
 func loadConfig() {
 	err := checkConfig()
 	if err != nil && os.IsNotExist(err) {
-		fmt.Println("It seems that there is no config file present at", configFilePath())
+		fmt.Println("It seems that there is no config file present at", configFile())
 		fmt.Println("Writing a default one, please inspect it and restart GetMe.")
 		writeDefaultConfig()
 		os.Exit(1)
