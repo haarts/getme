@@ -247,7 +247,7 @@ func updateMovies(movies map[string]*sources.Movie, watchDir string) {
 	}
 }
 
-func isAnyNil(error []error) bool {
+func isAnyNil(errors []error) bool {
 	for _, e := range errors {
 		if e == nil {
 			return true
