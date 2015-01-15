@@ -42,7 +42,7 @@ func (a BySeeds) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a BySeeds) Less(i, j int) bool { return a[i].Seeds > a[j].Seeds }
 
 var kickassURL = "https://kickass.so"
-var torCacheURL = "http://torcache.net/torrent/%s.torrent"
+var torCacheURL = "http://torcache.gs/torrent/%s.torrent"
 
 // TODO convert everything to func (s Show) Smt(season Season) {} eg value
 // receiver single letter, arguments all out.
