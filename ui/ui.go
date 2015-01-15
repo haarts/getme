@@ -12,6 +12,7 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"github.com/haarts/getme/config"
 	"github.com/haarts/getme/sources"
 	"github.com/haarts/getme/store"
 	"github.com/haarts/getme/torrents"
@@ -19,6 +20,20 @@ import (
 
 // NOTE no log calls should appear here. That stuff should be handled in the
 // underlying layer.
+
+// EnsureConfig tries to load the config file. If there is no such file it will
+// create one and exits.
+func EnsureConfig() {
+	err := config.CheckConfig()
+	if err != nil && os.IsNotExist(err) {
+		fmt.Println("It seems that there is no config file present at", config.ConfigFile())
+		fmt.Println("Writing a default one, please inspect it and restart GetMe.")
+		config.WriteDefaultConfig()
+		os.Exit(1)
+	}
+
+	config.Config() // This will os.Exit(1) on any error.
+}
 
 // DisplayPendingEpisodes shows, on stdout, the episodes pending for a
 // particular show.
@@ -137,13 +152,13 @@ func createGenerator(ms []sources.Match, step int) func() (string, []interface{}
 
 // Download goes about downloading torrents found based on the pending
 // episodes/seasons.
-func Download(torrents []torrents.Torrent, watchDir string) (err error) {
+func Download(torrents []torrents.Torrent) (err error) {
 	fmt.Printf("Downloading %d torrents", len(torrents))
 	c := startProgressBar()
 	defer stopProgressBar(c)
 
 	for _, torrent := range torrents {
-		err = download(torrent, watchDir) // I know I'm shadowing err
+		err = download(torrent, config.Config().WatchDir) // I know I'm shadowing err
 		if err == nil {
 			//torrent.Episode.Pending = false
 			torrent.AssociatedMedia.Done()
@@ -220,29 +235,29 @@ func Lookup(s *sources.Show) error {
 }
 
 // Update takes all the shows stored on disk and adds any new episodes to them.
-func Update(store *store.Store, watchDir string) {
+func Update(store *store.Store) {
 	fmt.Println("Updating media from sources and downloading pending torrents.")
 	c := startProgressBar()
 	defer stopProgressBar(c)
 
-	updateShows(store.Shows(), watchDir)
-	updateMovies(store.Movies(), watchDir)
+	updateShows(store.Shows())
+	updateMovies(store.Movies())
 }
 
-func updateShows(shows map[string]*sources.Show, watchDir string) {
+func updateShows(shows map[string]*sources.Show) {
 	for _, show := range shows {
 		//fmt.Printf("show %+v\n", show)
 		// ... get updated info
 		sources.UpdateSeasonsAndEpisodes(show)
 		torrents, _ := SearchTorrents(show) // TODO This really should return an error, handle errors in ui package.
-		Download(torrents, watchDir)        // TODO This really should return an error, handle errors in ui package.
+		Download(torrents)                  // TODO This really should return an error, handle errors in ui package.
 		DisplayPendingEpisodes(show)
 		//store.UpdateShow(show)
 	}
 }
 
 // TODO this is easier since we don't have to check for new episodes etc. Just pending.
-func updateMovies(movies map[string]*sources.Movie, watchDir string) {
+func updateMovies(movies map[string]*sources.Movie) {
 	for _, movie := range movies {
 		fmt.Printf("movie %+v\n", movie)
 		// ... get updated info

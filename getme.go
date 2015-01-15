@@ -1,15 +1,8 @@
 package main
 
 import (
-	"bufio"
-	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
-	"os"
-	"os/user"
-	"path"
-	"strings"
 
 	"github.com/haarts/getme/sources"
 	"github.com/haarts/getme/store"
@@ -17,7 +10,7 @@ import (
 )
 
 func handleShow(show *sources.Show) error {
-	store, err := store.Open(config.StateDir)
+	store, err := store.Open()
 	if err != nil {
 		fmt.Println("We've failed to open the data store. The error:")
 		fmt.Println(" ", err)
@@ -56,7 +49,7 @@ func handleShow(show *sources.Show) error {
 		fmt.Println("Didn't find any torrents for", show.DisplayTitle())
 		return nil
 	}
-	err = ui.Download(torrents, config.WatchDir)
+	err = ui.Download(torrents)
 	if err != nil {
 		fmt.Println("Something went wrong downloading a torrent:", err)
 	}
@@ -65,109 +58,8 @@ func handleShow(show *sources.Show) error {
 	return nil
 }
 
-func userHomeDir() string {
-	var u *user.User
-	if u, _ = user.Current(); u == nil {
-		return "" // TODO handle err
-	}
-	return u.HomeDir
-}
-
-// NOTE this is not XGD standard but suggested by Debian. See:
-// https://stackoverflow.com/questions/25897836/where-should-i-write-a-user-specific-log-file-to-and-be-xdg-base-directory-comp/27965014#27965014
-func logDir() string {
-	dir := path.Join(userHomeDir(), ".local", "state", "getme") // TODO What's the sane location for Windows?
-	return dir
-}
-
-func stateDir() string {
-	dir := path.Join(userHomeDir(), ".local", "share", "getme") // TODO What's the sane location for Windows?
-	return dir
-}
-
-func configFile() string {
-	dirPath := path.Join(userHomeDir(), ".config", "getme") // TODO What's the sane location for Windows?
-	filePath := path.Join(dirPath, "config.ini")
-	return filePath
-}
-
-func checkConfig() error {
-	_, err := os.Stat(configFile())
-	return err
-}
-
-func writeDefaultConfig() {
-	f := configFile()
-	dir, _ := path.Split(f)
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return
-	}
-	if err := ioutil.WriteFile(f, defaultConfigData(dir), 0644); err != nil {
-		return
-	}
-}
-
-func defaultConfigData(homeDir string) []byte {
-	watchDir := fmt.Sprintln("watch_dir = /tmp/torrents")
-	return []byte(watchDir)
-}
-
-var config Config
-
-// Config contains WHERE downloaded torrents should be copied too. And WHERE
-// the state should be stored.
-type Config struct {
-	WatchDir string
-	StateDir string
-	LogDir   string
-}
-
-func readConfig() (Config, error) {
-	file, err := os.Open(configFile())
-	if err != nil {
-		return Config{}, err
-	}
-	defer file.Close()
-
-	conf := Config{
-		LogDir:   logDir(),
-		StateDir: stateDir(),
-	}
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		text := scanner.Text()
-		parts := strings.Split(text, "=")
-		for i := range parts {
-			parts[i] = strings.Trim(parts[i], " ")
-		}
-		switch parts[0] {
-		case "watch_dir":
-			conf.WatchDir = parts[1]
-		default:
-			return Config{}, errors.New("Found an unknown key in config.ini: " + parts[0])
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		return Config{}, err
-	}
-	return conf, nil
-}
-
 func loadConfig() {
-	err := checkConfig()
-	if err != nil && os.IsNotExist(err) {
-		fmt.Println("It seems that there is no config file present at", configFile())
-		fmt.Println("Writing a default one, please inspect it and restart GetMe.")
-		writeDefaultConfig()
-		os.Exit(1)
-	}
-	conf, err := readConfig()
-	if err != nil {
-		fmt.Println("Something went wrong reading the config file:", err)
-		os.Exit(1)
-	}
-	config = conf
+	ui.EnsureConfig()
 }
 
 var update bool
@@ -191,7 +83,7 @@ func init() {
 }
 
 func updateMedia() {
-	store, err := store.Open(config.StateDir)
+	store, err := store.Open()
 	if err != nil {
 		fmt.Println("We've failed to open the data store. The error:")
 		fmt.Println(" ", err)
@@ -199,7 +91,7 @@ func updateMedia() {
 	}
 	defer store.Close()
 
-	ui.Update(store, config.WatchDir)
+	ui.Update(store)
 }
 
 func addMedia() {

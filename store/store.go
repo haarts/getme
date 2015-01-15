@@ -8,6 +8,7 @@ import (
 	"path"
 	"regexp"
 
+	"github.com/haarts/getme/config"
 	"github.com/haarts/getme/sources"
 )
 
@@ -19,14 +20,15 @@ type Store struct {
 }
 
 // Open gets the serialized data from disk and reconstitutes them.
-func Open(stateDir string) (*Store, error) {
+func Open() (*Store, error) {
+	stateDir := config.Config().StateDir
 	err := ensureStateDir(stateDir)
 	if err != nil {
 		return nil, err
 	}
 	store := &Store{
 		shows:    make(map[string]*sources.Show),
-		stateDir: stateDir,
+		stateDir: stateDir, // TODO do we really need this?
 	}
 
 	store.deserializeShows()
