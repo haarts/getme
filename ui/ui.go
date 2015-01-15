@@ -17,6 +17,9 @@ import (
 	"github.com/haarts/getme/torrents"
 )
 
+// NOTE no log calls should appear here. That stuff should be handled in the
+// underlying layer.
+
 // DisplayPendingEpisodes shows, on stdout, the episodes pending for a
 // particular show.
 func DisplayPendingEpisodes(show *sources.Show) {

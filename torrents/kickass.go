@@ -21,7 +21,6 @@ func init() {
 	Register(kickassName, Kickass{})
 }
 
-// TODO rename to SearchResult. Item is too generic.
 type SearchResult struct {
 	Title    string `xml:"title"`
 	InfoHash string `xml:"infoHash"`
@@ -199,6 +198,7 @@ func constructSearchURL(episode string) string {
 
 // TODO this could use the 'get' method in sources.go
 func searchKickass(query string) ([]Torrent, error) {
+	// TODO log.Debug(constructSearchURL(query)
 	resp, err := http.Get(constructSearchURL(query))
 	defer func() {
 		if resp != nil {

@@ -101,7 +101,7 @@ func Search(q string) ([][]Match, []error) {
 	var errors = make([]error, len(sources))
 	var i int
 	for _, s := range sources { //TODO Make parallel
-		ms, err := s.Search(q)
+		ms, err := s.Search(q) // TODO log.Error
 		matches[i] = ms
 		errors = append(errors, err)
 		i++
@@ -127,7 +127,7 @@ func GetSeasonsAndEpisodes(s *Show) error {
 // example, deserialization for disk.
 func UpdateSeasonsAndEpisodes(s *Show) error {
 	if _, ok := sources[s.SourceName]; !ok {
-		return fmt.Errorf("Source defined by show(%s) is not registered.", s.SourceName)
+		return fmt.Errorf("Source defined by show(%s) is not registered.", s.SourceName) // TODO log.Error
 	}
 
 	source := sources[s.SourceName]
@@ -370,6 +370,7 @@ func getXML(req *http.Request, target interface{}) error {
 
 // get can be used to generically call URLs and deserialize the results.
 func get(req *http.Request, target interface{}, unmarshalFunc func([]byte, interface{}) error) error {
+	// TODO log.Debug(req)
 	resp, err := http.DefaultClient.Do(req)
 	defer func() {
 		if resp != nil {

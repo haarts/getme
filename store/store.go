@@ -75,18 +75,17 @@ func (s *Store) Movies() map[string]*sources.Movie {
 	return s.movies
 }
 
-//TODO handle err
-// TODO add another pass after deserialization to set the pointers to seasons and show right.
+// TODO probably return the error
 func (s *Store) deserializeShows() {
 	files, err := ioutil.ReadDir(path.Join(s.stateDir, "shows"))
 	if err != nil {
-		fmt.Printf("err %+v\n", err)
+		fmt.Printf("err %+v\n", err) // TODO log.Error
 	}
 
 	for _, f := range files {
 		matched, err := regexp.MatchString(".*.json", f.Name())
 		if err != nil {
-			fmt.Printf("err %+v\n", err)
+			fmt.Printf("err %+v\n", err) // TODO log.Error
 		}
 		if !matched {
 			continue
@@ -95,11 +94,11 @@ func (s *Store) deserializeShows() {
 		var show sources.Show
 		d, err := ioutil.ReadFile(path.Join(s.stateDir, "shows", f.Name()))
 		if err != nil {
-			fmt.Printf("err %+v\n", err)
+			fmt.Printf("err %+v\n", err) // TODO log.Error
 		}
 		err = json.Unmarshal(d, &show)
 		if err != nil {
-			fmt.Printf("err %+v\n", err)
+			fmt.Printf("err %+v\n", err) // TODO log.Error
 		}
 
 		s.shows[show.Title] = &show
