@@ -10,7 +10,12 @@ import (
 	"math"
 	"net/http"
 	"time"
+
+	"github.com/haarts/getme/config"
 )
+
+var conf = config.Config()
+var log = config.Log()
 
 // Source defines the methods a new source for media info should implement.
 type Source interface {

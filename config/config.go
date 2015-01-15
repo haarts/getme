@@ -21,27 +21,59 @@ type Conf struct {
 	Logger   *logrus.Logger
 }
 
+// CheckConfig see if the config file is present.
 func CheckConfig() error {
 	_, err := os.Stat(ConfigFile())
 	return err
 }
 
 var memoizedConfig *Conf
+var failed bool
 
+// Log returns a logger. Usually called on top of a file to get global access
+// to a logger.
+func Log() *logrus.Logger {
+	if Config() == nil {
+		return nil
+	}
+	return Config().Logger
+}
+
+// Config returns a config object.
 func Config() *Conf {
 	if memoizedConfig != nil {
 		return memoizedConfig
 	}
+	if failed {
+		return nil
+	}
+
 	file, err := os.Open(ConfigFile())
 	if err != nil {
 		fmt.Println("Something went wrong reading the config file:", err) //TODO replace with log.Fatal()
+		failed = true
 		return nil
 	}
 	defer file.Close()
 
-	f, err := os.Open(path.Join(logDir(), "getme.log"))
+	err = ensureLogDir(logDir())
 	if err != nil {
+		fmt.Println("Something went wrong creating the log directories:", err) //TODO replace with log.Fatal()
+		failed = true
+		return nil
+	}
+
+	f, err := os.Open(path.Join(logDir(), "getme.log"))
+	if err != nil && os.IsNotExist(err) {
+		f, err = os.Create(path.Join(logDir(), "getme.log"))
+		if err != nil {
+			fmt.Println("Something went wrong opening the logfile file:", err) //TODO replace with log.Fatal()
+			failed = true
+			return nil
+		}
+	} else if err != nil {
 		fmt.Println("Something went wrong opening the logfile file:", err) //TODO replace with log.Fatal()
+		failed = true
 		return nil
 	}
 
@@ -63,16 +95,50 @@ func Config() *Conf {
 			conf.WatchDir = parts[1]
 		default:
 			fmt.Println("Found an unknown key in config.ini: " + parts[0])
+			failed = true
 			return nil
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
 		fmt.Println("Something went wrong reading the config file:", err) //TODO replace with log.Fatal()
-		os.Exit(1)
+		failed = true
+		return nil
 	}
+
+	err = ensureStateDir(conf.StateDir)
+	if err != nil {
+		fmt.Println("Something went wrong creating the state directories:", err) //TODO replace with log.Fatal()
+		failed = true
+		return nil
+	}
+
 	memoizedConfig = &conf
 	return memoizedConfig
+}
+
+func ensureLogDir(logDir string) error {
+	return ensureDirs([]string{logDir})
+}
+
+func ensureStateDir(stateDir string) error {
+	dirs := []string{
+		stateDir,
+		path.Join(stateDir, "shows"),
+		path.Join(stateDir, "movies"),
+	}
+
+	return ensureDirs(dirs)
+}
+
+func ensureDirs(dirs []string) error {
+	for _, d := range dirs {
+		err := os.MkdirAll(d, 0755)
+		if err != nil && !os.IsExist(err) {
+			return err
+		}
+	}
+	return nil
 }
 
 func userHomeDir() string {

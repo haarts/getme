@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path"
 	"regexp"
 
@@ -13,25 +12,18 @@ import (
 )
 
 var conf = config.Config()
-var log = conf.Logger
+var log = config.Log()
 
 // Store is the main access point for everything storage related.
 type Store struct {
-	shows    map[string]*sources.Show
-	movies   map[string]*sources.Movie
-	stateDir string
+	shows  map[string]*sources.Show
+	movies map[string]*sources.Movie
 }
 
 // Open gets the serialized data from disk and reconstitutes them.
 func Open() (*Store, error) {
-	stateDir := conf.StateDir
-	err := ensureStateDir(stateDir)
-	if err != nil {
-		return nil, err
-	}
 	store := &Store{
-		shows:    make(map[string]*sources.Show),
-		stateDir: stateDir, // TODO do we really need this?
+		shows: make(map[string]*sources.Show),
 	}
 
 	store.deserializeShows()
@@ -82,7 +74,7 @@ func (s *Store) Movies() map[string]*sources.Movie {
 
 // TODO probably return the error
 func (s *Store) deserializeShows() {
-	files, err := ioutil.ReadDir(path.Join(s.stateDir, "shows"))
+	files, err := ioutil.ReadDir(path.Join(conf.StateDir, "shows"))
 	if err != nil {
 		fmt.Printf("err %+v\n", err) // TODO log.Error
 	}
@@ -97,7 +89,7 @@ func (s *Store) deserializeShows() {
 		}
 
 		var show sources.Show
-		d, err := ioutil.ReadFile(path.Join(s.stateDir, "shows", f.Name()))
+		d, err := ioutil.ReadFile(path.Join(conf.StateDir, "shows", f.Name()))
 		if err != nil {
 			fmt.Printf("err %+v\n", err) // TODO log.Error
 		}
@@ -110,30 +102,13 @@ func (s *Store) deserializeShows() {
 	}
 }
 
-func ensureStateDir(stateDir string) error {
-	dirs := []string{
-		stateDir,
-		path.Join(stateDir, "shows"),
-		path.Join(stateDir, "movies"),
-	}
-
-	for _, d := range dirs {
-		err := os.Mkdir(d, 0755)
-		if err != nil && !os.IsExist(err) {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func (s Store) store(show *sources.Show) error {
 	b, err := json.MarshalIndent(show, "", "  ")
 	if err != nil {
 		return err
 	}
 
-	err = ioutil.WriteFile(path.Join(s.stateDir, "shows", titleAsFileName(show.Title)+".json"), b, 0644)
+	err = ioutil.WriteFile(path.Join(conf.StateDir, "shows", titleAsFileName(show.Title)+".json"), b, 0644)
 	if err != nil {
 		return err
 	}
