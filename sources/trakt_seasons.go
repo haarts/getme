@@ -48,13 +48,13 @@ func (t Trakt) AllSeasonsAndEpisodes(show Show) ([]*Season, error) {
 
 // TODO Quite a bit of duplication with the convertToMatches function.
 func convertToSeasons(ss []traktSeason) []*Season {
-	seasons := make([]*Season, len(ss))
-	for i, s := range ss {
+	seasons := make([]*Season, 0, len(ss))
+	for _, s := range ss {
 		season := &Season{
 			Season:   s.Season,
-			Episodes: make([]*Episode, s.Episodes),
+			Episodes: make([]*Episode, 0, s.Episodes),
 		}
-		seasons[i] = season
+		seasons = append(seasons, season)
 	}
 	return seasons
 }
@@ -72,16 +72,18 @@ func (t Trakt) addEpisodes(seasons []*Season, show Show) error {
 			return err
 		}
 
-		for i, episode := range *episodes {
+		for _, episode := range *episodes {
 			if episode.FirstAired == nil {
 				episode.FirstAired = &time.Time{}
 			}
-			season.Episodes[i] = &Episode{
+			e := Episode{
 				Title:   episode.Title,
 				Episode: episode.Number,
 				Pending: true, // NOTE Do not forget to set pending to true!
 				AirDate: *episode.FirstAired,
 			}
+
+			season.Episodes = append(season.Episodes, &e)
 		}
 	}
 	return nil
