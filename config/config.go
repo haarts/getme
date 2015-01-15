@@ -9,6 +9,8 @@ import (
 	"os/user"
 	"path"
 	"strings"
+
+	"github.com/Sirupsen/logrus"
 )
 
 // Config contains WHERE downloaded torrents should be copied too. And WHERE
@@ -16,7 +18,7 @@ import (
 type Conf struct {
 	WatchDir string
 	StateDir string
-	LogDir   string
+	Logger   *logrus.Logger
 }
 
 func CheckConfig() error {
@@ -24,7 +26,12 @@ func CheckConfig() error {
 	return err
 }
 
-func Config() Conf {
+var memoizedConfig *Conf
+
+func Config() *Conf {
+	if memoizedConfig != nil {
+		return memoizedConfig
+	}
 	file, err := os.Open(ConfigFile())
 	if err != nil {
 		fmt.Println("Something went wrong reading the config file:", err) //TODO replace with log.Fatal()
@@ -32,8 +39,16 @@ func Config() Conf {
 	}
 	defer file.Close()
 
+	f, err := os.Open(path.Join(logDir(), "getme.log"))
+	if err != nil {
+		fmt.Println("Something went wrong opening the logfile file:", err) //TODO replace with log.Fatal()
+		os.Exit(1)
+	}
+
+	log := logrus.New()
+	log.Out = f
 	conf := Conf{
-		LogDir:   logDir(),
+		Logger:   log,
 		StateDir: stateDir(),
 	}
 	scanner := bufio.NewScanner(file)
@@ -56,7 +71,8 @@ func Config() Conf {
 		fmt.Println("Something went wrong reading the config file:", err) //TODO replace with log.Fatal()
 		os.Exit(1)
 	}
-	return conf
+	memoizedConfig = &conf
+	return memoizedConfig
 }
 
 func userHomeDir() string {
