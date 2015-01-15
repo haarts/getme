@@ -199,11 +199,11 @@ func Search(query string) ([][]sources.Match, []error) {
 	defer stopProgressBar(c)
 
 	matches, errors := sources.Search(query)
-	if !isAllNil(errors) {
-		return nil, errors
+	if isAnyNil(errors) { // Silently ignore all errors as long as 1 succeeded.
+		return matches, nil
 	}
 
-	return matches, nil
+	return nil, errors
 }
 
 // Lookup takes a show previously selected by the user and finds the seasons
@@ -245,6 +245,15 @@ func updateMovies(movies map[string]*sources.Movie, watchDir string) {
 		// ... get updated info
 		//store.UpdateMovie(updatedMovie)
 	}
+}
+
+func isAnyNil(error []error) bool {
+	for _, e := range errors {
+		if e == nil {
+			return true
+		}
+	}
+	return false
 }
 
 func isAllNil(errors []error) bool {
