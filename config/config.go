@@ -39,6 +39,10 @@ func Log() *logrus.Logger {
 	return Config().Logger
 }
 
+func SetLoggerToDebug() {
+	Config().Logger.Level = logrus.DebugLevel
+}
+
 // Config returns a config object.
 func Config() *Conf {
 	if memoizedConfig != nil {
@@ -50,7 +54,7 @@ func Config() *Conf {
 
 	file, err := os.Open(ConfigFile())
 	if err != nil {
-		fmt.Println("Something went wrong reading the config file:", err) //TODO replace with log.Fatal()
+		fmt.Println("Something went wrong reading the config file:", err)
 		failed = true
 		return nil
 	}
@@ -58,21 +62,14 @@ func Config() *Conf {
 
 	err = ensureLogDir(logDir())
 	if err != nil {
-		fmt.Println("Something went wrong creating the log directories:", err) //TODO replace with log.Fatal()
+		fmt.Println("Something went wrong creating the log directories:", err)
 		failed = true
 		return nil
 	}
 
-	f, err := os.Open(path.Join(logDir(), "getme.log"))
-	if err != nil && os.IsNotExist(err) {
-		f, err = os.Create(path.Join(logDir(), "getme.log"))
-		if err != nil {
-			fmt.Println("Something went wrong opening the logfile file:", err) //TODO replace with log.Fatal()
-			failed = true
-			return nil
-		}
-	} else if err != nil {
-		fmt.Println("Something went wrong opening the logfile file:", err) //TODO replace with log.Fatal()
+	f, err := os.OpenFile(path.Join(logDir(), "getme.log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Println("Something went wrong opening the logfile:", err)
 		failed = true
 		return nil
 	}
