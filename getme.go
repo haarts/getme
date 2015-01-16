@@ -42,8 +42,8 @@ func handleShow(show *sources.Show) error {
 
 	torrents, err := ui.SearchTorrents(show)
 	if err != nil {
-		fmt.Println("Something went wrong looking for your torrents:", err)
-		return err
+		fmt.Println("Something went wrong looking for your torrents:", err) // But that doesn't mean nothing worked...
+		fmt.Println("Continuing nonetheless.")
 	}
 	if len(torrents) == 0 {
 		fmt.Println("Didn't find any torrents for", show.DisplayTitle())
