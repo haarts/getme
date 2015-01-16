@@ -5,17 +5,20 @@ import (
 	"path"
 	"testing"
 
+	"github.com/haarts/getme/config"
 	"github.com/haarts/getme/sources"
 	"github.com/haarts/getme/store"
 )
 
 func TestClose(t *testing.T) {
 	testDir := "test_state_dir"
+	os.MkdirAll(path.Join(testDir, "shows"), 0755)
 	defer func() {
 		os.RemoveAll(testDir)
 	}()
+	config.Config().StateDir = testDir
 
-	s, _ := store.Open(testDir)
+	s, _ := store.Open()
 	show := sources.Show{Title: "my show"}
 	s.CreateShow(&show)
 
@@ -27,10 +30,13 @@ func TestClose(t *testing.T) {
 
 func TestCreateDuplicateShow(t *testing.T) {
 	testDir := "test_state_dir"
+	os.MkdirAll(path.Join(testDir, "shows"), 0755)
 	defer func() {
 		os.RemoveAll(testDir)
 	}()
-	s, _ := store.Open(testDir)
+	config.Config().StateDir = testDir
+
+	s, _ := store.Open()
 
 	show := sources.Show{Title: "my show"}
 	s.CreateShow(&show)
@@ -42,14 +48,15 @@ func TestCreateDuplicateShow(t *testing.T) {
 
 func TestReadShows(t *testing.T) {
 	testDir := "test_state_dir"
+	os.MkdirAll(path.Join(testDir, "shows"), 0755)
 	defer func() {
 		os.RemoveAll(testDir)
 	}()
+	config.Config().StateDir = testDir
 
-	os.MkdirAll(path.Join(testDir, "shows"), 0755)
 	os.Link(path.Join("testdata", "my_show.json"), path.Join(testDir, "shows", "my_show.json"))
 
-	s, _ := store.Open(testDir)
+	s, _ := store.Open()
 	if len(s.Shows()) != 1 {
 		t.Error("Expected to have read 1 show, got:", len(s.Shows()))
 	}
