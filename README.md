@@ -11,11 +11,12 @@ And you're done!
 ## What?
 
 GetMe allows you to:
+
 1. Find shows
 2. Download the appropriate torrents
 3. Continue to follow the show
 
-All from a simple and brief CLI interface.
+All from a simple CLI interface.
 
 ## Installation
 Couldn't be simpler. No external dependancies, no hassle. Either grab on of the
@@ -31,7 +32,7 @@ You need to have [Go](golang.org) installed. Then run:
 $ go get github.com/haarts/getme
 ```
 
-I've been using version 1.4 but I'm fairly certain every version of Go will
+I've been using version 1.4 but I'm fairly certain every 1.x version of Go will
 work.
 
 ## Usage
