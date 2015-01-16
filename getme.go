@@ -80,6 +80,9 @@ func init() {
 	// TODO add a remove flag. (could just remove the file in stateDir)
 	//flag.BoolVar(&remove, "remove", false, removeUsage))
 	//flag.BoolVar(&remove, "r", false, removeUsage+" (shorthand)")
+
+	// TODO add a quiet flag (-q)
+	// TODO add a yes flag (-y)
 }
 
 func updateMedia() {
