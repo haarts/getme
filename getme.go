@@ -1,3 +1,4 @@
+// GetMe makes it easy to download and monitor movies and TV shows.
 package main
 
 import (

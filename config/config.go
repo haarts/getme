@@ -1,4 +1,4 @@
-//config handles GetMe's configuration.
+//Package config handles GetMe's configuration.
 package config
 
 import (

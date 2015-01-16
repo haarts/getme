@@ -1,3 +1,5 @@
+// Package store handles the persistence of GetMe. Currently it's all stored as
+// JSON on disk.
 package store
 
 import (

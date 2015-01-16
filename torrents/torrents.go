@@ -1,4 +1,4 @@
-// Package search_engines provides the ability to search for torrents given a
+// Package torrents provides the ability to search for torrents given a
 // list of required items.
 package torrents
 

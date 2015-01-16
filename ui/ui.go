@@ -1,3 +1,4 @@
+// Package ui handles the interaction with the user on the CLI.
 package ui
 
 import (
