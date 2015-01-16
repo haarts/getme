@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/haarts/getme/config"
 )
 
@@ -109,7 +110,7 @@ func Search(q string) ([][]Match, []error) {
 		ms, err := s.Search(q)
 		if err != nil {
 			log.WithFields(
-				log.Fields{
+				logrus.Fields{
 					"error":  err,
 					"source": name,
 				}).Error("Error when searching on source")
@@ -140,7 +141,7 @@ func GetSeasonsAndEpisodes(s *Show) error {
 func UpdateSeasonsAndEpisodes(s *Show) error {
 	if _, ok := sources[s.SourceName]; !ok {
 		log.WithFields(
-			log.Fields{
+			logrus.Fields{
 				"source": s.SourceName,
 				"show":   s.Title,
 			}).Error("Source defined by show not registered")
@@ -388,13 +389,13 @@ func getXML(req *http.Request, target interface{}) error {
 // get can be used to generically call URLs and deserialize the results.
 func get(req *http.Request, target interface{}, unmarshalFunc func([]byte, interface{}) error) error {
 	log.WithFields(
-		log.Fields{
+		logrus.Fields{
 			"URL": req.URL,
 		}).Debug("Sending request")
 
 	resp, err := http.DefaultClient.Do(req)
 	log.WithFields(
-		log.Fields{
+		logrus.Fields{
 			"code": resp.StatusCode,
 		}).Debug("Response code")
 	defer func() {
@@ -404,7 +405,7 @@ func get(req *http.Request, target interface{}, unmarshalFunc func([]byte, inter
 	}()
 	if err != nil {
 		log.WithFields(
-			log.Fields{
+			logrus.Fields{
 				"error": err,
 				"URL":   req.URL,
 			}).Error("Error when getting URL")
