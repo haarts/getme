@@ -82,7 +82,7 @@ func init() {
 	flag.BoolVar(&update, "u", false, updateUsage+" (shorthand)")
 
 	flag.BoolVar(&debug, "debug", false, debugUsage)
-	flag.BoolVar(&debug, "d", false, debugUsage+" (shorthand)")
+	flag.BoolVar(&debug, "D", false, debugUsage+" (shorthand)")
 
 	// TODO add a remove flag. (could just remove the file in stateDir)
 	//flag.BoolVar(&remove, "remove", false, removeUsage))
