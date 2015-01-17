@@ -1,10 +1,25 @@
 package sources_test
 
 import (
+	"sort"
 	"testing"
+	"time"
 
 	"github.com/haarts/getme/sources"
 )
+
+func TestSortByAirDate(t *testing.T) {
+	episodes := []*sources.Episode{
+		{AirDate: time.Now().Add(-5 * time.Hour), Title: "oldest"},
+		{AirDate: time.Now().Add(-1 * time.Hour), Title: "youngest"},
+		{AirDate: time.Now().Add(-3 * time.Hour), Title: "middle aged"},
+	}
+
+	sort.Sort(sources.ByAirDate(episodes))
+	if episodes[0].Title != "youngest" {
+		t.Error("Expected the younget episode on top, got:", episodes)
+	}
+}
 
 func TestPendingItems(t *testing.T) {
 	show := sources.Show{}

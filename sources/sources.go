@@ -77,6 +77,12 @@ type Episode struct {
 	//Backoff int
 }
 
+type ByAirDate []*Episode
+
+func (a ByAirDate) Len() int           { return len(a) }
+func (a ByAirDate) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByAirDate) Less(i, j int) bool { return a[i].AirDate.Unix() > a[j].AirDate.Unix() }
+
 func (e *Episode) Season() int {
 	return e.season
 }

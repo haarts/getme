@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"net/url"
 	"sort"
@@ -16,6 +17,7 @@ import (
 type Kickass struct{}
 
 const kickassName = "kickass"
+const batchSize = 50
 
 func init() {
 	Register(kickassName, Kickass{})
@@ -69,7 +71,11 @@ func selectBest(torrents []Torrent) *Torrent {
 func torrentsForEpisodes(show *sources.Show) ([]Torrent, error) {
 	var torrents []Torrent
 
-	for _, s := range show.PendingEpisodes() {
+	episodes := show.PendingEpisodes()
+	sort.Sort(sources.ByAirDate(episodes))
+	max := math.Max(float64(len(episodes)), float64(batchSize))
+
+	for _, s := range episodes[0:int(max)] {
 		bestSnippet := show.BestEpisodeSnippet()
 		var as []alt
 		if _, ok := episodeQueryAlternatives[bestSnippet.FormatSnippet]; ok {
