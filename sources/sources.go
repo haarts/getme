@@ -397,13 +397,15 @@ func get(req *http.Request, target interface{}, unmarshalFunc func([]byte, inter
 	log.WithFields(
 		logrus.Fields{
 			"URL": req.URL,
-		}).Debug("Sending request")
+		}).Debug("Request")
 
 	resp, err := http.DefaultClient.Do(req)
+
 	log.WithFields(
 		logrus.Fields{
 			"code": resp.StatusCode,
 		}).Debug("Response code")
+
 	defer func() {
 		if resp != nil {
 			resp.Body.Close()
@@ -413,8 +415,8 @@ func get(req *http.Request, target interface{}, unmarshalFunc func([]byte, inter
 		log.WithFields(
 			logrus.Fields{
 				"error": err,
-				"URL":   req.URL,
-			}).Error("Error when getting URL")
+				"url":   req.URL,
+			}).Error("error when getting url")
 		return err //TODO retry a couple of times when it's a timeout.
 	}
 	if resp.StatusCode != 200 {

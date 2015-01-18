@@ -2,7 +2,6 @@ package torrents
 
 import (
 	"encoding/xml"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -11,6 +10,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/Sirupsen/logrus"
+	"github.com/haarts/getme/config"
 	"github.com/haarts/getme/sources"
 )
 
@@ -18,6 +19,8 @@ type Kickass struct{}
 
 const kickassName = "kickass"
 const batchSize = 50
+
+var log = config.Log()
 
 func init() {
 	Register(kickassName, Kickass{})
@@ -73,9 +76,9 @@ func torrentsForEpisodes(show *sources.Show) ([]Torrent, error) {
 
 	episodes := show.PendingEpisodes()
 	sort.Sort(sources.ByAirDate(episodes))
-	max := math.Max(float64(len(episodes)), float64(batchSize))
+	min := math.Min(float64(len(episodes)), float64(batchSize))
 
-	for _, s := range episodes[0:int(max)] {
+	for _, s := range episodes[0:int(min)] {
 		bestSnippet := show.BestEpisodeSnippet()
 		var as []alt
 		if _, ok := episodeQueryAlternatives[bestSnippet.FormatSnippet]; ok {
@@ -204,8 +207,18 @@ func constructSearchURL(episode string) string {
 
 // TODO this could use the 'get' method in sources.go
 func searchKickass(query string) ([]Torrent, error) {
-	// TODO log.Debug(constructSearchURL(query)
+	log.WithFields(
+		logrus.Fields{
+			"URL": constructSearchURL(query),
+		}).Debug("Request")
+
 	resp, err := http.Get(constructSearchURL(query))
+
+	log.WithFields(
+		logrus.Fields{
+			"code": resp.StatusCode,
+		}).Debug("Response code")
+
 	defer func() {
 		if resp != nil {
 			resp.Body.Close()
@@ -213,10 +226,15 @@ func searchKickass(query string) ([]Torrent, error) {
 	}()
 
 	if err != nil {
+		log.WithFields(
+			logrus.Fields{
+				"error": err,
+				"url":   resp.Request.URL,
+			}).Error("error when getting url")
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("Search returned non 200 status code: %d", resp.StatusCode))
+		return nil, fmt.Errorf("Search returned non 200 status code: %d", resp.StatusCode)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
