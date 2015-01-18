@@ -49,8 +49,6 @@ func (a BySeeds) Less(i, j int) bool { return a[i].Seeds > a[j].Seeds }
 var kickassURL = "https://kickass.so"
 var torCacheURL = "http://torcache.gs/torrent/%s.torrent"
 
-// TODO convert everything to func (s Show) Smt(season Season) {} eg value
-// receiver single letter, arguments all out.
 // TODO Also review the code with https://github.com/golang/go/wiki/CodeReviewComments
 
 func (k Kickass) Search(show *sources.Show) ([]Torrent, error) {
