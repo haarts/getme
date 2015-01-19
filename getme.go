@@ -4,6 +4,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 
 	"github.com/haarts/getme/config"
 	"github.com/haarts/getme/store"
@@ -70,12 +71,15 @@ func loadConfig() {
 var update bool
 var mediaName string
 var debug bool
+var version bool
+var versionNumber = "0.1"
 
 func init() {
 	const (
-		addUsage    = "The name of the show/movie to add."
-		updateUsage = "Update the already added shows/movies and download pending torrents."
-		debugUsage  = "Turn on debugging output"
+		addUsage     = "The name of the show/movie to add."
+		updateUsage  = "Update the already added shows/movies and download pending torrents."
+		debugUsage   = "Turn on debugging output"
+		versionUsage = "Show version"
 	)
 
 	flag.StringVar(&mediaName, "add", "", addUsage)
@@ -86,6 +90,9 @@ func init() {
 
 	flag.BoolVar(&debug, "debug", false, debugUsage)
 	flag.BoolVar(&debug, "D", false, debugUsage+" (shorthand)")
+
+	flag.BoolVar(&version, "version", false, versionUsage)
+	flag.BoolVar(&version, "v", false, versionUsage+" (shorthand)")
 
 	// TODO add a remove flag. (could just remove the file in stateDir)
 	//flag.BoolVar(&remove, "remove", false, removeUsage))
@@ -153,6 +160,11 @@ func addMedia() {
 
 func main() {
 	flag.Parse()
+
+	if version {
+		fmt.Printf("Version %s\n", versionNumber)
+		os.Exit(1)
+	}
 
 	loadConfig()
 	if debug {
