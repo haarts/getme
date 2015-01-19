@@ -10,6 +10,8 @@ import (
 	"github.com/haarts/getme/ui"
 )
 
+var log = config.Log()
+
 func handleShow(show *store.Show) error {
 	store, err := store.Open()
 	if err != nil {
@@ -34,7 +36,9 @@ func handleShow(show *store.Show) error {
 
 	err = store.CreateShow(show)
 	if err != nil {
-		fmt.Printf("err %+v\n", err)
+		fmt.Println(err)
+		fmt.Println("Remove it or search for something else. If you want to update it do: getme -u")
+		log.Fatalf("Show '%s' already exists", show.Title)
 	}
 
 	// We have two entry points. One on the first run and one when running as daemon.
