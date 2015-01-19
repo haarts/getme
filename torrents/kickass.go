@@ -227,7 +227,7 @@ func searchKickass(query string) ([]Torrent, error) {
 		log.WithFields(
 			logrus.Fields{
 				"error": err,
-				"url":   resp.Request.URL,
+				"URL":   resp.Request.URL,
 			}).Error("error when getting url")
 		return nil, err
 	}
