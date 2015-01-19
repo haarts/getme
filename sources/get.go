@@ -41,16 +41,16 @@ func get(req *http.Request, target interface{}, unmarshalFunc func([]byte, inter
 			logrus.Fields{
 				"error": err,
 				"url":   req.URL,
-			}).Error("error when getting url")
+			}).Error("GET error")
 		return err //TODO retry a couple of times when it's a timeout.
 	}
 
-	log.WithFields(
-		logrus.Fields{
-			"code": resp.StatusCode,
-		}).Debug("Response code")
-
 	if resp.StatusCode != 200 {
+		log.WithFields(
+			logrus.Fields{
+				"code": resp.StatusCode,
+				"url":  req.URL,
+			}).Error("Non 200 response code")
 		return fmt.Errorf("Search returned non 200 status code: %d", resp.StatusCode)
 	}
 
