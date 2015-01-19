@@ -214,7 +214,7 @@ func SearchTorrents(show *store.Show) ([]torrents.Torrent, error) {
 // Search converts a user provided search string into a linked list of
 // potential matches.
 func Search(query string) ([][]sources.Match, []error) {
-	fmt.Print("Seaching: ")
+	fmt.Printf("Seaching for '%s' on: ", query)
 	fmt.Print(strings.Join(sources.ListSources(), ", "))
 	fmt.Print("\n")
 
