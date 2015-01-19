@@ -26,7 +26,7 @@ func GetXML(req *http.Request, target interface{}) error {
 func get(req *http.Request, target interface{}, unmarshalFunc func([]byte, interface{}) error) error {
 	log.WithFields(
 		logrus.Fields{
-			"URL": req.URL,
+			"URL": req.URL.String(),
 		}).Debug("Request")
 
 	resp, err := http.DefaultClient.Do(req)
@@ -40,7 +40,7 @@ func get(req *http.Request, target interface{}, unmarshalFunc func([]byte, inter
 		log.WithFields(
 			logrus.Fields{
 				"error": err,
-				"url":   req.URL,
+				"URL":   req.URL.String(),
 			}).Error("GET error")
 		return err //TODO retry a couple of times when it's a timeout.
 	}
@@ -49,7 +49,7 @@ func get(req *http.Request, target interface{}, unmarshalFunc func([]byte, inter
 		log.WithFields(
 			logrus.Fields{
 				"code": resp.StatusCode,
-				"url":  req.URL,
+				"URL":  req.URL.String(),
 			}).Error("Non 200 response code")
 		return fmt.Errorf("Search returned non 200 status code: %d", resp.StatusCode)
 	}
