@@ -177,7 +177,6 @@ func Download(torrents []torrents.Torrent) (err error) {
 func download(torrent torrents.Torrent, watchDir string) error {
 	//fileName := torrent.Episode.AsFileName() + ".torrent"
 
-	// TODO: check file existence first with io.IsExist
 	output, err := os.Create(path.Join(watchDir, torrent.OriginalName))
 	if err != nil {
 		return err

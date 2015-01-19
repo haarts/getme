@@ -52,6 +52,7 @@ func Config() *Conf {
 		return nil
 	}
 
+	// read config file
 	file, err := os.Open(ConfigFile())
 	if err != nil {
 		fmt.Println("Something went wrong reading the config file:", err)
@@ -60,26 +61,8 @@ func Config() *Conf {
 	}
 	defer file.Close()
 
-	err = ensureLogDir(logDir())
-	if err != nil {
-		fmt.Println("Something went wrong creating the log directories:", err)
-		failed = true
-		return nil
-	}
+	conf := Conf{}
 
-	f, err := os.OpenFile(path.Join(logDir(), "getme.log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		fmt.Println("Something went wrong opening the logfile:", err)
-		failed = true
-		return nil
-	}
-
-	log := logrus.New()
-	log.Out = f
-	conf := Conf{
-		Logger:   log,
-		StateDir: stateDir(),
-	}
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		text := scanner.Text()
@@ -103,6 +86,34 @@ func Config() *Conf {
 		return nil
 	}
 
+	err = ensureWatchDir(conf.WatchDir)
+	if err != nil {
+		fmt.Println("Something went wrong creating the watch directory:", err)
+		failed = true
+		return nil
+	}
+
+	// setup logging
+	err = ensureLogDir(logDir())
+	if err != nil {
+		fmt.Println("Something went wrong creating the log directories:", err)
+		failed = true
+		return nil
+	}
+
+	f, err := os.OpenFile(path.Join(logDir(), "getme.log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Println("Something went wrong opening the logfile:", err)
+		failed = true
+		return nil
+	}
+
+	log := logrus.New()
+	log.Out = f
+	conf.Logger = log
+
+	// setup storage/state dirs
+	conf.StateDir = stateDir()
 	err = ensureStateDir(conf.StateDir)
 	if err != nil {
 		fmt.Println("Something went wrong creating the state directories:", err) //TODO replace with log.Fatal()
@@ -112,6 +123,10 @@ func Config() *Conf {
 
 	memoizedConfig = &conf
 	return memoizedConfig
+}
+
+func ensureWatchDir(watchDir string) error {
+	return ensureDirs([]string{watchDir})
 }
 
 func ensureLogDir(logDir string) error {
