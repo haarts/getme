@@ -10,7 +10,6 @@ import (
 	"regexp"
 
 	"github.com/haarts/getme/config"
-	"github.com/haarts/getme/sources"
 )
 
 var conf = config.Config()
@@ -18,22 +17,17 @@ var log = config.Log()
 
 // Store is the main access point for everything storage related.
 type Store struct {
-	shows  map[string]*sources.Show
-	movies map[string]*sources.Movie
+	shows  map[string]*Show
+	movies map[string]*Movie
 }
 
 // Open gets the serialized data from disk and reconstitutes them.
 func Open() (*Store, error) {
 	store := &Store{
-		shows: make(map[string]*sources.Show),
+		shows: make(map[string]*Show),
 	}
 
 	store.deserializeShows()
-	//for k, v := range store.shows {
-	//fmt.Printf("k %+v\n", k)
-	//fmt.Printf("v %+v\n", v)
-	//fmt.Printf("v.Seasons[0] %+v\n", v.Seasons[0])
-	//}
 
 	return store, nil
 }
@@ -53,7 +47,7 @@ func (s Store) Close() error {
 
 // CreateShow adds a show to the store. It does NOT persist it to disk yet! Use
 // Close for this.
-func (s *Store) CreateShow(m *sources.Show) error {
+func (s *Store) CreateShow(m *Show) error {
 	if _, ok := s.shows[m.Title]; ok {
 		return fmt.Errorf("Show %s already exists.\n", m.Title)
 	}
@@ -64,13 +58,13 @@ func (s *Store) CreateShow(m *sources.Show) error {
 }
 
 // Shows returns a list of shows.
-func (s *Store) Shows() map[string]*sources.Show {
+func (s *Store) Shows() map[string]*Show {
 	return s.shows
 }
 
 // Movies returns a list of movies. Currently nothing will every be returned
 // since it's impossible to store anything.
-func (s *Store) Movies() map[string]*sources.Movie {
+func (s *Store) Movies() map[string]*Movie {
 	return s.movies
 }
 
@@ -90,7 +84,7 @@ func (s *Store) deserializeShows() {
 			continue
 		}
 
-		var show sources.Show
+		var show Show
 		d, err := ioutil.ReadFile(path.Join(conf.StateDir, "shows", f.Name()))
 		if err != nil {
 			fmt.Printf("err %+v\n", err) // TODO log.Error
@@ -104,7 +98,7 @@ func (s *Store) deserializeShows() {
 	}
 }
 
-func (s Store) store(show *sources.Show) error {
+func (s Store) store(show *Show) error {
 	b, err := json.MarshalIndent(show, "", "  ")
 	if err != nil {
 		return err

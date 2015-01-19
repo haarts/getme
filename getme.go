@@ -6,12 +6,11 @@ import (
 	"fmt"
 
 	"github.com/haarts/getme/config"
-	"github.com/haarts/getme/sources"
 	"github.com/haarts/getme/store"
 	"github.com/haarts/getme/ui"
 )
 
-func handleShow(show *sources.Show) error {
+func handleShow(show *store.Show) error {
 	store, err := store.Open()
 	if err != nil {
 		fmt.Println("We've failed to open the data store. The error:")
@@ -132,12 +131,12 @@ func addMedia() {
 	}
 
 	switch m := (*match).(type) {
-	case sources.Show:
+	case store.Show:
 		err := handleShow(&m)
 		if err != nil {
 			return
 		}
-	case sources.Movie:
+	case store.Movie:
 	// TODO Handle 'Movie' case.
 
 	default:

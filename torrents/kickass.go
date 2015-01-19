@@ -12,7 +12,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/haarts/getme/config"
-	"github.com/haarts/getme/sources"
+	"github.com/haarts/getme/store"
 )
 
 type Kickass struct{}
@@ -51,7 +51,7 @@ var torCacheURL = "http://torcache.gs/torrent/%s.torrent"
 
 // TODO Also review the code with https://github.com/golang/go/wiki/CodeReviewComments
 
-func (k Kickass) Search(show *sources.Show) ([]Torrent, error) {
+func (k Kickass) Search(show *store.Show) ([]Torrent, error) {
 	seasonTorrents, err := torrentsForSeasons(show)
 	if err != nil {
 		return nil, err
@@ -69,11 +69,11 @@ func selectBest(torrents []Torrent) *Torrent {
 	return &(torrents[0]) //most peers
 }
 
-func torrentsForEpisodes(show *sources.Show) ([]Torrent, error) {
+func torrentsForEpisodes(show *store.Show) ([]Torrent, error) {
 	var torrents []Torrent
 
 	episodes := show.PendingEpisodes()
-	sort.Sort(sources.ByAirDate(episodes))
+	sort.Sort(store.ByAirDate(episodes))
 	min := math.Min(float64(len(episodes)), float64(batchSize))
 
 	for _, s := range episodes[0:int(min)] {
@@ -112,7 +112,7 @@ func torrentsForEpisodes(show *sources.Show) ([]Torrent, error) {
 
 func addIfNew(as []alt, title, format string) []alt {
 	newAlt := alt{
-		snippet: sources.Snippet{
+		snippet: store.Snippet{
 			Score:         0,
 			TitleSnippet:  title,
 			FormatSnippet: format,
@@ -128,7 +128,7 @@ func addIfNew(as []alt, title, format string) []alt {
 	return append(as, newAlt)
 }
 
-func torrentsForSeasons(show *sources.Show) ([]Torrent, error) {
+func torrentsForSeasons(show *store.Show) ([]Torrent, error) {
 	var torrents []Torrent
 
 	for _, s := range show.PendingSeasons() {
@@ -167,7 +167,7 @@ func torrentsForSeasons(show *sources.Show) ([]Torrent, error) {
 
 type alt struct {
 	torrent *Torrent
-	snippet sources.Snippet
+	snippet store.Snippet
 }
 
 func bestAlt(as []alt) *alt {

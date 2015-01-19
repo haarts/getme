@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/haarts/getme/store"
 )
 
 // TvRage is the struct which implements the Source interface.
@@ -82,7 +84,7 @@ func (t TvRage) Search(query string) ([]Match, error) {
 }
 
 // AllSeasonsAndEpisodes finds the seasons and episodes for a show with this source.
-func (t TvRage) AllSeasonsAndEpisodes(show Show) ([]*Season, error) {
+func (t TvRage) AllSeasonsAndEpisodes(show store.Show) ([]*store.Season, error) {
 	req, err := tvRageRequest(constructTvRageSeasonsURL(show.ID))
 	if err != nil {
 		return nil, err
@@ -130,7 +132,7 @@ func putPopularShowOnTop(shows []Match) {
 func convertTvRageToMatches(ms []tvRageMatch) []Match {
 	matches := make([]Match, len(ms))
 	for i, m := range ms {
-		matches[i] = Show{
+		matches[i] = store.Show{
 			Title:      m.Title,
 			ID:         m.ID,
 			SourceName: tvRageName,
@@ -140,15 +142,15 @@ func convertTvRageToMatches(ms []tvRageMatch) []Match {
 }
 
 // TODO Quite a bit of duplication with the convertToMatches function.
-func convertFromTvRageSeasons(ss []tvRageSeason) []*Season {
-	seasons := make([]*Season, len(ss))
+func convertFromTvRageSeasons(ss []tvRageSeason) []*store.Season {
+	seasons := make([]*store.Season, len(ss))
 	for i, s := range ss {
-		season := &Season{
+		season := &store.Season{
 			Season:   s.Season,
-			Episodes: make([]*Episode, len(s.Episodes)),
+			Episodes: make([]*store.Episode, len(s.Episodes)),
 		}
 		for j, e := range s.Episodes {
-			season.Episodes[j] = &Episode{
+			season.Episodes[j] = &store.Episode{
 				Title:   e.Title,
 				Episode: e.Episode,
 				Pending: true,

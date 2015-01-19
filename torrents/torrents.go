@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/haarts/getme/sources"
+	"github.com/haarts/getme/store"
 )
 
 type Doner interface {
@@ -21,22 +21,22 @@ type Torrent struct {
 	AssociatedMedia Doner
 }
 
-var seasonQueryAlternatives = map[string]func(string, *sources.Season) string{
-	"%s season %d": func(title string, season *sources.Season) string {
+var seasonQueryAlternatives = map[string]func(string, *store.Season) string{
+	"%s season %d": func(title string, season *store.Season) string {
 		return fmt.Sprintf("%s season %d", title, season.Season)
 	},
 }
 
-var episodeQueryAlternatives = map[string]func(string, *sources.Episode) string{
-	"%s S%02dE%02d": func(title string, episode *sources.Episode) string {
+var episodeQueryAlternatives = map[string]func(string, *store.Episode) string{
+	"%s S%02dE%02d": func(title string, episode *store.Episode) string {
 		return fmt.Sprintf("%s S%02dE%02d", title, episode.Season(), episode.Episode)
 	},
-	"%s %dx%d": func(title string, episode *sources.Episode) string {
+	"%s %dx%d": func(title string, episode *store.Episode) string {
 		return fmt.Sprintf("%s %dx%d", title, episode.Season(), episode.Episode)
 	},
 	// This is a bit of a gamble. I, now, no longer make the
 	// distinction between a daily series and a regular one:
-	"%s %d %02d %02d": func(title string, episode *sources.Episode) string {
+	"%s %d %02d %02d": func(title string, episode *store.Episode) string {
 		y, m, d := episode.AirDate.Date()
 		return fmt.Sprintf("%s %d %02d %02d", title, y, m, d)
 	},
@@ -73,7 +73,7 @@ func truncateToNParts(title string, n int) string {
 }
 
 type SearchEngine interface {
-	Search(*sources.Show) ([]Torrent, error)
+	Search(*store.Show) ([]Torrent, error)
 }
 
 var searchEngines = make(map[string]SearchEngine)
@@ -87,7 +87,7 @@ func Register(name string, searchEngine SearchEngine) {
 
 // TODO this is only a starting point for pull torrents for the same search
 // engines. I need to come up with a way to pick the best on duplciates.
-func Search(show *sources.Show) ([]Torrent, error) {
+func Search(show *store.Show) ([]Torrent, error) {
 	var torrents []Torrent
 	var lastError error
 	for _, searchEngine := range searchEngines {

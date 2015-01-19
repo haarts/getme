@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
+
+	"github.com/haarts/getme/store"
 )
 
 // Trakt is the struct which implements the Source interface.
@@ -79,7 +81,7 @@ func (t Trakt) Search(query string) ([]Match, error) {
 func convertToMatches(ms []traktMatch) []Match {
 	matches := make([]Match, len(ms))
 	for i, m := range ms {
-		matches[i] = Show{
+		matches[i] = store.Show{
 			URL:        m.Show.IDs.Slug,
 			Title:      m.Show.Title,
 			SourceName: traktName,

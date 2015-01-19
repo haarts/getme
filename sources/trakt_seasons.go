@@ -3,6 +3,8 @@ package sources
 import (
 	"fmt"
 	"time"
+
+	"github.com/haarts/getme/store"
 )
 
 type traktSeason struct {
@@ -16,16 +18,16 @@ type traktEpisode struct {
 	FirstAired *time.Time `json:"first_aired"`
 }
 
-func (t Trakt) seasonURL(show Show, season Season) string {
+func (t Trakt) seasonURL(show store.Show, season store.Season) string {
 	return fmt.Sprintf(traktURL+"/shows/%s/seasons/%d?extended=full", show.URL, season.Season)
 }
 
-func (t Trakt) seasonsURL(show Show) string {
+func (t Trakt) seasonsURL(show store.Show) string {
 	return fmt.Sprintf(traktURL+"/shows/%s/seasons?extended=full", show.URL)
 }
 
 // AllSeasonsAndEpisodes finds the seasons and episodes for a show with this source.
-func (t Trakt) AllSeasonsAndEpisodes(show Show) ([]*Season, error) {
+func (t Trakt) AllSeasonsAndEpisodes(show store.Show) ([]*store.Season, error) {
 	req, err := traktRequest(t.seasonsURL(show))
 	if err != nil {
 		return nil, err
@@ -47,19 +49,19 @@ func (t Trakt) AllSeasonsAndEpisodes(show Show) ([]*Season, error) {
 }
 
 // TODO Quite a bit of duplication with the convertToMatches function.
-func convertToSeasons(ss []traktSeason) []*Season {
-	seasons := make([]*Season, 0, len(ss))
+func convertToSeasons(ss []traktSeason) []*store.Season {
+	seasons := make([]*store.Season, 0, len(ss))
 	for _, s := range ss {
-		season := &Season{
+		season := &store.Season{
 			Season:   s.Season,
-			Episodes: make([]*Episode, 0, s.Episodes),
+			Episodes: make([]*store.Episode, 0, s.Episodes),
 		}
 		seasons = append(seasons, season)
 	}
 	return seasons
 }
 
-func (t Trakt) addEpisodes(seasons []*Season, show Show) error {
+func (t Trakt) addEpisodes(seasons []*store.Season, show store.Show) error {
 	for _, season := range seasons {
 		req, err := traktRequest(t.seasonURL(show, *season))
 		if err != nil {
@@ -76,7 +78,7 @@ func (t Trakt) addEpisodes(seasons []*Season, show Show) error {
 			if episode.FirstAired == nil {
 				episode.FirstAired = &time.Time{}
 			}
-			e := Episode{
+			e := store.Episode{
 				Title:   episode.Title,
 				Episode: episode.Number,
 				Pending: true, // NOTE Do not forget to set pending to true!

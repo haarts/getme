@@ -42,7 +42,7 @@ func EnsureConfig() {
 
 // DisplayPendingEpisodes shows, on stdout, the episodes pending for a
 // particular show.
-func DisplayPendingEpisodes(show *sources.Show) {
+func DisplayPendingEpisodes(show *store.Show) {
 	xs := show.PendingSeasons()
 	for _, x := range xs {
 		fmt.Printf("Pending: %s season %d\n", show.Title, x.Season)
@@ -200,7 +200,7 @@ func download(torrent torrents.Torrent, watchDir string) error {
 
 // SearchTorrents provides some feedback to the user and searches for torrents
 // for the pending items.
-func SearchTorrents(show *sources.Show) ([]torrents.Torrent, error) {
+func SearchTorrents(show *store.Show) ([]torrents.Torrent, error) {
 	fmt.Printf(
 		"Searching for %d torrents",
 		len(show.PendingSeasons())+len(show.PendingEpisodes()))
@@ -231,7 +231,7 @@ func Search(query string) ([][]sources.Match, []error) {
 
 // Lookup takes a show previously selected by the user and finds the seasons
 // and episodes with it.
-func Lookup(s *sources.Show) error {
+func Lookup(s *store.Show) error {
 	fmt.Print("Looking up seasons and episodes for ", s.Title)
 	c := startProgressBar()
 	defer stopProgressBar(c)
@@ -249,7 +249,7 @@ func Update(store *store.Store) {
 	updateMovies(store.Movies())
 }
 
-func updateShows(shows map[string]*sources.Show) {
+func updateShows(shows map[string]*store.Show) {
 	for _, show := range shows {
 		//fmt.Printf("show %+v\n", show)
 		// ... get updated info
@@ -262,7 +262,7 @@ func updateShows(shows map[string]*sources.Show) {
 }
 
 // TODO this is easier since we don't have to check for new episodes etc. Just pending.
-func updateMovies(movies map[string]*sources.Movie) {
+func updateMovies(movies map[string]*store.Movie) {
 	for _, movie := range movies {
 		fmt.Printf("movie %+v\n", movie)
 		// ... get updated info
