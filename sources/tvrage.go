@@ -72,7 +72,7 @@ func (t TvRage) Search(query string) ([]Match, error) {
 
 	result := &tvRageResult{}
 
-	err = getXML(req, result)
+	err = GetXML(req, result)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func (t TvRage) AllSeasonsAndEpisodes(show store.Show) ([]*store.Season, error) 
 	}
 
 	result := &tvRageSeasonResult{}
-	err = getXML(req, result)
+	err = GetXML(req, result)
 	if err != nil {
 		return nil, err
 	}

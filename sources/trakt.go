@@ -68,7 +68,7 @@ func (t Trakt) Search(query string) ([]Match, error) {
 
 	ms := &([]traktMatch{})
 
-	err = getJSON(req, ms)
+	err = GetJSON(req, ms)
 	if err != nil {
 		return nil, err
 	}

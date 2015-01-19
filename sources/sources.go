@@ -3,11 +3,7 @@
 package sources
 
 import (
-	"encoding/json"
-	"encoding/xml"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/haarts/getme/config"
@@ -156,57 +152,4 @@ func Search(q string) ([][]Match, []error) {
 		i++
 	}
 	return matches, errors
-}
-
-func getJSON(req *http.Request, target interface{}) error {
-	return get(req, target, json.Unmarshal)
-}
-
-func getXML(req *http.Request, target interface{}) error {
-	return get(req, target, xml.Unmarshal)
-}
-
-// get can be used to generically call URLs and deserialize the results.
-func get(req *http.Request, target interface{}, unmarshalFunc func([]byte, interface{}) error) error {
-	log.WithFields(
-		logrus.Fields{
-			"URL": req.URL,
-		}).Debug("Request")
-
-	resp, err := http.DefaultClient.Do(req)
-
-	defer func() {
-		if resp != nil {
-			resp.Body.Close()
-		}
-	}()
-	if err != nil {
-		log.WithFields(
-			logrus.Fields{
-				"error": err,
-				"url":   req.URL,
-			}).Error("error when getting url")
-		return err //TODO retry a couple of times when it's a timeout.
-	}
-
-	log.WithFields(
-		logrus.Fields{
-			"code": resp.StatusCode,
-		}).Debug("Response code")
-
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("Search returned non 200 status code: %d", resp.StatusCode)
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	err = unmarshalFunc(body, target)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

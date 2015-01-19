@@ -1,17 +1,15 @@
 package torrents
 
 import (
-	"encoding/xml"
 	"fmt"
-	"io/ioutil"
 	"math"
 	"net/http"
 	"net/url"
 	"sort"
 	"strings"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/haarts/getme/config"
+	"github.com/haarts/getme/sources"
 	"github.com/haarts/getme/store"
 )
 
@@ -203,46 +201,23 @@ func constructSearchURL(episode string) string {
 	return fmt.Sprintf(kickassURL+"/usearch/%s/?rss=1", url.QueryEscape(episode))
 }
 
-// TODO this could use the 'get' method in sources.go
-func searchKickass(query string) ([]Torrent, error) {
-	log.WithFields(
-		logrus.Fields{
-			"URL": constructSearchURL(query),
-		}).Debug("Request")
-
-	resp, err := http.Get(constructSearchURL(query))
-
-	log.WithFields(
-		logrus.Fields{
-			"code": resp.StatusCode,
-		}).Debug("Response code")
-
-	defer func() {
-		if resp != nil {
-			resp.Body.Close()
-		}
-	}()
-
+func (k Kickass) request(URL string) (*http.Request, error) {
+	req, err := http.NewRequest("GET", URL, nil)
 	if err != nil {
-		log.WithFields(
-			logrus.Fields{
-				"error": err,
-				"URL":   resp.Request.URL,
-			}).Error("error when getting url")
 		return nil, err
 	}
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Search returned non 200 status code: %d", resp.StatusCode)
-	}
+	return req, nil
+}
 
-	body, err := ioutil.ReadAll(resp.Body)
+func searchKickass(query string) ([]Torrent, error) {
+	req, err := (Kickass{}).request(constructSearchURL(query))
 	if err != nil {
 		return nil, err
 	}
 
 	var result kickassSearchResult
 
-	err = xml.Unmarshal(body, &result)
+	err = sources.GetXML(req, result)
 	if err != nil {
 		return nil, err
 	}
