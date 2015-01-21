@@ -3,8 +3,6 @@
 package sources
 
 import (
-	"fmt"
-
 	"github.com/Sirupsen/logrus"
 	"github.com/haarts/getme/config"
 	"github.com/haarts/getme/store"
@@ -35,21 +33,6 @@ func Register(name string, source Source) {
 	sources[name] = source
 }
 
-// TODO Done I need this?
-func findSource(name string) (Source, error) {
-	source, ok := sources[name]
-	if !ok {
-		//log.WithFields(
-		//logrus.Fields{
-		//"source": source.SourceName,
-		//"show":   source.Title,
-		//}).Error("Source defined by show not registered")
-		return nil, fmt.Errorf("Source defined by show is not registered.") //, s.SourceName)
-	}
-
-	return source, nil
-}
-
 // GetSeasonsAndEpisodes should be called with a newly initialized Show. In
 // addition to fetching the seasons and episodes this determines if the show is
 // a daily show, which impacts the way queries are generated for search
@@ -66,8 +49,13 @@ func GetSeasonsAndEpisodes(s *store.Show) error {
 // UpdateSeasonsAndEpisodes should be called to update a Show after, for
 // example, deserialization for disk.
 func UpdateSeasonsAndEpisodes(s *store.Show) error {
-	source, err := findSource(s.SourceName)
-	if err != nil {
+	source, ok := sources[s.SourceName]
+	if !ok {
+		log.WithFields(
+			logrus.Fields{
+				"source": s.SourceName,
+				"show":   s.Title,
+			}).Error("Source defined by show not registered")
 		return err
 	}
 	seasons, err := source.AllSeasonsAndEpisodes(*s) // pass a copy
