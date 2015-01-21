@@ -217,7 +217,7 @@ func searchKickass(query string) ([]Torrent, error) {
 
 	var result kickassSearchResult
 
-	err = sources.GetXML(req, result)
+	err = sources.GetXML(req, &result)
 	if err != nil {
 		return nil, err
 	}
