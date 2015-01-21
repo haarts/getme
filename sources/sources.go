@@ -3,6 +3,8 @@
 package sources
 
 import (
+	"fmt"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/haarts/getme/config"
 	"github.com/haarts/getme/store"
@@ -20,6 +22,14 @@ type Source interface {
 // Match is either a Movie or a Show.
 type Match interface {
 	DisplayTitle() string
+}
+
+// SourceResult holds the results of searching on a particular source for a
+// particular query.
+type SourceResult struct {
+	Name    string
+	Matches []Match
+	Error   error
 }
 
 var sources = make(map[string]Source)
@@ -56,7 +66,7 @@ func UpdateSeasonsAndEpisodes(s *store.Show) error {
 				"source": s.SourceName,
 				"show":   s.Title,
 			}).Error("Source defined by show not registered")
-		return err
+		return fmt.Errorf("Source defined by show not registered")
 	}
 	seasons, err := source.AllSeasonsAndEpisodes(*s) // pass a copy
 	if err != nil {
@@ -121,11 +131,13 @@ func ListSources() (names []string) {
 
 // Search is the important function of this package. Call this to turn a user
 // search string into a list of matches (which might be TV shows or movies).
-func Search(q string) ([][]Match, []error) {
-	var matches = make([][]Match, len(sources))
-	var errors = make([]error, len(sources))
+func Search(q string) []SourceResult {
+	var sourceResults = make([]SourceResult, len(sources))
 	var i int
 	for name, s := range sources { //TODO Make parallel
+		sourceResult := SourceResult{
+			Name: name,
+		}
 		ms, err := s.Search(q)
 		if err != nil {
 			log.WithFields(
@@ -133,10 +145,12 @@ func Search(q string) ([][]Match, []error) {
 					"error":  err,
 					"source": name,
 				}).Error("Error when searching on source")
+			sourceResult.Error = err
 		}
-		matches[i] = ms
-		errors = append(errors, err)
+		sourceResult.Matches = ms
+
+		sourceResults[i] = sourceResult
 		i++
 	}
-	return matches, errors
+	return sourceResults
 }

@@ -59,7 +59,7 @@ func DisplayPendingEpisodes(show *store.Show) {
 
 // DisplayBestMatchConfirmation asks the user to confirm the, what we THINK, is
 // the best match.
-func DisplayBestMatchConfirmation(matches [][]sources.Match) *sources.Match {
+func DisplayBestMatchConfirmation(matches []sources.SourceResult) *sources.Match {
 	nonNilMatch := firstNonNilMatch(matches)
 	if nonNilMatch == nil {
 		return nil
@@ -75,10 +75,10 @@ func DisplayBestMatchConfirmation(matches [][]sources.Match) *sources.Match {
 	return nil
 }
 
-func firstNonNilMatch(matches [][]sources.Match) *sources.Match {
+func firstNonNilMatch(matches []sources.SourceResult) *sources.Match {
 	for _, ms := range matches {
-		if len(ms) != 0 {
-			return &ms[0]
+		if len(ms.Matches) != 0 {
+			return &ms.Matches[0]
 		}
 	}
 	return nil // This really shouldn't happen.
@@ -87,19 +87,23 @@ func firstNonNilMatch(matches [][]sources.Match) *sources.Match {
 // DisplayAlternatives shows as many lists as there are sources with found
 // matches. The user is asked to select one of them.
 // TODO break this func up. Too long.
-func DisplayAlternatives(ms [][]sources.Match) *sources.Match {
+func DisplayAlternatives(ms []sources.SourceResult) *sources.Match {
 	fmt.Println("Which one ARE you looking for?")
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
-	fmt.Fprint(w, strings.Join(sources.ListSources(), "\t")+"\n")
+	var names []string
+	for _, m := range ms {
+		names = append(names, m.Name)
+	}
+	fmt.Fprint(w, strings.Join(names, "\t")+"\n")
 
 	var generators []func() (string, []interface{})
 	step := 1
 	for i, m := range ms {
 		if i > 0 {
-			step += len(ms[i-1])
+			step += len(ms[i-1].Matches)
 		}
-		generators = append(generators, createGenerator(m, step))
+		generators = append(generators, createGenerator(m.Matches, step))
 	}
 
 	anyGeneratorAlive := true
@@ -137,7 +141,7 @@ func DisplayAlternatives(ms [][]sources.Match) *sources.Match {
 
 	var flatList []sources.Match
 	for _, m := range ms {
-		flatList = append(flatList, m...)
+		flatList = append(flatList, m.Matches...)
 	}
 
 	return &flatList[i-1]
@@ -216,7 +220,7 @@ func SearchTorrents(show *store.Show) ([]torrents.Torrent, error) {
 
 // Search converts a user provided search string into a linked list of
 // potential matches.
-func Search(query string) ([][]sources.Match, []error) {
+func Search(query string) []sources.SourceResult {
 	fmt.Printf("Seaching for '%s' on: ", query)
 	fmt.Print(strings.Join(sources.ListSources(), ", "))
 	fmt.Print("\n")
@@ -224,12 +228,12 @@ func Search(query string) ([][]sources.Match, []error) {
 	c := startProgressBar()
 	defer stopProgressBar(c)
 
-	matches, errors := sources.Search(query)
-	if isAnyNil(errors) { // Silently ignore all errors as long as 1 succeeded.
-		return matches, nil
+	matches := sources.Search(query)
+	if isAnyNil(matches) { // Silently ignore all errors as long as 1 succeeded.
+		return matches
 	}
 
-	return nil, errors
+	return nil
 }
 
 // Lookup takes a show previously selected by the user and finds the seasons
@@ -239,7 +243,7 @@ func Lookup(show *store.Show) error {
 	c := startProgressBar()
 	defer stopProgressBar(c)
 
-	return sources.GetSeasonsAndEpisodes(s)
+	return sources.GetSeasonsAndEpisodes(show)
 }
 
 // Update takes all the shows stored on disk and adds any new episodes to them.
@@ -273,9 +277,9 @@ func updateMovies(movies map[string]*store.Movie) {
 	}
 }
 
-func isAnyNil(errors []error) bool {
+func isAnyNil(errors []sources.SourceResult) bool {
 	for _, e := range errors {
-		if e == nil {
+		if e.Error == nil {
 			return true
 		}
 	}

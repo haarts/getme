@@ -120,11 +120,7 @@ func addMedia() {
 		return
 	}
 
-	matches, errors := ui.Search(mediaName)
-	if errors != nil {
-		fmt.Println("We've encountered a problem searching. The error:")
-		fmt.Println(" ", errors)
-	}
+	matches := ui.Search(mediaName)
 	if len(matches) == 0 {
 		fmt.Println("We haven't found what you were looking for.")
 		return
