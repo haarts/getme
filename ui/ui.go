@@ -234,8 +234,8 @@ func Search(query string) ([][]sources.Match, []error) {
 
 // Lookup takes a show previously selected by the user and finds the seasons
 // and episodes with it.
-func Lookup(s *store.Show) error {
-	fmt.Print("Looking up seasons and episodes for ", s.Title)
+func Lookup(show *store.Show) error {
+	fmt.Printf("Looking up seasons and episodes for '%s'", show.Title)
 	c := startProgressBar()
 	defer stopProgressBar(c)
 
