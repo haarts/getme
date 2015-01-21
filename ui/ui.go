@@ -322,5 +322,5 @@ func getUserInput() string {
 	if err != nil {
 		fmt.Printf("err %+v\n", err)
 	}
-	return strings.Trim(line, "\n")
+	return strings.Trim(line, "\r\n")
 }
