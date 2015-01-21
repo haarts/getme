@@ -1,6 +1,10 @@
 package sources
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/haarts/getme/store"
+)
 
 func TestPopularShowAtIndex(t *testing.T) {
 	oldShows := SHOWS
@@ -11,8 +15,8 @@ func TestPopularShowAtIndex(t *testing.T) {
 	}
 
 	matches := []Match{
-		Show{Title: "not one"},
-		Show{Title: "two"},
+		store.Show{Title: "not one"},
+		store.Show{Title: "two"},
 	}
 
 	if popularShowAtIndex(matches) != 1 {

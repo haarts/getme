@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	"github.com/Sirupsen/logrus"
 )
@@ -48,7 +49,7 @@ func get(req *http.Request, target interface{}, unmarshalFunc func([]byte, inter
 	if resp.StatusCode != 200 {
 		log.WithFields(
 			logrus.Fields{
-				"code": resp.StatusCode,
+				"code": strconv.Itoa(resp.StatusCode),
 				"URL":  req.URL.String(),
 			}).Error("Non 200 response code")
 		return fmt.Errorf("Search returned non 200 status code: %d", resp.StatusCode)

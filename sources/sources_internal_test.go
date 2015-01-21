@@ -5,33 +5,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
+
+	"github.com/haarts/getme/store"
 )
-
-func TestIsDaily(t *testing.T) {
-	initDate, _ := time.Parse("2006-01-02", "1996-07-22")
-	nextDay, _ := time.Parse("2006-01-02", "1996-07-23")
-	episodes := make([]*Episode, 31) // minimum length
-	episodes[4] = &Episode{AirDate: initDate, Episode: 1}
-	episodes[5] = &Episode{AirDate: nextDay, Episode: 2}
-	season := &Season{Episodes: episodes}
-
-	show := Show{Seasons: []*Season{season}}
-	if !show.determineIsDaily() {
-		t.Error("Expected the show to be daily.")
-	}
-
-	initDate, _ = time.Parse("2006-01-02", "1996-07-22")
-	daysLater, _ := time.Parse("2006-01-02", "1996-07-24")
-	episodes[4] = &Episode{AirDate: initDate, Episode: 1}
-	episodes[5] = &Episode{AirDate: daysLater, Episode: 2}
-	season = &Season{Episodes: episodes}
-
-	show = Show{Seasons: []*Season{season}}
-	if show.determineIsDaily() {
-		t.Error("Expected the show to be NOT daily.")
-	}
-}
 
 func TestUpdateSeasonsAndEpisodes(t *testing.T) {
 	stack := []string{
@@ -51,13 +27,13 @@ func TestUpdateSeasonsAndEpisodes(t *testing.T) {
 
 	traktURL = ts.URL
 
-	season1 := &Season{Season: 1, Episodes: []*Episode{
+	season1 := &store.Season{Season: 1, Episodes: []*store.Episode{
 		{Episode: 1},
 		{Episode: 2}}}
-	season2 := &Season{Season: 2, Episodes: []*Episode{
+	season2 := &store.Season{Season: 2, Episodes: []*store.Episode{
 		{Episode: 1},
 		{Episode: 2}}}
-	s := Show{SourceName: traktName, Seasons: []*Season{season1, season2}}
+	s := store.Show{SourceName: traktName, Seasons: []*store.Season{season1, season2}}
 
 	err := UpdateSeasonsAndEpisodes(&s)
 	if err != nil {

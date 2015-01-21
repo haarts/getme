@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/haarts/getme/store"
 )
 
 func TestTvRageSeasons(t *testing.T) {
@@ -16,7 +18,7 @@ func TestTvRageSeasons(t *testing.T) {
 
 	tvRageURL = ts.URL
 
-	show := &Show{ID: 123, SourceName: tvRageName}
+	show := &store.Show{ID: 123, SourceName: tvRageName}
 	GetSeasonsAndEpisodes(show)
 
 	if len(show.Seasons) == 0 {
@@ -43,7 +45,7 @@ func TestTvRageSearch(t *testing.T) {
 		t.Error("Best match is not The Big Bang Theory")
 	}
 
-	s := (matches[0]).(Show)
+	s := (matches[0]).(store.Show)
 	if s.ID == 0 {
 		t.Error("Expect ID to be not zero, got:", s.ID)
 	}

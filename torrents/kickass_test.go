@@ -8,7 +8,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/haarts/getme/sources"
+	"github.com/haarts/getme/store"
 )
 
 func readFixture(file string) string {
@@ -29,8 +29,8 @@ func TestSearching(t *testing.T) {
 
 	kickassURL = ts.URL
 
-	season := sources.Season{1, []*sources.Episode{{Pending: true, Episode: 1}}}
-	show := sources.Show{Title: "Title", URL: "url", Seasons: []*sources.Season{&season}}
+	season := store.Season{1, []*store.Episode{{Pending: true, Episode: 1}}}
+	show := store.Show{Title: "Title", URL: "url", Seasons: []*store.Season{&season}}
 	matches, err := Search(&show)
 	if err != nil {
 		t.Error("Expected error to be nil, got:", err)
@@ -49,8 +49,8 @@ func Test404(t *testing.T) {
 
 	kickassURL = ts.URL
 
-	season := sources.Season{1, []*sources.Episode{{Pending: true, Episode: 1}}}
-	show := sources.Show{Title: "Title", URL: "url", Seasons: []*sources.Season{&season}}
+	season := store.Season{1, []*store.Episode{{Pending: true, Episode: 1}}}
+	show := store.Show{Title: "Title", URL: "url", Seasons: []*store.Season{&season}}
 	matches, err := Search(&show)
 
 	if err != nil {

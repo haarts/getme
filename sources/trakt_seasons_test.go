@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/haarts/getme/store"
 )
 
 func TestExpandShow(t *testing.T) {
@@ -28,7 +30,7 @@ func TestExpandShow(t *testing.T) {
 
 	traktURL = ts.URL
 
-	show := &Show{URL: "boo/some-url", SourceName: traktName, Title: "Awesome"}
+	show := &store.Show{URL: "boo/some-url", SourceName: traktName, Title: "Awesome"}
 	err := GetSeasonsAndEpisodes(show)
 	if err != nil {
 		t.Fatal("Expected not an error, got:", err)
