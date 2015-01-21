@@ -48,6 +48,10 @@ func DisplayPendingEpisodes(show *store.Show) {
 		fmt.Printf("Pending: %s season %d\n", show.Title, x.Season)
 	}
 	ys := show.PendingEpisodes()
+	if len(ys) > 10 {
+		fmt.Println("<snip>")
+		ys = ys[len(ys)-10:]
+	}
 	for _, y := range ys {
 		fmt.Printf("Pending: %s season %d episode %d\n", show.Title, y.Season(), y.Episode)
 	}
