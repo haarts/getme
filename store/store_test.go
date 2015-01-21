@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/haarts/getme/config"
-	"github.com/haarts/getme/sources"
 	"github.com/haarts/getme/store"
 )
 
@@ -19,7 +18,7 @@ func TestClose(t *testing.T) {
 	config.Config().StateDir = testDir
 
 	s, _ := store.Open()
-	show := sources.Show{Title: "my show"}
+	show := store.Show{Title: "my show"}
 	s.CreateShow(&show)
 
 	s.Close()
@@ -38,7 +37,7 @@ func TestCreateDuplicateShow(t *testing.T) {
 
 	s, _ := store.Open()
 
-	show := sources.Show{Title: "my show"}
+	show := store.Show{Title: "my show"}
 	s.CreateShow(&show)
 	err := s.CreateShow(&show)
 	if err == nil {
