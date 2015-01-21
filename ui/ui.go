@@ -245,8 +245,6 @@ func Lookup(s *store.Show) error {
 // Update takes all the shows stored on disk and adds any new episodes to them.
 func Update(store *store.Store) {
 	fmt.Println("Updating media from sources and downloading pending torrents.")
-	c := startProgressBar()
-	defer stopProgressBar(c)
 
 	updateShows(store.Shows())
 	updateMovies(store.Movies())
@@ -254,13 +252,15 @@ func Update(store *store.Store) {
 
 func updateShows(shows map[string]*store.Show) {
 	for _, show := range shows {
+		c := startProgressBar()
+		fmt.Printf("Updating '%s'", show.Title)
 		//fmt.Printf("show %+v\n", show)
 		// ... get updated info
 		sources.UpdateSeasonsAndEpisodes(show)
 		torrents, _ := SearchTorrents(show) // TODO This really should return an error, handle errors in ui package.
 		Download(torrents)                  // TODO This really should return an error, handle errors in ui package.
+		stopProgressBar(c)
 		DisplayPendingEpisodes(show)
-		//store.UpdateShow(show)
 	}
 }
 
