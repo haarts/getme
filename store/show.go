@@ -2,7 +2,6 @@ package store
 
 import (
 	"fmt"
-	"math"
 	"time"
 )
 
@@ -204,34 +203,4 @@ func (s Show) isLastSeason(currentSeason *Season) bool {
 		}
 	}
 	return true
-}
-
-// NOTE This is a heuristic really.
-func (s *Show) DetermineIsDaily() bool {
-	if len(s.Seasons) == 0 {
-		return false
-	}
-	// Prefer the second to last season. If not there get the first.
-	season := s.Seasons[int(math.Max(0, float64(len(s.Seasons)-2)))]
-	// If there are more than 30 episodes in a season it MIGHT be a daily.
-	if len(season.Episodes) > 30 {
-
-		// And if there are two episodes with consecutive AirDate's it's PROB a daily.
-		d1 := season.Episodes[4].AirDate // Early in the season, too early for breaks.
-		d2 := season.Episodes[5].AirDate
-
-		// Without an airdate we can't say.
-		if d1.IsZero() || d2.IsZero() {
-			return false
-		}
-		if isNextDay(d1, d2) {
-			return true
-		}
-	}
-	return false
-}
-
-func isNextDay(d1, d2 time.Time) bool {
-	d := d1.Sub(d2)
-	return d.Hours()/24 == -1
 }

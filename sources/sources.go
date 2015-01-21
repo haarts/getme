@@ -60,7 +60,6 @@ func GetSeasonsAndEpisodes(s *store.Show) error {
 		return err
 	}
 
-	s.IsDaily = s.DetermineIsDaily()
 	return nil
 }
 
