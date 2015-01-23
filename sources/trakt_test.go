@@ -34,8 +34,8 @@ func TestOrdering(t *testing.T) {
 
 	sources = make(map[string]Source)
 	Register(traktName, Trakt{})
-	matches, _ := Search("some query")
-	if matches[0][0].DisplayTitle() != "Game of Thrones" {
-		t.Fatal("best match is not Game of Thrones, got:", matches[0][0].DisplayTitle())
+	matches := Search("some query")
+	if matches[0].Matches[0].DisplayTitle() != "Game of Thrones" {
+		t.Fatal("best match is not Game of Thrones, got:", matches[0].Matches[0].DisplayTitle())
 	}
 }
