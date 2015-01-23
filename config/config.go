@@ -18,7 +18,11 @@ import (
 type Conf struct {
 	WatchDir string
 	StateDir string
-	Logger   *logrus.Logger
+	Logger   *Logger
+}
+
+type Logger struct {
+	logrus.Logger
 }
 
 // CheckConfig see if the config file is present.
@@ -32,7 +36,7 @@ var failed bool
 
 // Log returns a logger. Usually called on top of a file to get global access
 // to a logger.
-func Log() *logrus.Logger {
+func Log() *Logger {
 	if Config() == nil {
 		return nil
 	}
@@ -110,7 +114,7 @@ func Config() *Conf {
 
 	log := logrus.New()
 	log.Out = f
-	conf.Logger = log
+	conf.Logger = &Logger{*log}
 
 	// setup storage/state dirs
 	conf.StateDir = stateDir()

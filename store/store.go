@@ -12,19 +12,21 @@ import (
 	"github.com/haarts/getme/config"
 )
 
-var conf = config.Config()
+//var conf = config.Config()
 var log = config.Log()
 
 // Store is the main access point for everything storage related.
 type Store struct {
-	shows  map[string]*Show
-	movies map[string]*Movie
+	shows    map[string]*Show
+	movies   map[string]*Movie
+	stateDir string
 }
 
 // Open gets the serialized data from disk and reconstitutes them.
-func Open() (*Store, error) {
+func Open(stateDir string) (*Store, error) {
 	store := &Store{
-		shows: make(map[string]*Show),
+		shows:    make(map[string]*Show),
+		stateDir: stateDir,
 	}
 
 	store.deserializeShows()
@@ -70,7 +72,7 @@ func (s *Store) Movies() map[string]*Movie {
 
 // TODO probably return the error
 func (s *Store) deserializeShows() {
-	files, err := ioutil.ReadDir(path.Join(conf.StateDir, "shows"))
+	files, err := ioutil.ReadDir(path.Join(s.stateDir, "shows"))
 	if err != nil {
 		fmt.Printf("err %+v\n", err) // TODO log.Error
 	}
@@ -85,7 +87,7 @@ func (s *Store) deserializeShows() {
 		}
 
 		var show Show
-		d, err := ioutil.ReadFile(path.Join(conf.StateDir, "shows", f.Name()))
+		d, err := ioutil.ReadFile(path.Join(s.stateDir, "shows", f.Name()))
 		if err != nil {
 			fmt.Printf("err %+v\n", err) // TODO log.Error
 		}
@@ -104,7 +106,7 @@ func (s Store) store(show *Show) error {
 		return err
 	}
 
-	err = ioutil.WriteFile(path.Join(conf.StateDir, "shows", titleAsFileName(show.Title)+".json"), b, 0644)
+	err = ioutil.WriteFile(path.Join(s.stateDir, "shows", titleAsFileName(show.Title)+".json"), b, 0644)
 	if err != nil {
 		return err
 	}
