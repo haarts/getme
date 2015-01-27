@@ -246,10 +246,16 @@ func searchKickass(query string) ([]Torrent, error) {
 }
 
 func isEnglish(i SearchResult) bool {
+	lowerCaseFileName := strings.ToLower(i.FileName)
 	// Too weak a check but it is the easiest. I hope there aren't any series
 	// with 'french' in the title.
-	if strings.Contains(strings.ToLower(i.FileName), "french") {
+	if strings.Contains(lowerCaseFileName, "french") {
 		return false
 	}
+
+	if strings.Contains(lowerCaseFileName, "vostfr") {
+		return false
+	}
+
 	return true
 }
