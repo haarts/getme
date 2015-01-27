@@ -72,7 +72,7 @@ var update bool
 var mediaName string
 var debug bool
 var version bool
-var versionNumber = "0.1"
+var versionNumber = "0.2"
 
 func init() {
 	const (
