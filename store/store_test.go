@@ -5,7 +5,6 @@ import (
 	"path"
 	"testing"
 
-	"github.com/haarts/getme/config"
 	"github.com/haarts/getme/store"
 )
 
@@ -15,9 +14,8 @@ func TestClose(t *testing.T) {
 	defer func() {
 		os.RemoveAll(testDir)
 	}()
-	config.Config().StateDir = testDir
 
-	s, _ := store.Open()
+	s, _ := store.Open(testDir)
 	show := store.Show{Title: "my show"}
 	s.CreateShow(&show)
 
@@ -33,9 +31,8 @@ func TestCreateDuplicateShow(t *testing.T) {
 	defer func() {
 		os.RemoveAll(testDir)
 	}()
-	config.Config().StateDir = testDir
 
-	s, _ := store.Open()
+	s, _ := store.Open(testDir)
 
 	show := store.Show{Title: "my show"}
 	s.CreateShow(&show)
@@ -51,11 +48,10 @@ func TestReadShows(t *testing.T) {
 	defer func() {
 		os.RemoveAll(testDir)
 	}()
-	config.Config().StateDir = testDir
 
 	os.Link(path.Join("testdata", "my_show.json"), path.Join(testDir, "shows", "my_show.json"))
 
-	s, _ := store.Open()
+	s, _ := store.Open(testDir)
 	if len(s.Shows()) != 1 {
 		t.Error("Expected to have read 1 show, got:", len(s.Shows()))
 	}

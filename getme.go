@@ -14,7 +14,7 @@ import (
 var log = config.Log()
 
 func handleShow(show *store.Show) error {
-	store, err := store.Open()
+	store, err := store.Open(config.Config().StateDir)
 	if err != nil {
 		fmt.Println("We've failed to open the data store. The error:")
 		fmt.Println(" ", err)
@@ -103,7 +103,7 @@ func init() {
 }
 
 func updateMedia() {
-	store, err := store.Open()
+	store, err := store.Open(config.Config().StateDir)
 	if err != nil {
 		fmt.Println("We've failed to open the data store. The error:")
 		fmt.Println(" ", err)
