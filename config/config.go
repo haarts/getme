@@ -98,6 +98,7 @@ func Config() *Conf {
 		failed = true
 		return nil
 	}
+	conf.LogDir = logDir()
 
 	// setup storage/state dirs
 	conf.StateDir = stateDir()
