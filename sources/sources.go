@@ -5,13 +5,9 @@ package sources
 import (
 	"fmt"
 
-	"github.com/Sirupsen/logrus"
-	"github.com/haarts/getme/config"
+	log "github.com/Sirupsen/logrus"
 	"github.com/haarts/getme/store"
 )
-
-var conf = config.Config()
-var log = config.Log()
 
 // Source defines the methods a new source for media info should implement.
 type Source interface {
@@ -62,7 +58,7 @@ func UpdateSeasonsAndEpisodes(s *store.Show) error {
 	source, ok := sources[s.SourceName]
 	if !ok {
 		log.WithFields(
-			logrus.Fields{
+			log.Fields{
 				"source": s.SourceName,
 				"show":   s.Title,
 			}).Error("Source defined by show not registered")
@@ -141,7 +137,7 @@ func Search(q string) []SourceResult {
 		ms, err := s.Search(q)
 		if err != nil {
 			log.WithFields(
-				logrus.Fields{
+				log.Fields{
 					"error":  err,
 					"source": name,
 				}).Error("Error when searching on source")

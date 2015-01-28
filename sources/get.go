@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Sirupsen/logrus"
+	log "github.com/Sirupsen/logrus"
 )
 
 // GetJSON abstracts away from the usual log/connect/retry logic involving GET
@@ -26,7 +26,7 @@ func GetXML(req *http.Request, target interface{}) error {
 // get can be used to generically call URLs and deserialize the results.
 func get(req *http.Request, target interface{}, unmarshalFunc func([]byte, interface{}) error) error {
 	log.WithFields(
-		logrus.Fields{
+		log.Fields{
 			"URL": req.URL.String(),
 		}).Debug("Request")
 
@@ -39,7 +39,7 @@ func get(req *http.Request, target interface{}, unmarshalFunc func([]byte, inter
 	}()
 	if err != nil {
 		log.WithFields(
-			logrus.Fields{
+			log.Fields{
 				"error": err,
 				"URL":   req.URL.String(),
 			}).Error("GET error")
@@ -48,7 +48,7 @@ func get(req *http.Request, target interface{}, unmarshalFunc func([]byte, inter
 
 	if resp.StatusCode != 200 {
 		log.WithFields(
-			logrus.Fields{
+			log.Fields{
 				"code": strconv.Itoa(resp.StatusCode),
 				"URL":  req.URL.String(),
 			}).Error("Non 200 response code")

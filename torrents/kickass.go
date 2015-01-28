@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/haarts/getme/config"
 	"github.com/haarts/getme/sources"
 	"github.com/haarts/getme/store"
 )
@@ -17,8 +16,6 @@ type Kickass struct{}
 
 const kickassName = "kickass"
 const batchSize = 50
-
-var log = config.Log()
 
 func init() {
 	Register(kickassName, Kickass{})

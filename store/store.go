@@ -9,11 +9,8 @@ import (
 	"path"
 	"regexp"
 
-	"github.com/haarts/getme/config"
+	log "github.com/Sirupsen/logrus"
 )
-
-var conf = config.Config()
-var log = config.Log()
 
 // Store is the main access point for everything storage related.
 type Store struct {
@@ -74,13 +71,13 @@ func (s *Store) Movies() map[string]*Movie {
 func (s *Store) deserializeShows() {
 	files, err := ioutil.ReadDir(path.Join(s.stateDir, "shows"))
 	if err != nil {
-		fmt.Printf("err %+v\n", err) // TODO log.Error
+		log.Errorf(err.Error())
 	}
 
 	for _, f := range files {
 		matched, err := regexp.MatchString(".*.json", f.Name())
 		if err != nil {
-			fmt.Printf("err %+v\n", err) // TODO log.Error
+			log.Errorf(err.Error())
 		}
 		if !matched {
 			continue
@@ -89,11 +86,11 @@ func (s *Store) deserializeShows() {
 		var show Show
 		d, err := ioutil.ReadFile(path.Join(s.stateDir, "shows", f.Name()))
 		if err != nil {
-			fmt.Printf("err %+v\n", err) // TODO log.Error
+			log.Errorf(err.Error())
 		}
 		err = json.Unmarshal(d, &show)
 		if err != nil {
-			fmt.Printf("err %+v\n", err) // TODO log.Error
+			log.Errorf(err.Error())
 		}
 
 		s.shows[show.Title] = &show

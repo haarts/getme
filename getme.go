@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"os"
 
+	log "github.com/Sirupsen/logrus"
+
 	"github.com/haarts/getme/config"
 	"github.com/haarts/getme/store"
 	"github.com/haarts/getme/ui"
 )
-
-var log = config.Log()
 
 func handleShow(show *store.Show) error {
 	store, err := store.Open(config.Config().StateDir)
@@ -163,6 +163,8 @@ func main() {
 	}
 
 	loadConfig()
+	config.SetLoggerOutput(config.Config().LogDir)
+
 	if debug {
 		config.SetLoggerToDebug()
 	}

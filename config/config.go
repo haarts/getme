@@ -10,15 +10,13 @@ import (
 	"path"
 	"strings"
 
-	"github.com/Sirupsen/logrus"
+	log "github.com/Sirupsen/logrus"
 )
 
 // Config contains WHERE downloaded torrents should be copied too. And WHERE
 // the state should be stored. And WHERE the log files should be stored.
 type Conf struct {
-	WatchDir string
-	StateDir string
-	Logger   *logrus.Logger
+	WatchDir, StateDir, LogDir string
 }
 
 // CheckConfig see if the config file is present.
@@ -30,17 +28,16 @@ func CheckConfig() error {
 var memoizedConfig *Conf
 var failed bool
 
-// Log returns a logger. Usually called on top of a file to get global access
-// to a logger.
-func Log() *logrus.Logger {
-	if Config() == nil {
-		return nil
+func SetLoggerOutput(logDir string) {
+	f, err := os.OpenFile(path.Join(logDir, "getme.log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Println("Something went wrong opening the logfile:", err)
 	}
-	return Config().Logger
+	log.SetOutput(f)
 }
 
 func SetLoggerToDebug() {
-	Config().Logger.Level = logrus.DebugLevel
+	log.SetLevel(log.DebugLevel)
 }
 
 // Config returns a config object.
@@ -86,6 +83,7 @@ func Config() *Conf {
 		return nil
 	}
 
+	// setup watch dir
 	err = ensureWatchDir(conf.WatchDir)
 	if err != nil {
 		fmt.Println("Something went wrong creating the watch directory:", err)
@@ -93,24 +91,13 @@ func Config() *Conf {
 		return nil
 	}
 
-	// setup logging
+	// setup logging dir
 	err = ensureLogDir(logDir())
 	if err != nil {
 		fmt.Println("Something went wrong creating the log directories:", err)
 		failed = true
 		return nil
 	}
-
-	f, err := os.OpenFile(path.Join(logDir(), "getme.log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		fmt.Println("Something went wrong opening the logfile:", err)
-		failed = true
-		return nil
-	}
-
-	log := logrus.New()
-	log.Out = f
-	conf.Logger = log
 
 	// setup storage/state dirs
 	conf.StateDir = stateDir()
