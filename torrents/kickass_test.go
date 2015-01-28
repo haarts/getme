@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/haarts/getme/store"
+	"github.com/stretchr/testify/assert"
 )
 
 func readFixture(file string) string {
@@ -18,6 +19,23 @@ func readFixture(file string) string {
 		os.Exit(1)
 	}
 	return string(data)
+}
+
+func TestIsEnglish(t *testing.T) {
+	assert := assert.New(t)
+
+	ss := []SearchResult{
+		{FileName: "it's all good"},
+		{FileName: "this is very french"},
+		{FileName: "some show vostfr"},
+		{FileName: "some.show.ITA.avi"},
+	}
+
+	assert.True(isEnglish(ss[0]))
+
+	for _, s := range ss[1:] {
+		assert.False(isEnglish(s), "should not be english: %s", s.FileName)
+	}
 }
 
 func TestSearching(t *testing.T) {

@@ -5,6 +5,7 @@ import (
 	"math"
 	"net/http"
 	"net/url"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -251,6 +252,11 @@ func isEnglish(i SearchResult) bool {
 	}
 
 	if strings.Contains(lowerCaseFileName, "vostfr") {
+		return false
+	}
+
+	regex := regexp.MustCompile(`\bITA\b`)
+	if regex.MatchString(i.FileName) {
 		return false
 	}
 
