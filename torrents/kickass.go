@@ -128,6 +128,9 @@ func torrentsForSeasons(show *store.Show) ([]Torrent, error) {
 	var torrents []Torrent
 
 	for _, s := range show.PendingSeasons() {
+		if s.Season == 0 {
+			continue
+		}
 		bestSnippet := show.BestSeasonSnippet()
 		var as []alt
 		if _, ok := seasonQueryAlternatives[bestSnippet.FormatSnippet]; ok {
