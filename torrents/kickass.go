@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strings"
 
+	log "github.com/Sirupsen/logrus"
+
 	"github.com/haarts/getme/sources"
 	"github.com/haarts/getme/store"
 )
@@ -144,9 +146,8 @@ func torrentsForSeasons(show *store.Show) ([]Torrent, error) {
 		}
 
 		for i := 0; i < len(as); i++ {
-			results, _ := searchKickass(
-				seasonQueryAlternatives[as[i].snippet.FormatSnippet](as[i].snippet.TitleSnippet, s),
-			)
+			query := seasonQueryAlternatives[as[i].snippet.FormatSnippet](as[i].snippet.TitleSnippet, s)
+			results, _ := searchKickass(query)
 
 			var rejectNonSeason = func(ts []Torrent) []Torrent {
 				var rs []Torrent
@@ -162,6 +163,11 @@ func torrentsForSeasons(show *store.Show) ([]Torrent, error) {
 			if len(results) != 0 {
 				as[i].torrent = selectBest(results)
 			}
+			log.WithFields(
+				log.Fields{
+					"query":       query,
+					"bestTorrent": as[i].torrent.OriginalName,
+				}).Debug("query with best result")
 		}
 
 		best := bestAlt(as)
