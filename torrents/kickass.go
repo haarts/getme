@@ -147,6 +147,18 @@ func torrentsForSeasons(show *store.Show) ([]Torrent, error) {
 			results, _ := searchKickass(
 				seasonQueryAlternatives[as[i].snippet.FormatSnippet](as[i].snippet.TitleSnippet, s),
 			)
+
+			var rejectNonSeason = func(ts []Torrent) []Torrent {
+				var rs []Torrent
+				for _, t := range ts {
+					if strings.Contains(strings.ToLower(t.OriginalName), "season") {
+						rs = append(rs, t)
+					}
+				}
+				return rs
+			}
+
+			results = rejectNonSeason(results)
 			if len(results) != 0 {
 				as[i].torrent = selectBest(results)
 			}
