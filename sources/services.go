@@ -1,8 +1,8 @@
 package sources
 
-func popularShowAtIndex(shows []Match) int {
-	for i, m := range shows {
-		if isPopularShow(m.DisplayTitle()) {
+func popularShowAtIndex(shows []Show) int {
+	for i, s := range shows {
+		if isPopularShow(s.Title) {
 			return i
 		}
 	}

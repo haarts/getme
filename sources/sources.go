@@ -3,150 +3,208 @@
 package sources
 
 import (
-	"fmt"
+	"time"
 
-	log "github.com/Sirupsen/logrus"
+	trakt "github.com/42minutes/go-trakt"
+
 	"github.com/haarts/getme/store"
 )
 
-// Source defines the methods a new source for media info should implement.
-type Source interface {
-	Search(string) ([]Match, error)
-	AllSeasonsAndEpisodes(store.Show) ([]*store.Season, error)
-}
-
-// Match is either a Movie or a Show.
 type Match interface {
 	DisplayTitle() string
 }
 
+type Show struct {
+	Title  string
+	ID     int
+	Source string
+}
+
+func (s Show) DisplayTitle() string {
+	return s.Title
+}
+
+type Season struct {
+	Season   int
+	Episodes []Episode
+}
+
+type Episode struct {
+	Title   string    `json:"title"`
+	Episode int       `json:"episode"`
+	AirDate time.Time `json:"air_date"`
+}
+
 // SourceResult holds the results of searching on a particular source for a
 // particular query.
-type SourceResult struct {
-	Name    string
-	Matches []Match
-	Error   error
-}
-
-var sources = make(map[string]Source)
-
-// Register should be called (in an init function) when adding a new source.
-// See trakt.go for an example.
-func Register(name string, source Source) {
-	if _, dup := sources[name]; dup {
-		panic("source: Register called twice for source " + name)
-	}
-	sources[name] = source
-}
-
-// GetSeasonsAndEpisodes should be called with a newly initialized Show. In
-// addition to fetching the seasons and episodes this determines if the show is
-// a daily show, which impacts the way queries are generated for search
-// engines.
-func GetSeasonsAndEpisodes(s *store.Show) error {
-	err := UpdateSeasonsAndEpisodes(s)
-	if err != nil {
-		return err
-	}
-
-	return nil
+type SearchResult struct {
+	Name  string
+	Shows []Show
+	Error error
 }
 
 // UpdateSeasonsAndEpisodes should be called to update a Show after, for
-// example, deserialization for disk.
-func UpdateSeasonsAndEpisodes(s *store.Show) error {
-	source, ok := sources[s.SourceName]
-	if !ok {
-		log.WithFields(
-			log.Fields{
-				"source": s.SourceName,
-				"show":   s.Title,
-			}).Error("Source defined by show not registered")
-		return fmt.Errorf("Source defined by show not registered")
+// example, deserialization from disk.
+func UpdateSeasonsAndEpisodes(show *store.Show) error {
+	var seasons []Season
+	var err error
+
+	if show.SourceName == "trakt" {
+		seasons, err = seasonsWithTrakt(show)
 	}
-	seasons, err := source.AllSeasonsAndEpisodes(*s) // pass a copy
-	if err != nil {
-		return err
+	if show.SourceName == "tvrage" {
+		seasons, err = seasonsWithTvRage(show)
 	}
 
 	for i := 0; i < len(seasons); i++ {
 		season := seasons[i]
-		existingSeason := findExistingSeason(s.Seasons, season)
+		existingSeason := findExistingSeason(show.Seasons, season)
 		if existingSeason == nil {
-			addSeason(s, season)
+			addSeason(show, season)
 		} else {
 			updateEpisodes(existingSeason, season)
 		}
 	}
 
-	return nil
+	return err
 }
 
-func addSeason(show *store.Show, season *store.Season) {
-	show.Seasons = append(show.Seasons, season)
+func seasonsWithTrakt(show *store.Show) ([]Season, error) {
+	var seasons []Season
+
+	client := traktClient()
+	traktSeasons, result := client.Seasons().All(show.ID)
+	if result.Err != nil {
+		return seasons, result.Err
+	}
+
+	for i := 0; i < len(traktSeasons); i++ {
+		season := Season{
+			Season: traktSeasons[i].Number,
+		}
+		episodes, result := client.Episodes().AllBySeason(show.ID, traktSeasons[i].Number)
+		if result.Err != nil {
+			return seasons, result.Err
+		}
+		for _, episode := range episodes {
+			if episode.FirstAired == nil {
+				episode.FirstAired = &time.Time{}
+			}
+			season.Episodes = append(
+				season.Episodes,
+				Episode{
+					Title:   episode.Title,
+					AirDate: *episode.FirstAired,
+					Episode: episode.Number,
+				},
+			)
+		}
+		seasons = append(seasons, season)
+	}
+	return seasons, nil
 }
 
-func updateEpisodes(existingSeason *store.Season, newSeason *store.Season) {
+func seasonsWithTvRage(show *store.Show) ([]Season, error) {
+	return TvRage{}.AllSeasonsAndEpisodes(show.ID)
+}
+
+// Search is the important function of this package. Call this to turn a user
+// search string into a list of matches (which might be TV shows or movies).
+func Search(q string) []SearchResult {
+	var searchResults []SearchResult
+	r := searchTrakt(q)
+	searchResults = append(searchResults, r)
+	r = searchTvRage(q)
+	searchResults = append(searchResults, r)
+
+	return searchResults
+}
+
+func traktClient() *trakt.Client {
+	return trakt.NewClient(
+		"01045164ed603042b53acf841b590f0e7b728dbff319c8d128f8649e2427cbe9",
+		trakt.TokenAuth{AccessToken: "3b6f5bdba2fa56b086712d5f3f15b4e967f99ab049a6d3a4c2e56dc9c3c90462"},
+	)
+}
+
+func searchTrakt(q string) SearchResult {
+	searchResult := SearchResult{
+		Name: "trakt",
+	}
+
+	results, response := traktClient().Shows().Search(q)
+	if response.Err != nil {
+		searchResult.Error = response.Err
+		return searchResult
+	}
+
+	for _, result := range results {
+		searchResult.Shows = append(
+			searchResult.Shows,
+			Show{Source: searchResult.Name, Title: result.Show.Title, ID: result.Show.IDs.Trakt},
+		)
+	}
+	return searchResult
+}
+
+func searchTvRage(q string) SearchResult {
+	searchResult := SearchResult{
+		Name: "tvrage",
+	}
+
+	searchResult.Shows, searchResult.Error = TvRage{}.Search(q)
+	return searchResult
+}
+
+func addSeason(show *store.Show, season Season) {
+	newSeason := store.Season{
+		Season: season.Season,
+	}
+	for _, episode := range season.Episodes {
+		newEpisode := store.Episode{
+			Episode: episode.Episode,
+			AirDate: episode.AirDate,
+			Title:   episode.Title,
+			Pending: true,
+		}
+		newSeason.Episodes = append(newSeason.Episodes, &newEpisode)
+	}
+
+	show.Seasons = append(show.Seasons, &newSeason)
+}
+
+func updateEpisodes(existingSeason *store.Season, newSeason Season) {
 	if len(existingSeason.Episodes) == len(newSeason.Episodes) {
 		return
 	}
 
 	for _, episode := range newSeason.Episodes {
 		if !contains(existingSeason.Episodes, episode) {
-			newEpisode := *episode
+			newEpisode := store.Episode{
+				Episode: episode.Episode,
+				AirDate: episode.AirDate,
+				Title:   episode.Title,
+				Pending: true,
+			}
 			existingSeason.Episodes = append(existingSeason.Episodes, &newEpisode)
 		}
 	}
 }
 
-func contains(ss []*store.Episode, e *store.Episode) bool {
-	for _, a := range ss {
-		if a.Episode == e.Episode {
+func contains(episodes []*store.Episode, other Episode) bool {
+	for _, e := range episodes {
+		if e.Episode == other.Episode {
 			return true
 		}
 	}
 	return false
 }
 
-func findExistingSeason(existing []*store.Season, other *store.Season) *store.Season {
+func findExistingSeason(existing []*store.Season, other Season) *store.Season {
 	for _, season := range existing {
 		if season.Season == other.Season {
 			return season
 		}
 	}
 	return nil
-}
-
-// ListSources exists mainly for display purposes.
-func ListSources() (names []string) {
-	for name := range sources {
-		names = append(names, name)
-	}
-	return
-}
-
-// Search is the important function of this package. Call this to turn a user
-// search string into a list of matches (which might be TV shows or movies).
-func Search(q string) []SourceResult {
-	var sourceResults = make([]SourceResult, len(sources))
-	var i int
-	for name, s := range sources { //TODO Make parallel
-		sourceResult := SourceResult{
-			Name: name,
-		}
-		ms, err := s.Search(q)
-		if err != nil {
-			log.WithFields(
-				log.Fields{
-					"error":  err,
-					"source": name,
-				}).Error("Error when searching on source")
-			sourceResult.Error = err
-		}
-		sourceResult.Matches = ms
-
-		sourceResults[i] = sourceResult
-		i++
-	}
-	return sourceResults
 }

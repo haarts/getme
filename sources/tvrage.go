@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"time"
-
-	"github.com/haarts/getme/store"
 )
 
 // TvRage is the struct which implements the Source interface.
@@ -15,10 +13,6 @@ type TvRage struct{}
 
 // TVRAGE defines the name of this source.
 const tvRageName = "tvrage"
-
-func init() {
-	Register(tvRageName, TvRage{})
-}
 
 type tvRageResult struct {
 	Shows []tvRageMatch `xml:"show"`
@@ -63,7 +57,7 @@ func tvRageRequest(URL string) (*http.Request, error) {
 }
 
 // Search returns matches found by this source based on the query.
-func (t TvRage) Search(query string) ([]Match, error) {
+func (t TvRage) Search(query string) ([]Show, error) {
 	req, err := tvRageRequest(constructTvRageSearchURL(query))
 
 	if err != nil {
@@ -77,15 +71,15 @@ func (t TvRage) Search(query string) ([]Match, error) {
 		return nil, err
 	}
 
-	shows := convertTvRageToMatches(result.Shows)
+	shows := convertTvRageToShows(result.Shows)
 	putPopularShowOnTop(shows)
 
 	return shows, nil
 }
 
 // AllSeasonsAndEpisodes finds the seasons and episodes for a show with this source.
-func (t TvRage) AllSeasonsAndEpisodes(show store.Show) ([]*store.Season, error) {
-	req, err := tvRageRequest(constructTvRageSeasonsURL(show.ID))
+func (t TvRage) AllSeasonsAndEpisodes(showID int) ([]Season, error) {
+	req, err := tvRageRequest(constructTvRageSeasonsURL(showID))
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +113,7 @@ func constructTvRageSeasonsURL(ID int) string {
 	return fmt.Sprintf(tvRageURL+"/feeds/episode_list.php?sid=%d", ID)
 }
 
-func putPopularShowOnTop(shows []Match) {
+func putPopularShowOnTop(shows []Show) {
 	i := popularShowAtIndex(shows)
 	if i != -1 {
 		popularShow := shows[i]
@@ -129,31 +123,29 @@ func putPopularShowOnTop(shows []Match) {
 	}
 }
 
-func convertTvRageToMatches(ms []tvRageMatch) []Match {
-	matches := make([]Match, len(ms))
+func convertTvRageToShows(ms []tvRageMatch) []Show {
+	shows := make([]Show, len(ms))
 	for i, m := range ms {
-		matches[i] = store.Show{
-			Title:      m.Title,
-			ID:         m.ID,
-			SourceName: tvRageName,
+		shows[i] = Show{
+			Title:  m.Title,
+			ID:     m.ID,
+			Source: tvRageName,
 		}
 	}
-	return matches
+	return shows
 }
 
-// TODO Quite a bit of duplication with the convertToMatches function.
-func convertFromTvRageSeasons(ss []tvRageSeason) []*store.Season {
-	seasons := make([]*store.Season, len(ss))
+func convertFromTvRageSeasons(ss []tvRageSeason) []Season {
+	seasons := make([]Season, len(ss))
 	for i, s := range ss {
-		season := &store.Season{
+		season := Season{
 			Season:   s.Season,
-			Episodes: make([]*store.Episode, len(s.Episodes)),
+			Episodes: make([]Episode, len(s.Episodes)),
 		}
 		for j, e := range s.Episodes {
-			season.Episodes[j] = &store.Episode{
+			season.Episodes[j] = Episode{
 				Title:   e.Title,
 				Episode: e.Episode,
-				Pending: true,
 				AirDate: e.AirDate.Time,
 			}
 		}

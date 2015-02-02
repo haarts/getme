@@ -9,11 +9,12 @@ import (
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/haarts/getme/config"
+	"github.com/haarts/getme/sources"
 	"github.com/haarts/getme/store"
 	"github.com/haarts/getme/ui"
 )
 
-func handleShow(show *store.Show) error {
+func handleShow(show *sources.Show) error {
 	store, err := store.Open(config.Config().StateDir)
 	if err != nil {
 		fmt.Println("We've failed to open the data store. The error:")
@@ -23,43 +24,44 @@ func handleShow(show *store.Show) error {
 	defer store.Close()
 
 	// Fetch the seasons/episodes associated with the found show.
-	err = ui.Lookup(show)
+	persistedShow := store.NewShow(show.Source, show.ID, show.Title)
+	err = ui.Lookup(persistedShow)
 	if err != nil {
 		fmt.Println("We've encountered a problem looking up seasons for the show. The error:")
 		fmt.Println(" ", err)
 		return err
 	}
 
-	if len(show.Episodes()) == 0 {
-		fmt.Printf("No episodes could be found for %s.", show.DisplayTitle())
+	if len(persistedShow.Episodes()) == 0 {
+		fmt.Printf("No episodes could be found for %s.\n", persistedShow.Title)
 		return nil
 	}
 
-	err = store.CreateShow(show)
+	err = store.CreateShow(persistedShow)
 	if err != nil {
 		fmt.Println(err)
 		fmt.Println("Remove it or search for something else. If you want to update it do: getme -u")
-		log.Fatalf("Show '%s' already exists", show.Title)
+		log.Fatalf("Show '%s' already exists", persistedShow.Title)
 	}
 
 	// We have two entry points. One on the first run and one when running as daemon.
 	// So we create episodes based on seasons always. Then look at the disk/store and figure out
 	// what is missing.
 
-	torrents, err := ui.SearchTorrents(show)
+	torrents, err := ui.SearchTorrents(persistedShow)
 	if err != nil {
 		fmt.Println("Something went wrong looking for your torrents:", err) // But that doesn't mean nothing worked...
 		fmt.Println("Continuing nonetheless.")
 	}
 	if len(torrents) == 0 {
-		fmt.Println("Didn't find any torrents for", show.DisplayTitle())
+		fmt.Println("Didn't find any torrents for", persistedShow.Title)
 		return nil
 	}
 	err = ui.Download(torrents)
 	if err != nil {
 		fmt.Println("Something went wrong downloading a torrent:", err)
 	}
-	ui.DisplayPendingEpisodes(show)
+	ui.DisplayPendingEpisodes(persistedShow)
 
 	return nil
 }
@@ -137,13 +139,13 @@ func addMedia() {
 		return
 	}
 
-	switch m := (*match).(type) {
-	case store.Show:
-		err := handleShow(&m)
+	switch m := (match).(type) {
+	case *sources.Show:
+		err := handleShow(m)
 		if err != nil {
 			return
 		}
-	case store.Movie:
+	case *store.Movie:
 	// TODO Handle 'Movie' case.
 
 	default:

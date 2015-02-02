@@ -284,7 +284,7 @@ func isEnglish(i SearchResult) bool {
 	}
 
 	// Ignore hard coded (HC) subtitles.
-	regex := regexp.MustCompile(`\bHC\b`)
+	regex = regexp.MustCompile(`\bHC\b`)
 	if regex.MatchString(i.FileName) {
 		return false
 	}

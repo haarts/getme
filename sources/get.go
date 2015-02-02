@@ -1,5 +1,7 @@
 package sources
 
+// TODO call this summoner.go
+
 import (
 	"encoding/json"
 	"encoding/xml"
