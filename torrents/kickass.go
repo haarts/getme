@@ -272,11 +272,19 @@ func isEnglish(i SearchResult) bool {
 		return false
 	}
 
+	// Ignore Version Originale Sous-Titrée en FRançais. Hard coded, French subtitles.
 	if strings.Contains(lowerCaseFileName, "vostfr") {
 		return false
 	}
 
+	// Ignore Italian (ITA) dubs.
 	regex := regexp.MustCompile(`\bITA\b`)
+	if regex.MatchString(i.FileName) {
+		return false
+	}
+
+	// Ignore hard coded (HC) subtitles.
+	regex := regexp.MustCompile(`\bHC\b`)
 	if regex.MatchString(i.FileName) {
 		return false
 	}
