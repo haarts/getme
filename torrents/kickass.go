@@ -44,7 +44,7 @@ func (a BySeeds) Len() int           { return len(a) }
 func (a BySeeds) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a BySeeds) Less(i, j int) bool { return a[i].Seeds > a[j].Seeds }
 
-var kickassURL = "https://kickass.so"
+var kickassURL = "https://kickass.to"
 var torCacheURL = "http://torcache.gs/torrent/%s.torrent"
 
 // TODO Also review the code with https://github.com/golang/go/wiki/CodeReviewComments
