@@ -10,6 +10,8 @@ import (
 	"sort"
 	"strings"
 
+	log "github.com/Sirupsen/logrus"
+
 	"github.com/haarts/getme/sources"
 	"github.com/haarts/getme/store"
 )
@@ -106,15 +108,20 @@ func torrentsForEpisodes(show *store.Show) ([]Torrent, error) {
 	for _, episode := range episodes[0:int(min)] {
 		snippet := selectEpisodeSnippet(show)
 
-		results, _ := searchKickass(
-			episodeQueryAlternatives[snippet.FormatSnippet](snippet.TitleSnippet, episode),
-		)
+		query := episodeQueryAlternatives[snippet.FormatSnippet](snippet.TitleSnippet, episode)
+		results, _ := searchKickass(query)
 
 		if len(results) == 0 {
 			continue
 		}
 
 		bestTorrent := selectBest(results)
+
+		log.WithFields(
+			log.Fields{
+				"query":       query,
+				"bestTorrent": bestTorrent.OriginalName,
+			}).Debug("query with best result")
 
 		bestTorrent.AssociatedMedia = episode
 		snippet.Score = bestTorrent.seeds
@@ -196,6 +203,12 @@ func torrentsForSeasons(show *store.Show) ([]Torrent, error) {
 		}
 
 		bestTorrent := selectBest(results)
+
+		log.WithFields(
+			log.Fields{
+				"query":       query,
+				"bestTorrent": bestTorrent.OriginalName,
+			}).Debug("query with best result")
 
 		bestTorrent.AssociatedMedia = s
 		snippet.Score = bestTorrent.seeds
