@@ -93,14 +93,14 @@ func (s *Season) Done() {
 	}
 }
 
-func (s *Show) BestSeasonSnippet() *Snippet {
+func (s *Show) BestSeasonSnippet() Snippet {
 	var best Snippet
 	for _, snippet := range s.QuerySnippets.ForSeason {
 		if snippet.Score >= best.Score {
 			best = snippet
 		}
 	}
-	return &best
+	return best
 }
 
 func (s *Show) StoreSeasonSnippet(snippet Snippet) {

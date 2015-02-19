@@ -10,8 +10,6 @@ import (
 	"sort"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
-
 	"github.com/haarts/getme/sources"
 	"github.com/haarts/getme/store"
 )
@@ -75,7 +73,7 @@ func isExplore() bool {
 	return false
 }
 
-func selectSnippet(show *store.Show) store.Snippet {
+func selectEpisodeSnippet(show *store.Show) store.Snippet {
 	if len(show.QuerySnippets.ForEpisode) == 0 || isExplore() {
 		// select random snippet
 		var snippets []store.Snippet
@@ -106,7 +104,7 @@ func torrentsForEpisodes(show *store.Show) ([]Torrent, error) {
 	min := math.Min(float64(len(episodes)), float64(batchSize))
 
 	for _, episode := range episodes[0:int(min)] {
-		snippet := selectSnippet(show)
+		snippet := selectEpisodeSnippet(show)
 
 		results, _ := searchKickass(
 			episodeQueryAlternatives[snippet.FormatSnippet](snippet.TitleSnippet, episode),
@@ -145,6 +143,30 @@ func addIfNew(as []alt, title, format string) []alt {
 	return append(as, newAlt)
 }
 
+func selectSeasonSnippet(show *store.Show) store.Snippet {
+	if len(show.QuerySnippets.ForSeason) == 0 || isExplore() {
+		// select random snippet
+		var snippets []store.Snippet
+		for k, _ := range seasonQueryAlternatives {
+			for _, morpher := range titleMorphers {
+				snippets = append(
+					snippets,
+					store.Snippet{
+						Score:         0,
+						TitleSnippet:  morpher(show.Title),
+						FormatSnippet: k,
+					},
+				)
+			}
+		}
+		return snippets[rand.Intn(len(snippets))]
+	}
+
+	// select the current best
+	return show.BestSeasonSnippet()
+
+}
+
 func torrentsForSeasons(show *store.Show) ([]Torrent, error) {
 	var torrents []Torrent
 
@@ -152,50 +174,33 @@ func torrentsForSeasons(show *store.Show) ([]Torrent, error) {
 		if s.Season == 0 {
 			continue
 		}
-		bestSnippet := show.BestSeasonSnippet()
-		var as []alt
-		if _, ok := seasonQueryAlternatives[bestSnippet.FormatSnippet]; ok {
-			as = append(as, alt{snippet: *bestSnippet})
-		} else {
-			for k, _ := range seasonQueryAlternatives {
-				for _, morpher := range titleMorphers {
-					as = addIfNew(as, morpher(show.Title), k)
+
+		snippet := selectSeasonSnippet(show)
+
+		query := seasonQueryAlternatives[snippet.FormatSnippet](snippet.TitleSnippet, s)
+		results, _ := searchKickass(query)
+
+		var rejectNonSeason = func(ts []Torrent) []Torrent {
+			var rs []Torrent
+			for _, t := range ts {
+				if strings.Contains(strings.ToLower(t.OriginalName), "season") {
+					rs = append(rs, t)
 				}
 			}
+			return rs
 		}
 
-		for i := 0; i < len(as); i++ {
-			query := seasonQueryAlternatives[as[i].snippet.FormatSnippet](as[i].snippet.TitleSnippet, s)
-			results, _ := searchKickass(query)
-
-			var rejectNonSeason = func(ts []Torrent) []Torrent {
-				var rs []Torrent
-				for _, t := range ts {
-					if strings.Contains(strings.ToLower(t.OriginalName), "season") {
-						rs = append(rs, t)
-					}
-				}
-				return rs
-			}
-
-			results = rejectNonSeason(results)
-			if len(results) != 0 {
-				as[i].torrent = selectBest(results)
-			}
-			log.WithFields(
-				log.Fields{
-					"query":       query,
-					"bestTorrent": as[i].torrent.OriginalName,
-				}).Debug("query with best result")
+		results = rejectNonSeason(results)
+		if len(results) == 0 {
+			continue
 		}
 
-		best := bestAlt(as)
-		if best != nil {
-			best.torrent.AssociatedMedia = s
-			best.snippet.Score = best.torrent.seeds
-			show.StoreSeasonSnippet(best.snippet)
-			torrents = append(torrents, *best.torrent)
-		}
+		bestTorrent := selectBest(results)
+
+		bestTorrent.AssociatedMedia = s
+		snippet.Score = bestTorrent.seeds
+		show.StoreSeasonSnippet(snippet)
+		torrents = append(torrents, *bestTorrent)
 	}
 
 	return torrents, nil
