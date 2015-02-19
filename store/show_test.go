@@ -6,7 +6,29 @@ import (
 	"time"
 
 	"github.com/haarts/getme/store"
+	"github.com/stretchr/testify/assert"
 )
+
+func TestStoreEpisodeSnippet(t *testing.T) {
+	show := store.Show{}
+	snippet := store.Snippet{Score: 123, TitleSnippet: "abc", FormatSnippet: "sxs"}
+	show.StoreEpisodeSnippet(snippet)
+
+	assert.Equal(t, snippet, show.QuerySnippets.ForEpisode[0])
+}
+
+func TestOverWriteStoreEpisodeSnippet(t *testing.T) {
+	show := store.Show{}
+
+	snippet := store.Snippet{Score: 123, TitleSnippet: "abc", FormatSnippet: "sxs"}
+	show.StoreEpisodeSnippet(snippet)
+
+	snippet = store.Snippet{Score: 234, TitleSnippet: "abc", FormatSnippet: "sxs"}
+	show.StoreEpisodeSnippet(snippet)
+
+	assert.Len(t, show.QuerySnippets.ForEpisode, 1)
+	assert.Equal(t, snippet, show.QuerySnippets.ForEpisode[0])
+}
 
 func TestSortByAirDate(t *testing.T) {
 	episodes := []*store.Episode{
