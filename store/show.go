@@ -114,14 +114,14 @@ func (s *Show) StoreSeasonSnippet(snippet Snippet) {
 	s.QuerySnippets.ForSeason = append(s.QuerySnippets.ForSeason, snippet)
 }
 
-func (s *Show) BestEpisodeSnippet() *Snippet {
+func (s *Show) BestEpisodeSnippet() Snippet {
 	var best Snippet
 	for _, snippet := range s.QuerySnippets.ForEpisode {
 		if snippet.Score >= best.Score {
 			best = snippet
 		}
 	}
-	return &best
+	return best
 }
 
 func (s *Show) StoreEpisodeSnippet(snippet Snippet) {

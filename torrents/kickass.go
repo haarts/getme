@@ -3,6 +3,7 @@ package torrents
 import (
 	"fmt"
 	"math"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -67,6 +68,36 @@ func selectBest(torrents []Torrent) *Torrent {
 	return &(torrents[0]) //most peers
 }
 
+func isExplore() bool {
+	if rand.Intn(10) == 0 { // explore
+		return true
+	}
+	return false
+}
+
+func selectSnippet(show *store.Show) store.Snippet {
+	if len(show.QuerySnippets.ForEpisode) == 0 || isExplore() {
+		// select random snippet
+		var snippets []store.Snippet
+		for k, _ := range episodeQueryAlternatives {
+			for _, morpher := range titleMorphers {
+				snippets = append(
+					snippets,
+					store.Snippet{
+						Score:         0,
+						TitleSnippet:  morpher(show.Title),
+						FormatSnippet: k,
+					},
+				)
+			}
+		}
+		return snippets[rand.Intn(len(snippets))]
+	}
+
+	// select the current best
+	return show.BestEpisodeSnippet()
+}
+
 func torrentsForEpisodes(show *store.Show) ([]Torrent, error) {
 	var torrents []Torrent
 
@@ -74,35 +105,23 @@ func torrentsForEpisodes(show *store.Show) ([]Torrent, error) {
 	sort.Sort(store.ByAirDate(episodes))
 	min := math.Min(float64(len(episodes)), float64(batchSize))
 
-	for _, s := range episodes[0:int(min)] {
-		bestSnippet := show.BestEpisodeSnippet()
-		var as []alt
-		if _, ok := episodeQueryAlternatives[bestSnippet.FormatSnippet]; ok {
-			as = append(as, alt{snippet: *bestSnippet})
-		} else {
-			for k, _ := range episodeQueryAlternatives {
-				for _, morpher := range titleMorphers {
-					as = addIfNew(as, morpher(show.Title), k)
-				}
-			}
+	for _, episode := range episodes[0:int(min)] {
+		snippet := selectSnippet(show)
+
+		results, _ := searchKickass(
+			episodeQueryAlternatives[snippet.FormatSnippet](snippet.TitleSnippet, episode),
+		)
+
+		if len(results) == 0 {
+			continue
 		}
 
-		for i := 0; i < len(as); i++ {
-			results, _ := searchKickass(
-				episodeQueryAlternatives[as[i].snippet.FormatSnippet](as[i].snippet.TitleSnippet, s),
-			)
-			if len(results) != 0 {
-				as[i].torrent = selectBest(results)
-			}
-		}
+		bestTorrent := selectBest(results)
 
-		best := bestAlt(as)
-		if best != nil {
-			best.torrent.AssociatedMedia = s
-			best.snippet.Score = best.torrent.seeds
-			show.StoreEpisodeSnippet(best.snippet)
-			torrents = append(torrents, *best.torrent)
-		}
+		bestTorrent.AssociatedMedia = episode
+		snippet.Score = bestTorrent.seeds
+		show.StoreEpisodeSnippet(snippet)
+		torrents = append(torrents, *bestTorrent)
 	}
 
 	return torrents, nil
