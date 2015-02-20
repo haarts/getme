@@ -121,9 +121,15 @@ func Search(q string) []SearchResult {
 }
 
 func traktClient() *trakt.Client {
-	return trakt.NewClient(
-		"01045164ed603042b53acf841b590f0e7b728dbff319c8d128f8649e2427cbe9",
-		trakt.TokenAuth{AccessToken: "3b6f5bdba2fa56b086712d5f3f15b4e967f99ab049a6d3a4c2e56dc9c3c90462"},
+	apiKey := "01045164ed603042b53acf841b590f0e7b728dbff319c8d128f8649e2427cbe9"
+	authMethod := trakt.TokenAuth{AccessToken: "3b6f5bdba2fa56b086712d5f3f15b4e967f99ab049a6d3a4c2e56dc9c3c90462"}
+
+	return trakt.NewClientWith(
+		"https://api-v2launch.trakt.tv",
+		trakt.UserAgent,
+		apiKey,
+		authMethod,
+		nil,
 	)
 }
 
