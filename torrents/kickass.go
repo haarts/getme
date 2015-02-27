@@ -91,7 +91,13 @@ func selectEpisodeSnippet(show *store.Show) store.Snippet {
 				)
 			}
 		}
-		return snippets[rand.Intn(len(snippets))]
+		snippet := snippets[rand.Intn(len(snippets))]
+		log.WithFields(
+			log.Fields{
+				"title_snippet":  snippet.TitleSnippet,
+				"format_snippet": snippet.FormatSnippet,
+			}).Debug("Random snippet")
+		return snippet
 	}
 
 	// select the current best

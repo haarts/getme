@@ -180,7 +180,7 @@ func addSeason(show *store.Show, season Season) {
 }
 
 func updateEpisodes(existingSeason *store.Season, newSeason Season) {
-	for i, e := range existingSeason.Episodes {
+	for i, e := range existingSeason.Episodes { // Delete 'TBA' episodes.
 		if e.Title == "TBA" {
 			existingSeason.Episodes[i] = nil
 			existingSeason.Episodes =
