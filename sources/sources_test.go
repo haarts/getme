@@ -22,5 +22,5 @@ func TestReplaceTBAEpisode(t *testing.T) {
 
 	updateEpisodes(&existingSeason, newSeason)
 
-	assert.Equal(t, replacement, existingSeason.Episodes[1])
+	assert.Equal(t, replacement.Title, existingSeason.Episodes[1].Title)
 }

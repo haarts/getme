@@ -180,6 +180,14 @@ func addSeason(show *store.Show, season Season) {
 }
 
 func updateEpisodes(existingSeason *store.Season, newSeason Season) {
+	for i, e := range existingSeason.Episodes {
+		if e.Title == "TBA" {
+			existingSeason.Episodes[i] = nil
+			existingSeason.Episodes =
+				append(existingSeason.Episodes[:i], existingSeason.Episodes[i+1:]...)
+		}
+	}
+
 	if len(existingSeason.Episodes) == len(newSeason.Episodes) {
 		return
 	}
