@@ -257,8 +257,7 @@ func Update(store *store.Store) {
 func updateShows(shows map[string]*store.Show) {
 	for _, show := range shows {
 		c := startProgressBar()
-		fmt.Printf("Updating '%s'", show.Title)
-		//fmt.Printf("show %+v\n", show)
+		fmt.Printf("Updating '%s'\n", show.Title)
 		// ... get updated info
 		sources.UpdateSeasonsAndEpisodes(show)
 		torrents, _ := SearchTorrents(show) // TODO This really should return an error, handle errors in ui package.
