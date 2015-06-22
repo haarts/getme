@@ -47,23 +47,27 @@ func handleShow(show *sources.Show) error {
 	// We have two entry points. One on the first run and one when running as daemon.
 	// So we create episodes based on seasons always. Then look at the disk/store and figure out
 	// what is missing.
+	if !noDownload {
+		downloadTorrents(persistedShow)
+	}
 
-	torrents, err := ui.SearchTorrents(persistedShow)
+	return nil
+}
+
+func downloadTorrents(show *store.Show) {
+	torrents, err := ui.SearchTorrents(show)
 	if err != nil {
 		fmt.Println("Something went wrong looking for your torrents:", err) // But that doesn't mean nothing worked...
 		fmt.Println("Continuing nonetheless.")
 	}
 	if len(torrents) == 0 {
-		fmt.Println("Didn't find any torrents for", persistedShow.Title)
-		return nil
+		fmt.Println("Didn't find any torrents for", show.Title)
 	}
 	err = ui.Download(torrents)
 	if err != nil {
 		fmt.Println("Something went wrong downloading a torrent:", err)
 	}
-	ui.DisplayPendingEpisodes(persistedShow)
-
-	return nil
+	ui.DisplayPendingEpisodes(show)
 }
 
 func loadConfig() {
@@ -73,15 +77,17 @@ func loadConfig() {
 var update bool
 var mediaName string
 var debug bool
+var noDownload bool
 var version bool
 var versionNumber = "0.2"
 
 func init() {
 	const (
-		addUsage     = "The name of the show/movie to add."
-		updateUsage  = "Update the already added shows/movies and download pending torrents."
-		debugUsage   = "Turn on debugging output"
-		versionUsage = "Show version"
+		addUsage        = "The name of the show/movie to add."
+		updateUsage     = "Update the already added shows/movies and download pending torrents."
+		debugUsage      = "Turn on debugging output"
+		noDownloadUsage = "Find the show but don't download the torrents."
+		versionUsage    = "Show version"
 	)
 
 	flag.StringVar(&mediaName, "add", "", addUsage)
@@ -92,6 +98,9 @@ func init() {
 
 	flag.BoolVar(&debug, "debug", false, debugUsage)
 	flag.BoolVar(&debug, "D", false, debugUsage+" (shorthand)")
+
+	flag.BoolVar(&noDownload, "no-download", false, noDownloadUsage)
+	flag.BoolVar(&noDownload, "n", false, noDownloadUsage+" (shorthand)")
 
 	flag.BoolVar(&version, "version", false, versionUsage)
 	flag.BoolVar(&version, "v", false, versionUsage+" (shorthand)")
