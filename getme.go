@@ -76,7 +76,7 @@ func loadConfig() {
 
 var update bool
 var mediaName string
-var debug bool
+var logLevel int
 var noDownload bool
 var version bool
 var versionNumber = "0.2"
@@ -85,7 +85,7 @@ func init() {
 	const (
 		addUsage        = "The name of the show/movie to add."
 		updateUsage     = "Update the already added shows/movies and download pending torrents."
-		debugUsage      = "Turn on debugging output"
+		logLevelUsage   = "Set log level (0,1,2,3,4, higher is more logging)."
 		noDownloadUsage = "Find the show but don't download the torrents."
 		versionUsage    = "Show version"
 	)
@@ -96,8 +96,8 @@ func init() {
 	flag.BoolVar(&update, "update", false, updateUsage)
 	flag.BoolVar(&update, "u", false, updateUsage+" (shorthand)")
 
-	flag.BoolVar(&debug, "debug", false, debugUsage)
-	flag.BoolVar(&debug, "D", false, debugUsage+" (shorthand)")
+	flag.IntVar(&logLevel, "log-level", int(log.ErrorLevel), logLevelUsage)
+	flag.IntVar(&logLevel, "l", int(log.ErrorLevel), logLevelUsage+" (shorthand)")
 
 	flag.BoolVar(&noDownload, "no-download", false, noDownloadUsage)
 	flag.BoolVar(&noDownload, "n", false, noDownloadUsage+" (shorthand)")
@@ -176,9 +176,7 @@ func main() {
 	loadConfig()
 	config.SetLoggerOutput(config.Config().LogDir)
 
-	if debug {
-		config.SetLoggerToDebug()
-	}
+	config.SetLoggerTo(logLevel)
 
 	if update {
 		updateMedia()

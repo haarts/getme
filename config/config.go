@@ -36,8 +36,8 @@ func SetLoggerOutput(logDir string) {
 	log.SetOutput(f)
 }
 
-func SetLoggerToDebug() {
-	log.SetLevel(log.DebugLevel)
+func SetLoggerTo(logLevel int) {
+	log.SetLevel(log.Level(logLevel))
 }
 
 // Config returns a config object.
