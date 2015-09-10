@@ -315,6 +315,14 @@ func isEnglish(i SearchResult) bool {
 		return false
 	}
 
+	if strings.Contains(lowerCaseFileName, "spanish") {
+		return false
+	}
+
+	if strings.Contains(lowerCaseFileName, "español") {
+		return false
+	}
+
 	// Ignore Version Originale Sous-Titrée en FRançais. Hard coded, French subtitles.
 	if strings.Contains(lowerCaseFileName, "vostfr") {
 		return false
