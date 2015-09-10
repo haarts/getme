@@ -5,7 +5,6 @@ Just run:
 ```
 $ getme -a "Pioneer one"
 ```
-
 And you're done!
 
 ## What?
