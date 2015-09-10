@@ -44,9 +44,6 @@ func handleShow(show *sources.Show) error {
 		log.Fatalf("Show '%s' already exists", persistedShow.Title)
 	}
 
-	// We have two entry points. One on the first run and one when running as daemon.
-	// So we create episodes based on seasons always. Then look at the disk/store and figure out
-	// what is missing.
 	if !noDownload {
 		downloadTorrents(persistedShow)
 	}
