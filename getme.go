@@ -122,6 +122,15 @@ func updateMedia() {
 	ui.Update(store)
 }
 
+func allEmpty(results []sources.SearchResult) bool {
+	for _, result := range results {
+		if len(result.Shows) > 0 {
+			return true
+		}
+	}
+	return true
+}
+
 func addMedia() {
 	if mediaName == "" {
 		fmt.Println("Please specify a name to add. Like so: ./getme -a 'My show'.")
@@ -129,7 +138,7 @@ func addMedia() {
 	}
 
 	matches := ui.Search(mediaName)
-	if len(matches) == 0 {
+	if allEmpty(matches) {
 		fmt.Println("We haven't found what you were looking for.")
 		return
 	}
