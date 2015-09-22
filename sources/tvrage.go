@@ -51,6 +51,10 @@ type tvRageDate struct {
 
 var tvRageURL = "http://services.tvrage.com"
 
+func (t TvRage) Name() string {
+	return tvRageName
+}
+
 // Search returns matches found by this source based on the query.
 func (t TvRage) Search(query string) SearchResult {
 	searchResult := SearchResult{

@@ -13,6 +13,7 @@ import (
 type Source interface {
 	Search(string) SearchResult
 	Seasons(*store.Show) ([]Season, error)
+	Name() string
 }
 
 type Match interface {

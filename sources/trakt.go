@@ -12,6 +12,10 @@ type Trakt struct{}
 
 const traktName = "trakt"
 
+func (t Trakt) Name() string {
+	return traktName
+}
+
 func (t Trakt) Seasons(show *store.Show) ([]Season, error) {
 	var seasons []Season
 
