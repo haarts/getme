@@ -151,6 +151,7 @@ func allEmpty(results []sources.SearchResult) bool {
 	return true
 }
 
+// TODO shouldn't this be in the ui package?
 func addMedia() {
 	if mediaName == "" {
 		fmt.Println("Please specify a name to add. Like so: ./getme -a 'My show'.")
