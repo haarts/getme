@@ -145,7 +145,7 @@ func updateMedia() {
 func allEmpty(results []sources.SearchResult) bool {
 	for _, result := range results {
 		if len(result.Shows) > 0 {
-			return true
+			return false
 		}
 	}
 	return true
