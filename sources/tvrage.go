@@ -6,12 +6,15 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/haarts/getme/store"
 )
 
 // TvRage is the struct which implements the Source interface.
 type TvRage struct{}
 
-// TVRAGE defines the name of this source.
+// tvRageName defines the name of this source which is mainly used by the
+// store package when serializing the data to disk.
 const tvRageName = "tvrage"
 
 type tvRageResult struct {
@@ -48,38 +51,37 @@ type tvRageDate struct {
 
 var tvRageURL = "http://services.tvrage.com"
 
-func tvRageRequest(URL string) (*http.Request, error) {
-	req, err := http.NewRequest("GET", URL, nil)
-	if err != nil {
-		return nil, err
-	}
-	return req, nil
-}
-
 // Search returns matches found by this source based on the query.
-func (t TvRage) Search(query string) ([]Show, error) {
+func (t TvRage) Search(query string) SearchResult {
+	searchResult := SearchResult{
+		Name: tvRageName,
+	}
+
 	req, err := tvRageRequest(constructTvRageSearchURL(query))
 
 	if err != nil {
-		return nil, err
+		searchResult.Error = err
+		return searchResult
 	}
 
 	result := &tvRageResult{}
 
 	err = GetXML(req, result)
 	if err != nil {
-		return nil, err
+		searchResult.Error = err
+		return searchResult
 	}
 
 	shows := convertTvRageToShows(result.Shows)
 	putPopularShowOnTop(shows)
 
-	return shows, nil
+	searchResult.Shows = shows
+	return searchResult
 }
 
-// AllSeasonsAndEpisodes finds the seasons and episodes for a show with this source.
-func (t TvRage) AllSeasonsAndEpisodes(showID int) ([]Season, error) {
-	req, err := tvRageRequest(constructTvRageSeasonsURL(showID))
+// Seasons finds the seasons and episodes for a show with this source.
+func (t TvRage) Seasons(show *store.Show) ([]Season, error) {
+	req, err := tvRageRequest(constructTvRageSeasonsURL(show.ID))
 	if err != nil {
 		return nil, err
 	}
@@ -91,6 +93,14 @@ func (t TvRage) AllSeasonsAndEpisodes(showID int) ([]Season, error) {
 	}
 
 	return convertFromTvRageSeasons(result.EpisodeList.Seasons), nil
+}
+
+func tvRageRequest(URL string) (*http.Request, error) {
+	req, err := http.NewRequest("GET", URL, nil)
+	if err != nil {
+		return nil, err
+	}
+	return req, nil
 }
 
 func (t *tvRageDate) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
@@ -106,7 +116,8 @@ func (t *tvRageDate) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error 
 }
 
 func constructTvRageSearchURL(query string) string {
-	return fmt.Sprintf(tvRageURL+"/feeds/search.php?show=%s", url.QueryEscape(query))
+	return fmt.Sprintf(
+		tvRageURL+"/feeds/search.php?show=%s", url.QueryEscape(query))
 }
 
 func constructTvRageSeasonsURL(ID int) string {
