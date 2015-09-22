@@ -79,11 +79,23 @@ func UpdateSeasonsAndEpisodes(show *store.Show) error {
 // Search is the important function of this package. Call this to turn a user
 // search string into a list of matches (which might be TV shows or movies).
 func Search(q string) []SearchResult {
-	var searchResults []SearchResult
+	wrapper := func(searchFunction func(string) SearchResult) chan SearchResult {
+		c := make(chan SearchResult)
+		go func() {
+			// pretty evil scoping hack on 'q'
+			c <- searchFunction(q)
+		}()
+		return c
+	}
 
+	resultChannels := make([]chan SearchResult, len(sources))
 	for _, source := range sources {
-		r := source.Search(q)
-		searchResults = append(searchResults, r)
+		resultChannels = append(resultChannels, wrapper(source.Search))
+	}
+
+	var searchResults []SearchResult
+	for _, resultChannel := range resultChannels {
+		searchResults = append(searchResults, <-resultChannel)
 	}
 
 	return searchResults
