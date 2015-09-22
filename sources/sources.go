@@ -5,6 +5,8 @@ package sources
 import (
 	"time"
 
+	log "github.com/Sirupsen/logrus"
+
 	"github.com/haarts/getme/store"
 )
 
@@ -79,23 +81,21 @@ func UpdateSeasonsAndEpisodes(show *store.Show) error {
 // Search is the important function of this package. Call this to turn a user
 // search string into a list of matches (which might be TV shows or movies).
 func Search(q string) []SearchResult {
-	wrapper := func(searchFunction func(string) SearchResult) chan SearchResult {
-		c := make(chan SearchResult)
-		go func() {
-			// pretty evil scoping hack on 'q'
-			c <- searchFunction(q)
-		}()
-		return c
-	}
-
-	resultChannels := make([]chan SearchResult, len(sources))
+	c := make(chan SearchResult)
 	for _, source := range sources {
-		resultChannels = append(resultChannels, wrapper(source.Search))
+		go func(s Source) { c <- s.Search(q) }(source)
 	}
 
 	var searchResults []SearchResult
-	for _, resultChannel := range resultChannels {
-		searchResults = append(searchResults, <-resultChannel)
+	timeout := time.After(5 * time.Second)
+	for i := 0; i < len(sources); i++ {
+		select {
+		case result := <-c:
+			searchResults = append(searchResults, result)
+		case <-timeout:
+			log.Error("Search timed out")
+			return searchResults
+		}
 	}
 
 	return searchResults
