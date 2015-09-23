@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/haarts/getme/sources"
+	"github.com/haarts/getme/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -19,12 +20,11 @@ func TestTvMazeSearch(t *testing.T) {
 	defer ts.Close()
 
 	mux.HandleFunc("/search/shows", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("MATCH")
 		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprintln(w, readFixture("testdata/tvmaze_search.json"))
 	})
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("NOOS")
+		require.False(t, true)
 	})
 
 	sources.SetTvMazeURL(ts.URL)
@@ -36,16 +36,25 @@ func TestTvMazeSearch(t *testing.T) {
 }
 
 func TestTvMazeSeasons(t *testing.T) {
-	//ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	//w.Header().Set("Content-Type", "application/json")
-	//fmt.Fprintln(w, readFixture("testdata/tvmaze_search.json"))
-	//}))
-	//defer ts.Close()
+	mux := http.NewServeMux()
+	ts := httptest.NewServer(mux)
+	defer ts.Close()
 
-	//tvMazeURL = ts.URL
+	mux.HandleFunc("/shows/1/episodes", func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "GET", r.Method)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintln(w, readFixture("testdata/tvmaze_episodes.json"))
+	})
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		require.False(t, true)
+	})
 
-	//seasons, _ := (TvMaze{}).Seasons("some query")
+	sources.SetTvMazeURL(ts.URL)
 
+	seasons, err := (sources.TvMaze{}).Seasons(&store.Show{ID: 1})
+	require.NoError(t, err)
+	require.Len(t, seasons, 3)
+	assert.Equal(t, 1, seasons[0].Season)
 }
 
 func readFixture(file string) string {

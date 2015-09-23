@@ -3,6 +3,7 @@ package sources
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/haarts/getme/store"
 )
@@ -38,6 +39,7 @@ func (t TvMaze) Search(q string) SearchResult {
 		return searchResult
 	}
 
+	// we assume the list is sorted...
 	for _, r := range *result {
 		searchResult.Shows = append(
 			searchResult.Shows,
@@ -48,7 +50,37 @@ func (t TvMaze) Search(q string) SearchResult {
 }
 
 func (t TvMaze) Seasons(show *store.Show) ([]Season, error) {
-	return nil, nil
+	req, err := http.NewRequest(
+		"GET",
+		fmt.Sprintf(tvMazeURL+"/shows/%d/episodes", show.ID),
+		nil)
+	if err != nil {
+		return nil, err
+	}
+	result := &[]tvMazeEpisode{}
+	err = GetJSON(req, result)
+	if err != nil {
+		return nil, err
+	}
+
+	seasons := map[int]*Season{}
+	for _, r := range *result {
+		if _, ok := seasons[r.Season]; !ok {
+			seasons[r.Season] = &Season{Season: r.Season}
+		}
+		season := seasons[r.Season]
+		season.Episodes = append(
+			season.Episodes,
+			Episode{Title: r.Name, Episode: r.Number, AirDate: r.Airdate},
+		)
+	}
+
+	s := []Season{}
+	for _, v := range seasons {
+		s = append(s, *v)
+	}
+
+	return s, nil
 }
 
 type tvMazeResult struct {
@@ -59,4 +91,11 @@ type tvMazeResult struct {
 type tvMazeShow struct {
 	ID    int    `json:"id"`
 	Title string `json:"name"`
+}
+
+type tvMazeEpisode struct {
+	Name    string    `json:"name"`
+	Season  int       `json:"season"`
+	Number  int       `json:"number"`
+	Airdate time.Time `json:"airstamp"`
 }
