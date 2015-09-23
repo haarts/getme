@@ -51,8 +51,16 @@ type SearchResult struct {
 
 // sources contains all sources one can query for show information
 var sources = map[string]Source{
-	"trakt":  Trakt{},
-	"tvrage": TvRage{},
+	Trakt{}.Name():  Trakt{},
+	TvRage{}.Name(): TvRage{},
+	TvMaze{}.Name(): TvMaze{},
+}
+
+func SourceNames() (names []string) {
+	for k := range sources {
+		names = append(names, k)
+	}
+	return
 }
 
 // UpdateSeasonsAndEpisodes should be called to update a Show after, for

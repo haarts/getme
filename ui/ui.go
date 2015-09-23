@@ -222,7 +222,7 @@ func SearchTorrents(show *store.Show) ([]torrents.Torrent, error) {
 // potential matches.
 func Search(query string) []sources.SearchResult {
 	fmt.Printf("Seaching for '%s' on: ", query)
-	fmt.Print(strings.Join([]string{"trakt", "tvrage"}, ", ")) //TODO come up with something better.
+	fmt.Print(strings.Join(sources.SourceNames(), ", "))
 	fmt.Print("\n")
 
 	c := startProgressBar()
