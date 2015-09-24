@@ -22,15 +22,7 @@ import (
 
 type Kickass struct{}
 
-const kickassName = "kickass"
 const batchSize = 50
-
-// TODO I doubt very much this is the way to go. Why not, in the torrents.go
-// file, do some initialization loop? Then we can pass the log value too and we
-// won't be using the slightly esotheric `init` function.
-func init() {
-	Register(kickassName, Kickass{})
-}
 
 type SearchResult struct {
 	Title    string `xml:"title"`

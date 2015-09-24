@@ -21,6 +21,27 @@ type Torrent struct {
 	AssociatedMedia Doner
 }
 
+type SearchEngine interface {
+	Search(*store.Show) ([]Torrent, error)
+}
+
+var searchEngines = map[string]SearchEngine{
+	"kickass": Kickass{},
+}
+
+// TODO this is only a starting point for pull torrents for the same search
+// engines. I need to come up with a way to pick the best on duplciates.
+func Search(show *store.Show) ([]Torrent, error) {
+	var torrents []Torrent
+	var lastError error
+	for _, searchEngine := range searchEngines {
+		ts, err := searchEngine.Search(show)
+		torrents = append(torrents, ts...)
+		lastError = err
+	}
+	return torrents, lastError
+}
+
 var seasonQueryAlternatives = map[string]func(string, *store.Season) string{
 	"%s season %d": func(title string, season *store.Season) string {
 		return fmt.Sprintf("%s season %d", title, season.Season)
@@ -41,8 +62,6 @@ var episodeQueryAlternatives = map[string]func(string, *store.Episode) string{
 		return fmt.Sprintf("%s %d %02d %02d", title, y, m, d)
 	},
 }
-
-//var dailyEpisodeQueryAlternatives = [...]string{}
 
 var titleMorphers = [...]func(string) string{
 	func(title string) string { //noop
@@ -70,30 +89,4 @@ func truncateToNParts(title string, n int) string {
 		return title
 	}
 	return strings.Join(parts[:n], " ")
-}
-
-type SearchEngine interface {
-	Search(*store.Show) ([]Torrent, error)
-}
-
-var searchEngines = make(map[string]SearchEngine)
-
-func Register(name string, searchEngine SearchEngine) {
-	if _, dup := searchEngines[name]; dup {
-		panic("search_engine: Register called twice for search engine " + name)
-	}
-	searchEngines[name] = searchEngine
-}
-
-// TODO this is only a starting point for pull torrents for the same search
-// engines. I need to come up with a way to pick the best on duplciates.
-func Search(show *store.Show) ([]Torrent, error) {
-	var torrents []Torrent
-	var lastError error
-	for _, searchEngine := range searchEngines {
-		ts, err := searchEngine.Search(show)
-		torrents = append(torrents, ts...)
-		lastError = err
-	}
-	return torrents, lastError
 }
