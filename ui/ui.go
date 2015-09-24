@@ -229,7 +229,7 @@ func Search(query string) []sources.SearchResult {
 	defer stopProgressBar(c)
 
 	matches := sources.Search(query)
-	if isAnyNil(matches) { // Silently ignore all errors as long as 1 succeeded.
+	if isAnyErrorless(matches) { // Silently ignore all errors as long as 1 succeeded.
 		return matches
 	}
 
@@ -276,7 +276,7 @@ func updateMovies(movies map[string]*store.Movie) {
 	}
 }
 
-func isAnyNil(errors []sources.SearchResult) bool {
+func isAnyErrorless(errors []sources.SearchResult) bool {
 	for _, e := range errors {
 		if e.Error == nil {
 			return true

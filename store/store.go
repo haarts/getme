@@ -50,12 +50,12 @@ func (s Store) NewShow(sourceName string, ID int, Title string) *Show {
 
 // CreateShow adds a show to the store. It does NOT persist it to disk yet! Use
 // Close for this.
-func (s *Store) CreateShow(m *Show) error {
-	if _, ok := s.shows[m.Title]; ok {
-		return fmt.Errorf("Show %s already exists.\n", m.Title)
+func (s *Store) CreateShow(show *Show) error {
+	if _, ok := s.shows[show.Title]; ok {
+		return fmt.Errorf("Show %s already exists.\n", show.Title)
 	}
 
-	s.shows[m.Title] = m
+	s.shows[show.Title] = show
 
 	return nil
 }
