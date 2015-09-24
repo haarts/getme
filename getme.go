@@ -100,7 +100,7 @@ func init() {
 	const (
 		addUsage        = "The name of the show/movie to add."
 		updateUsage     = "Update the already added shows/movies and download pending torrents."
-		logLevelUsage   = "Set log level (0,1,2,3,4, higher is more logging)."
+		logLevelUsage   = "Set log level (0,1,2,3,4,5, higher is more logging)."
 		noDownloadUsage = "Find the show but don't download the torrents."
 		versionUsage    = "Show version"
 	)

@@ -29,7 +29,7 @@ var conf = config.Config()
 func EnsureConfig() {
 	err := config.CheckConfig()
 	if err != nil && os.IsNotExist(err) {
-		fmt.Println("It seems that there is no config file present at", config.ConfigFile())
+		fmt.Println("It seems that there is no config file present at ", config.ConfigFile())
 		fmt.Println("Writing a default one, please inspect it and restart GetMe.")
 		config.WriteDefaultConfig()
 		os.Exit(1)
@@ -319,7 +319,9 @@ func getUserInput() string {
 	bio := bufio.NewReader(os.Stdin)
 	line, err := bio.ReadString('\n')
 	if err != nil {
-		fmt.Printf("err %+v\n", err)
+		log.WithFields(log.Fields{
+			"err": err,
+		}).Error("Error reading user input.")
 	}
 	return strings.Trim(line, "\r\n")
 }
