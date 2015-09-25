@@ -10,6 +10,7 @@ import (
 	"github.com/haarts/getme/store"
 )
 
+// Mark a piece of media as done. Currently only Show.
 type Doner interface {
 	Done()
 }
@@ -26,7 +27,9 @@ type SearchEngine interface {
 }
 
 var searchEngines = map[string]SearchEngine{
-	"kickass": Kickass{},
+	"kickass":      Kickass{},
+	"torrentcd":    TorrentCD{},
+	"extratorrent": ExtraTorrent{},
 }
 
 // TODO this is only a starting point for pull torrents for the same search
