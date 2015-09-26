@@ -13,6 +13,8 @@ import (
 	"text/tabwriter"
 	"time"
 
+	log "github.com/Sirupsen/logrus"
+
 	"github.com/haarts/getme/config"
 	"github.com/haarts/getme/sources"
 	"github.com/haarts/getme/store"
