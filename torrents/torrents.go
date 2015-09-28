@@ -4,11 +4,20 @@ package torrents
 
 import (
 	"fmt"
+	"math"
 	"regexp"
+	"sort"
 	"strings"
+	"time"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/haarts/getme/store"
 )
+
+// batchSize controls how many torrent will be fetch in 1 go. This is
+// important when downloading very long running series.
+const batchSize = 50
 
 // Mark a piece of media as done. Currently only Show.
 type Doner interface {
@@ -23,73 +32,170 @@ type Torrent struct {
 }
 
 type SearchEngine interface {
-	Search(*store.Show) ([]Torrent, error)
+	Search(string) ([]Torrent, error)
+	Name() string
 }
 
 var searchEngines = map[string]SearchEngine{
-	"kickass":      Kickass{},
+	"kickass":      NewKickass(),
 	"torrentcd":    TorrentCD{},
 	"extratorrent": ExtraTorrent{},
 }
 
-// TODO this is only a starting point for pull torrents for the same search
-// engines. I need to come up with a way to pick the best on duplciates.
+type queryJob struct {
+	media   Doner
+	snippet store.Snippet
+	query   string
+}
+
 func Search(show *store.Show) ([]Torrent, error) {
+	// torrents holds the torrents to complete a serie
 	var torrents []Torrent
-	var lastError error
+	queryJobs := createQueryJobs(show)
+	for _, queryJob := range queryJobs {
+		torrent, err := executeJob(queryJob.query)
+		if err != nil {
+			continue
+		}
+
+		torrent.AssociatedMedia = queryJob.media
+		queryJob.snippet.Score = torrent.seeds
+		// *ouch* this type switch is ugly
+		switch queryJob.media.(type) {
+		case *store.Season:
+			show.StoreSeasonSnippet(queryJob.snippet)
+		case *store.Episode:
+			show.StoreEpisodeSnippet(queryJob.snippet)
+		default:
+			panic("unknown media type")
+		}
+		torrents = append(torrents, *torrent)
+	}
+
+	return torrents, nil
+}
+
+func executeJob(query string) (*Torrent, error) {
+	// c emits the torrents found for one search request on one search engine
+	c := make(chan []Torrent)
 	for _, searchEngine := range searchEngines {
-		ts, err := searchEngine.Search(show)
-		torrents = append(torrents, ts...)
-		lastError = err
+		go func(s SearchEngine) {
+			torrents, err := s.Search(query)
+			if err != nil {
+				log.WithFields(log.Fields{
+					"err":           err,
+					"search_engine": s.Name(),
+				}).Error("Search engine returned error")
+			}
+			// TODO filter
+			//applyFilters(torrents, isEnglish, isSeason)
+			c <- torrents
+		}(searchEngine)
 	}
-	return torrents, lastError
-}
 
-var seasonQueryAlternatives = map[string]func(string, *store.Season) string{
-	"%s season %d": func(title string, season *store.Season) string {
-		return fmt.Sprintf("%s season %d", title, season.Season)
-	},
-}
-
-var episodeQueryAlternatives = map[string]func(string, *store.Episode) string{
-	"%s S%02dE%02d": func(title string, episode *store.Episode) string {
-		return fmt.Sprintf("%s S%02dE%02d", title, episode.Season(), episode.Episode)
-	},
-	"%s %dx%d": func(title string, episode *store.Episode) string {
-		return fmt.Sprintf("%s %dx%d", title, episode.Season(), episode.Episode)
-	},
-	// This is a bit of a gamble. I, now, no longer make the
-	// distinction between a daily series and a regular one:
-	"%s %d %02d %02d": func(title string, episode *store.Episode) string {
-		y, m, d := episode.AirDate.Date()
-		return fmt.Sprintf("%s %d %02d %02d", title, y, m, d)
-	},
-}
-
-var titleMorphers = [...]func(string) string{
-	func(title string) string { //noop
-		return title
-	},
-	func(title string) string {
-		re := regexp.MustCompile("[^ a-zA-Z0-9]")
-		newTitle := string(re.ReplaceAll([]byte(title), []byte("")))
-		return newTitle
-	},
-	func(title string) string {
-		return truncateToNParts(title, 5)
-	},
-	func(title string) string {
-		return truncateToNParts(title, 4)
-	},
-	func(title string) string {
-		return truncateToNParts(title, 3)
-	},
-}
-
-func truncateToNParts(title string, n int) string {
-	parts := strings.Split(title, " ")
-	if len(parts) < n {
-		return title
+	var torrentsPerQuery []Torrent
+	timeout := time.After(5 * time.Second)
+	for i := 0; i < len(searchEngines); i++ {
+		select {
+		case result := <-c:
+			torrentsPerQuery = append(torrentsPerQuery, result...)
+		case <-timeout:
+			log.Error("Search timed out")
+		}
 	}
-	return strings.Join(parts[:n], " ")
+
+	if len(torrentsPerQuery) == 0 {
+		return nil, fmt.Errorf("No torrents found for %s", query)
+	}
+
+	sort.Sort(bySeeds(torrentsPerQuery))
+	bestTorrent := torrentsPerQuery[0]
+
+	return &bestTorrent, nil
 }
+
+type filter func([]queryJob) []queryJob
+
+func createQueryJobs(show *store.Show) []queryJob {
+	seasonQueries := queriesForSeasons(show)
+	episodeQueries := queriesForEpisodes(show)
+	return append(seasonQueries, episodeQueries...)
+}
+
+func queriesForEpisodes(show *store.Show) []queryJob {
+	episodes := show.PendingEpisodes()
+	sort.Sort(store.ByAirDate(episodes))
+	min := math.Min(float64(len(episodes)), float64(batchSize))
+
+	queries := []queryJob{}
+	for _, episode := range episodes[0:int(min)] {
+		snippet := selectEpisodeSnippet(show)
+
+		query := episodeQueryAlternatives[snippet.FormatSnippet](snippet.TitleSnippet, episode)
+		queries = append(queries, queryJob{snippet: snippet, query: query, media: episode})
+	}
+	return queries
+}
+
+func queriesForSeasons(show *store.Show) []queryJob {
+	queries := []queryJob{}
+	for _, season := range show.PendingSeasons() {
+		// ignore Season 0, which are specials and are rarely found and/or
+		// interesting.
+		if season.Season == 0 {
+			continue
+		}
+
+		snippet := selectSeasonSnippet(show)
+
+		query := seasonQueryAlternatives[snippet.FormatSnippet](snippet.TitleSnippet, season)
+		queries = append(queries, queryJob{snippet: snippet, query: query, media: season})
+	}
+	return queries
+}
+
+func isEnglish(fileName string) bool {
+	lowerCaseFileName := strings.ToLower(fileName)
+	// Too weak a check but it is the easiest. I hope there aren't any series
+	// with 'french' in the title.
+	if strings.Contains(lowerCaseFileName, "french") {
+		return false
+	}
+
+	if strings.Contains(lowerCaseFileName, "spanish") {
+		return false
+	}
+
+	if strings.Contains(lowerCaseFileName, "español") {
+		return false
+	}
+
+	// Ignore Version Originale Sous-Titrée en FRançais. Hard coded, French subtitles.
+	if strings.Contains(lowerCaseFileName, "vostfr") {
+		return false
+	}
+
+	// Ignore Italian (ITA) dubs.
+	regex := regexp.MustCompile(`\bITA\b`)
+	if regex.MatchString(fileName) {
+		return false
+	}
+
+	// Ignore hard coded (HC) subtitles.
+	regex = regexp.MustCompile(`\bHC\b`)
+	if regex.MatchString(fileName) {
+		return false
+	}
+
+	return true
+}
+
+func selectBest(torrents []Torrent) *Torrent {
+	return &(torrents[0]) //most peers
+}
+
+type bySeeds []Torrent
+
+func (a bySeeds) Len() int           { return len(a) }
+func (a bySeeds) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a bySeeds) Less(i, j int) bool { return a[i].seeds > a[j].seeds }

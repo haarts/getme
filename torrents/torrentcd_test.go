@@ -8,7 +8,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/haarts/getme/store"
 	"github.com/haarts/getme/torrents"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -26,7 +25,7 @@ func TestTorrentCDSearch(t *testing.T) {
 		fmt.Fprintln(w, ReadFixture("testdata/torrentcd.xml"))
 	})
 
-	results, err := (torrents.TorrentCD{}).Search(&store.Show{Title: "foo"})
+	results, err := (torrents.TorrentCD{}).Search("foo")
 	require.NoError(t, err)
 	require.Len(t, results, 10)
 	assert.Equal(t, "foo bar", results[0].OriginalName)
