@@ -41,7 +41,7 @@ type Episode struct {
 	AirDate time.Time `json:"air_date"`
 }
 
-// SourceResult holds the results of searching on a particular source for a
+// SearchResult holds the results of searching on a particular source for a
 // particular query.
 type SearchResult struct {
 	Name  string
