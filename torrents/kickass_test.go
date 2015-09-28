@@ -10,6 +10,7 @@ import (
 
 	"github.com/haarts/getme/store"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func readFixture(file string) string {
@@ -22,19 +23,17 @@ func readFixture(file string) string {
 }
 
 func TestIsEnglish(t *testing.T) {
-	assert := assert.New(t)
-
-	ss := []SearchResult{
-		{FileName: "it's all good"},
-		{FileName: "this is very french"},
-		{FileName: "some show vostfr"},
-		{FileName: "some.show.ITA.avi"},
+	ss := []string{
+		"it's all good",
+		"this is very french",
+		"some show vostfr",
+		"some.show.ITA.avi",
 	}
 
-	assert.True(isEnglish(ss[0]))
+	assert.True(t, isEnglish(ss[0]))
 
 	for _, s := range ss[1:] {
-		assert.False(isEnglish(s), "should not be english: %s", s.FileName)
+		assert.False(t, isEnglish(s), "should not be english: %s", s)
 	}
 }
 
@@ -45,18 +44,14 @@ func TestSearching(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	kickassURL = ts.URL
+	searchEngines["kickass"] = Kickass{URL: ts.URL}
 
 	season := store.Season{1, []*store.Episode{{Pending: true, Episode: 1}}}
 	show := store.Show{Title: "Title", URL: "url", Seasons: []*store.Season{&season}}
 	matches, err := Search(&show)
-	if err != nil {
-		t.Error("Expected error to be nil, got:", err)
-	}
+	require.NoError(t, err)
 
-	if len(matches) != 1 {
-		t.Error("Expected matches to contain an equal about of entries as episodes searched for, got:", len(matches))
-	}
+	assert.Equal(t, 1, len(matches))
 }
 
 func Test404(t *testing.T) {
@@ -65,7 +60,7 @@ func Test404(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	kickassURL = ts.URL
+	searchEngines["kickass"] = Kickass{URL: ts.URL}
 
 	season := store.Season{1, []*store.Episode{{Pending: true, Episode: 1}}}
 	show := store.Show{Title: "Title", URL: "url", Seasons: []*store.Season{&season}}

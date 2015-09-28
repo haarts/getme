@@ -1,12 +1,14 @@
 package torrents
 
-import "github.com/haarts/getme/store"
-
 type TorrentCD struct{}
 
 var torrentCDURL = "http://torrent.cd"
 
-func (t TorrentCD) Search(show *store.Show) ([]Torrent, error) {
+func (t TorrentCD) Name() string {
+	return "torrentCD"
+}
+
+func (t TorrentCD) Search(query string) ([]Torrent, error) {
 	return nil, nil
 }
 

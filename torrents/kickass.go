@@ -8,13 +8,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"sort"
-	"strings"
 
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/haarts/getme/sources"
-	"github.com/haarts/getme/store"
 )
 
 // TODO Also review the code with https://github.com/golang/go/wiki/CodeReviewComments
@@ -31,91 +28,15 @@ func NewKickass() *Kickass {
 	}
 }
 
-func (k Kickass) Search(show *store.Show) ([]Torrent, error) {
-	seasonQueries := queriesForSeasons(show)
-	seasonTorrents, err := k.torrentsForSeasons(seasonQueries)
-	if err != nil {
-		return nil, err
-	}
-
-	episodeQueries := queriesForEpisodes(show)
-	episodeTorrents, err := k.torrentsForEpisodes(episodeQueries)
-	if err != nil {
-		return nil, err
-	}
-
-	return append(seasonTorrents, episodeTorrents...), err
+func (k Kickass) Name() string {
+	return "kickass"
 }
 
-func (k Kickass) torrentsForEpisodes(queries map[*store.Episode]string) ([]Torrent, error) {
-	var torrents []Torrent
-
-	for episode, query := range queries {
-		results, err := k.runQuery(query)
-		if err != nil {
-			return nil, err
-		}
-
-		if len(results) == 0 {
-			continue
-		}
-
-		bestTorrent := selectBest(results)
-
-		log.WithFields(
-			log.Fields{
-				"query":       query,
-				"bestTorrent": bestTorrent.OriginalName,
-			}).Debug("query with best result")
-
-		bestTorrent.AssociatedMedia = episode
-		snippet.Score = bestTorrent.seeds
-		show.StoreEpisodeSnippet(snippet)
-		torrents = append(torrents, *bestTorrent)
-	}
-
-	return torrents, nil
-}
-
-func (k Kickass) torrentsForSeasons(queries map[*store.Season]string) ([]Torrent, error) {
-	var torrents []Torrent
-
-	for season, query := range queries {
-		results, err := k.runQuery(query)
-		if err != nil {
-			return nil, err
-		}
-
-		var rejectNonSeason = func(ts []Torrent) []Torrent {
-			var rs []Torrent
-			for _, t := range ts {
-				if strings.Contains(strings.ToLower(t.OriginalName), "season") {
-					rs = append(rs, t)
-				}
-			}
-			return rs
-		}
-
-		results = rejectNonSeason(results)
-		if len(results) == 0 {
-			continue
-		}
-
-		bestTorrent := selectBest(results)
-
-		log.WithFields(
-			log.Fields{
-				"query":       query,
-				"bestTorrent": bestTorrent.OriginalName,
-			}).Debug("query with best result")
-
-		bestTorrent.AssociatedMedia = season
-		snippet.Score = bestTorrent.seeds
-		show.StoreSeasonSnippet(snippet)
-		torrents = append(torrents, *bestTorrent)
-	}
-
-	return torrents, nil
+func (k Kickass) Search(query string) ([]Torrent, error) {
+	log.WithFields(log.Fields{
+		"query": query,
+	}).Debug("Querying Kickass")
+	return k.runQuery(query)
 }
 
 func (k Kickass) constructSearchURL(episode string) string {
@@ -155,8 +76,6 @@ func (k Kickass) runQuery(query string) ([]Torrent, error) {
 		}
 	}
 
-	sort.Sort(bySeeds(searchItems))
-
 	var torrents []Torrent
 	for _, searchItem := range searchItems {
 		torrent := Torrent{searchItem.torrentURL(k.torCacheURL), searchItem.FileName, searchItem.Seeds, nil}
@@ -183,9 +102,3 @@ type kickassItem struct {
 func (i kickassItem) torrentURL(torCacheURL string) string {
 	return fmt.Sprintf(torCacheURL, i.InfoHash)
 }
-
-type bySeeds []kickassItem
-
-func (a bySeeds) Len() int           { return len(a) }
-func (a bySeeds) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a bySeeds) Less(i, j int) bool { return a[i].Seeds > a[j].Seeds }

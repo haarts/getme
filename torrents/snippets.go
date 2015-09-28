@@ -52,36 +52,6 @@ var titleMorphers = [...]func(string) string{
 	},
 }
 
-//type alt struct {
-//torrent *Torrent
-//snippet store.Snippet
-//}
-
-//func bestAlt(as []alt) *alt {
-//if len(as) == 0 {
-//return nil
-//}
-
-//withTorrents := as[:0]
-//for _, x := range as {
-//if x.torrent != nil {
-//withTorrents = append(withTorrents, x)
-//}
-//}
-
-//if len(withTorrents) == 0 {
-//return nil
-//}
-
-//best := withTorrents[0]
-//for _, a := range withTorrents {
-//if a.torrent.seeds > best.torrent.seeds {
-//best = a
-//}
-//}
-//return &best
-//}
-
 func selectEpisodeSnippet(show *store.Show) store.Snippet {
 	if len(show.QuerySnippets.ForEpisode) == 0 || isExplore() {
 		// select random snippet
@@ -109,24 +79,6 @@ func selectEpisodeSnippet(show *store.Show) store.Snippet {
 
 	// select the current best
 	return show.BestEpisodeSnippet()
-}
-
-func addIfNew(as []alt, title, format string) []alt {
-	newAlt := alt{
-		snippet: store.Snippet{
-			Score:         0,
-			TitleSnippet:  title,
-			FormatSnippet: format,
-		},
-	}
-	for _, existing := range as {
-		if newAlt.snippet.TitleSnippet == existing.snippet.TitleSnippet &&
-			newAlt.snippet.FormatSnippet == existing.snippet.FormatSnippet {
-			return as
-		}
-	}
-
-	return append(as, newAlt)
 }
 
 func selectSeasonSnippet(show *store.Show) store.Snippet {

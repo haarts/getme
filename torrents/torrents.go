@@ -3,11 +3,14 @@
 package torrents
 
 import (
+	"fmt"
 	"math"
 	"regexp"
 	"sort"
 	"strings"
 	"time"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/haarts/getme/store"
 )
@@ -29,32 +32,20 @@ type Torrent struct {
 }
 
 type SearchEngine interface {
-	Search(*store.Show) ([]Torrent, error)
+	Search(string) ([]Torrent, error)
+	Name() string
 }
 
 var searchEngines = map[string]SearchEngine{
-	"kickass":      Kickass{},
+	"kickass":      NewKickass(),
 	"torrentcd":    TorrentCD{},
 	"extratorrent": ExtraTorrent{},
 }
 
 type queryJob struct {
 	media   Doner
-	snippit store.Snippet
+	snippet store.Snippet
 	query   string
-}
-
-// TODO this is only a starting point for pull torrents for the same search
-// engines. I need to come up with a way to pick the best on duplciates.
-func Search(show *store.Show) ([]Torrent, error) {
-	var torrents []Torrent
-	var lastError error
-	for _, searchEngine := range searchEngines {
-		ts, err := searchEngine.Search(show)
-		torrents = append(torrents, ts...)
-		lastError = err
-	}
-	return torrents, lastError
 }
 
 func Search(show *store.Show) ([]Torrent, error) {
@@ -62,19 +53,42 @@ func Search(show *store.Show) ([]Torrent, error) {
 	var torrents []Torrent
 	queryJobs := createQueryJobs(show)
 	for _, queryJob := range queryJobs {
-		torrents = append(torrents, executeJob(queryJob))
+		torrent, err := executeJob(queryJob.query)
+		if err != nil {
+			continue
+		}
+
+		torrent.AssociatedMedia = queryJob.media
+		queryJob.snippet.Score = torrent.seeds
+		// *ouch* this type switch is ugly
+		switch queryJob.media.(type) {
+		case *store.Season:
+			show.StoreSeasonSnippet(queryJob.snippet)
+		case *store.Episode:
+			show.StoreEpisodeSnippet(queryJob.snippet)
+		default:
+			panic("unknown media type")
+		}
+		torrents = append(torrents, *torrent)
 	}
 
-	return torrents
+	return torrents, nil
 }
 
-func executeJob(queryJob queryJob) Torrent {
+func executeJob(query string) (*Torrent, error) {
 	// c emits the torrents found for one search request on one search engine
 	c := make(chan []Torrent)
 	for _, searchEngine := range searchEngines {
 		go func(s SearchEngine) {
-			torrents, err := s.Search(queryJob.query)
-			applyFilters(torrents, isEnglish, isSeason)
+			torrents, err := s.Search(query)
+			if err != nil {
+				log.WithFields(log.Fields{
+					"err":           err,
+					"search_engine": s.Name(),
+				}).Error("Search engine returned error")
+			}
+			// TODO filter
+			//applyFilters(torrents, isEnglish, isSeason)
 			c <- torrents
 		}(searchEngine)
 	}
@@ -84,43 +98,47 @@ func executeJob(queryJob queryJob) Torrent {
 	for i := 0; i < len(searchEngines); i++ {
 		select {
 		case result := <-c:
-			torrents = append(torrentsPerQuery, result)
+			torrentsPerQuery = append(torrentsPerQuery, result...)
 		case <-timeout:
 			log.Error("Search timed out")
 		}
 	}
-	// update score? // update snippet?
+
+	if len(torrentsPerQuery) == 0 {
+		return nil, fmt.Errorf("No torrents found for %s", query)
+	}
+
+	sort.Sort(bySeeds(torrentsPerQuery))
+	bestTorrent := torrentsPerQuery[0]
+
+	return &bestTorrent, nil
 }
 
 type filter func([]queryJob) []queryJob
 
-func applyFilters(results []queryJob, filers ...filter) []queryJob {
-
-}
-
 func createQueryJobs(show *store.Show) []queryJob {
 	seasonQueries := queriesForSeasons(show)
 	episodeQueries := queriesForEpisodes(show)
-	return append(seasonQueries, episodeQueries)
+	return append(seasonQueries, episodeQueries...)
 }
 
-func queriesForEpisodes(show *store.Show) map[*store.Episode]string {
+func queriesForEpisodes(show *store.Show) []queryJob {
 	episodes := show.PendingEpisodes()
 	sort.Sort(store.ByAirDate(episodes))
 	min := math.Min(float64(len(episodes)), float64(batchSize))
 
-	queries := map[*store.Episode]string{}
+	queries := []queryJob{}
 	for _, episode := range episodes[0:int(min)] {
 		snippet := selectEpisodeSnippet(show)
 
 		query := episodeQueryAlternatives[snippet.FormatSnippet](snippet.TitleSnippet, episode)
-		queries[episode] = query
+		queries = append(queries, queryJob{snippet: snippet, query: query, media: episode})
 	}
 	return queries
 }
 
-func queriesForSeasons(show *store.Show) map[*store.Season]string {
-	queries := map[*store.Season]string{}
+func queriesForSeasons(show *store.Show) []queryJob {
+	queries := []queryJob{}
 	for _, season := range show.PendingSeasons() {
 		// ignore Season 0, which are specials and are rarely found and/or
 		// interesting.
@@ -131,7 +149,7 @@ func queriesForSeasons(show *store.Show) map[*store.Season]string {
 		snippet := selectSeasonSnippet(show)
 
 		query := seasonQueryAlternatives[snippet.FormatSnippet](snippet.TitleSnippet, season)
-		queries[season] = query
+		queries = append(queries, queryJob{snippet: snippet, query: query, media: season})
 	}
 	return queries
 }
@@ -175,3 +193,9 @@ func isEnglish(fileName string) bool {
 func selectBest(torrents []Torrent) *Torrent {
 	return &(torrents[0]) //most peers
 }
+
+type bySeeds []Torrent
+
+func (a bySeeds) Len() int           { return len(a) }
+func (a bySeeds) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a bySeeds) Less(i, j int) bool { return a[i].seeds > a[j].seeds }

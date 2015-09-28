@@ -1,9 +1,11 @@
 package torrents
 
-import "github.com/haarts/getme/store"
-
 type ExtraTorrent struct{}
 
-func (t ExtraTorrent) Search(show *store.Show) ([]Torrent, error) {
+func (e ExtraTorrent) Name() string {
+	return "extratorrent"
+}
+
+func (e ExtraTorrent) Search(query string) ([]Torrent, error) {
 	return nil, nil
 }
