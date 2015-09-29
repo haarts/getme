@@ -111,8 +111,9 @@ func executeJob(job queryJob) (*Torrent, error) {
 	sort.Sort(bySeeds(torrentsPerQuery))
 	bestTorrent := torrentsPerQuery[0]
 	log.WithFields(log.Fields{
-		"torrent_url": bestTorrent.URL,
-		"score":       bestTorrent.seeds,
+		"torrent_url":   bestTorrent.URL,
+		"original_name": bestTorrent.OriginalName,
+		"score":         bestTorrent.seeds,
 	}).Info("Selected best torrent")
 
 	return &bestTorrent, nil
@@ -180,18 +181,19 @@ func applyFilters(job queryJob, torrents []Torrent, filters ...filter) []Torrent
 	return ok
 }
 
-func isSeason(job queryJob, fileName string) bool {
+func isSeason(job queryJob, originalName string) bool {
+	//return true
 	if job.season == 0 {
 		return true
 	}
-	if strings.Contains(strings.ToLower(fileName), fmt.Sprintf("season %d", job.season)) {
+	if strings.Contains(strings.ToLower(originalName), fmt.Sprintf("season %d", job.season)) {
 		return true
 	}
 	return false
 }
 
-func isEnglish(_ queryJob, fileName string) bool {
-	lowerCaseFileName := strings.ToLower(fileName)
+func isEnglish(_ queryJob, originalName string) bool {
+	lowerCaseFileName := strings.ToLower(originalName)
 	// Too weak a check but it is the easiest. I hope there aren't any series
 	// with 'french' in the title.
 	if strings.Contains(lowerCaseFileName, "french") {
@@ -213,13 +215,13 @@ func isEnglish(_ queryJob, fileName string) bool {
 
 	// Ignore Italian (ITA) dubs.
 	regex := regexp.MustCompile(`\bITA\b`)
-	if regex.MatchString(fileName) {
+	if regex.MatchString(originalName) {
 		return false
 	}
 
 	// Ignore hard coded (HC) subtitles.
 	regex = regexp.MustCompile(`\bHC\b`)
-	if regex.MatchString(fileName) {
+	if regex.MatchString(originalName) {
 		return false
 	}
 

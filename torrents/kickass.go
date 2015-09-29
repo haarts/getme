@@ -31,23 +31,7 @@ func (k Kickass) Name() string {
 }
 
 func (k Kickass) Search(query string) ([]Torrent, error) {
-	return k.runQuery(query)
-}
-
-func (k Kickass) constructSearchURL(episode string) string {
-	return fmt.Sprintf(k.URL+"/usearch/%s/?rss=1", url.QueryEscape(episode))
-}
-
-func (k Kickass) request(URL string) (*http.Request, error) {
-	req, err := http.NewRequest("GET", URL, nil)
-	if err != nil {
-		return nil, err
-	}
-	return req, nil
-}
-
-func (k Kickass) runQuery(query string) ([]Torrent, error) {
-	req, err := k.request(k.constructSearchURL(query))
+	req, err := http.NewRequest("GET", k.constructSearchURL(query), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -65,13 +49,17 @@ func (k Kickass) runQuery(query string) ([]Torrent, error) {
 	for _, searchItem := range searchItems {
 		torrent := Torrent{
 			URL:          searchItem.torrentURL(k.torCacheURL),
-			OriginalName: searchItem.FileName,
+			OriginalName: searchItem.Title,
 			seeds:        searchItem.Seeds,
 		}
 		torrents = append(torrents, torrent)
 	}
 
 	return torrents, nil
+}
+
+func (k Kickass) constructSearchURL(episode string) string {
+	return fmt.Sprintf(k.URL+"/usearch/%s/?rss=1", url.QueryEscape(episode))
 }
 
 type kickassSearchResult struct {
