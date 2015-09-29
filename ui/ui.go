@@ -168,6 +168,7 @@ func createGenerator(ms []sources.Show, step int) func() (string, []interface{})
 
 // Download goes about downloading torrents found based on the pending
 // episodes/seasons.
+// TODO move most of this function to somewhere sane.
 func Download(foundTorrents []torrents.Torrent) error {
 	fmt.Printf("Downloading %d torrents", len(foundTorrents))
 	c := startProgressBar()
@@ -206,6 +207,7 @@ func Download(foundTorrents []torrents.Torrent) error {
 	return err
 }
 
+// TODO move this function to some where sane.
 func downloadWithTimeout(torrent torrents.Torrent, watchDir string) error {
 	result := make(chan error)
 	go func() {
@@ -220,7 +222,7 @@ func downloadWithTimeout(torrent torrents.Torrent, watchDir string) error {
 	}
 }
 
-// This is an odd function here.
+// TODO move this function to some where sane.
 func download(torrent torrents.Torrent, watchDir string) error {
 	output, err := os.Create(path.Join(watchDir, torrent.OriginalName))
 	if err != nil {
