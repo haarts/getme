@@ -46,6 +46,7 @@ type queryJob struct {
 	media   Doner
 	snippet store.Snippet
 	query   string
+	season  int // to distinguish between episode and season jobs.
 }
 
 func Search(show *store.Show) ([]Torrent, error) {
@@ -53,7 +54,7 @@ func Search(show *store.Show) ([]Torrent, error) {
 	var torrents []Torrent
 	queryJobs := createQueryJobs(show)
 	for _, queryJob := range queryJobs {
-		torrent, err := executeJob(queryJob.query)
+		torrent, err := executeJob(queryJob)
 		if err != nil {
 			continue
 		}
@@ -75,20 +76,19 @@ func Search(show *store.Show) ([]Torrent, error) {
 	return torrents, nil
 }
 
-func executeJob(query string) (*Torrent, error) {
+func executeJob(job queryJob) (*Torrent, error) {
 	// c emits the torrents found for one search request on one search engine
 	c := make(chan []Torrent)
 	for _, searchEngine := range searchEngines {
 		go func(s SearchEngine) {
-			torrents, err := s.Search(query)
+			torrents, err := s.Search(job.query)
 			if err != nil {
 				log.WithFields(log.Fields{
 					"err":           err,
 					"search_engine": s.Name(),
 				}).Error("Search engine returned error")
 			}
-			// TODO filter isSeason
-			torrents = applyFilter(torrents)
+			torrents = applyFilters(job, torrents, isEnglish, isSeason)
 			c <- torrents
 		}(searchEngine)
 	}
@@ -105,11 +105,15 @@ func executeJob(query string) (*Torrent, error) {
 	}
 
 	if len(torrentsPerQuery) == 0 {
-		return nil, fmt.Errorf("No torrents found for %s", query)
+		return nil, fmt.Errorf("No torrents found for %s", job.query)
 	}
 
 	sort.Sort(bySeeds(torrentsPerQuery))
 	bestTorrent := torrentsPerQuery[0]
+	log.WithFields(log.Fields{
+		"torrent_url": bestTorrent.URL,
+		"score":       bestTorrent.seeds,
+	}).Info("Selected best torrent")
 
 	return &bestTorrent, nil
 }
@@ -147,22 +151,46 @@ func queriesForSeasons(show *store.Show) []queryJob {
 		snippet := selectSeasonSnippet(show)
 
 		query := seasonQueryAlternatives[snippet.FormatSnippet](snippet.TitleSnippet, season)
-		queries = append(queries, queryJob{snippet: snippet, query: query, media: season})
+		queries = append(queries, queryJob{
+			snippet: snippet,
+			query:   query,
+			media:   season,
+			season:  season.Season,
+		})
 	}
 	return queries
 }
 
-func applyFilter(torrents []Torrent) []Torrent {
+type filter func(queryJob, string) bool
+
+func applyFilters(job queryJob, torrents []Torrent, filters ...filter) []Torrent {
 	ok := []Torrent{}
 	for _, torrent := range torrents {
-		if isEnglish(torrent.OriginalName) {
+		allGood := true
+		for _, f := range filters {
+			if allGood == false {
+				break
+			}
+			allGood = f(job, torrent.OriginalName)
+		}
+		if allGood {
 			ok = append(ok, torrent)
 		}
 	}
 	return ok
 }
 
-func isEnglish(fileName string) bool {
+func isSeason(job queryJob, fileName string) bool {
+	if job.season == 0 {
+		return true
+	}
+	if strings.Contains(strings.ToLower(fileName), fmt.Sprintf("season %d", job.season)) {
+		return true
+	}
+	return false
+}
+
+func isEnglish(_ queryJob, fileName string) bool {
 	lowerCaseFileName := strings.ToLower(fileName)
 	// Too weak a check but it is the easiest. I hope there aren't any series
 	// with 'french' in the title.

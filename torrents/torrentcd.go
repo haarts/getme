@@ -38,11 +38,12 @@ func (t TorrentCD) Search(query string) ([]Torrent, error) {
 
 	var torrents []Torrent
 	for _, item := range result.Channel.Items {
-		torrents = append(torrents, Torrent{
+		torrent := Torrent{
 			URL:          item.torrentURL(),
 			OriginalName: item.Title,
 			seeds:        item.Seed,
-		})
+		}
+		torrents = append(torrents, torrent)
 	}
 
 	return torrents, nil
