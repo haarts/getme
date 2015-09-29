@@ -14,24 +14,28 @@ import (
 )
 
 func TestTorrentCDSearch(t *testing.T) {
-	mux, teardown := setup(t)
-	defer teardown()
+	mux, ts := setup(t)
+	defer ts.Close()
 
 	mux.HandleFunc("/torrents/xml", func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "GET", r.Method)
-		assert.Equal(t, "", r.URL.RawQuery)
+		assert.Equal(t, "q=foo", r.URL.RawQuery)
 
 		w.Header().Set("Content-Type", "application/xml")
 		fmt.Fprintln(w, ReadFixture("testdata/torrentcd.xml"))
 	})
 
-	results, err := (torrents.TorrentCD{}).Search("foo")
+	torrentCD := torrents.TorrentCD{
+		URL: ts.URL,
+	}
+
+	results, err := torrentCD.Search("foo")
 	require.NoError(t, err)
 	require.Len(t, results, 10)
 	assert.Equal(t, "foo bar", results[0].OriginalName)
 }
 
-func setup(t *testing.T) (*http.ServeMux, func()) {
+func setup(t *testing.T) (*http.ServeMux, *httptest.Server) {
 	mux := http.NewServeMux()
 	ts := httptest.NewServer(mux)
 
@@ -39,7 +43,7 @@ func setup(t *testing.T) (*http.ServeMux, func()) {
 		require.False(t, true, "Catch all invoked with %s", r.URL.String())
 	})
 
-	return mux, ts.Close
+	return mux, ts
 }
 
 func ReadFixture(file string) string {

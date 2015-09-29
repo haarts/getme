@@ -1,15 +1,51 @@
 package torrents
 
-type TorrentCD struct{}
+import (
+	"fmt"
+	"net/http"
+	"net/url"
+	"strings"
 
-var torrentCDURL = "http://torrent.cd"
+	"github.com/haarts/getme/sources"
+)
+
+type TorrentCD struct {
+	URL string
+}
+
+func NewTorrentCD() *TorrentCD {
+	return &TorrentCD{
+		URL: "http://torrent.cd",
+	}
+}
 
 func (t TorrentCD) Name() string {
 	return "torrentCD"
 }
 
 func (t TorrentCD) Search(query string) ([]Torrent, error) {
-	return nil, nil
+	req, err := http.NewRequest(
+		"GET",
+		fmt.Sprintf(t.URL+"/torrents/xml?q=%s", url.QueryEscape(query)),
+		nil,
+	)
+
+	var result torrentCDSearchResult
+	err = sources.GetXML(req, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	var torrents []Torrent
+	for _, item := range result.Channel.Items {
+		torrents = append(torrents, Torrent{
+			URL:          item.torrentURL(),
+			OriginalName: item.Title,
+			seeds:        item.Seed,
+		})
+	}
+
+	return torrents, nil
 }
 
 type torrentCDSearchResult struct {
@@ -19,4 +55,11 @@ type torrentCDSearchResult struct {
 }
 
 type torrentCDItem struct {
+	Link  string `xml:"link"`
+	Title string `xml:"title"`
+	Seed  int    `xml:"seed"`
+}
+
+func (t torrentCDItem) torrentURL() string {
+	return strings.Replace(t.Link, "http://torrent.cd/", "http://torrent.cd/torrents/download/", 1)
 }

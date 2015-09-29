@@ -78,7 +78,11 @@ func (k Kickass) runQuery(query string) ([]Torrent, error) {
 
 	var torrents []Torrent
 	for _, searchItem := range searchItems {
-		torrent := Torrent{searchItem.torrentURL(k.torCacheURL), searchItem.FileName, searchItem.Seeds, nil}
+		torrent := Torrent{
+			URL:          searchItem.torrentURL(k.torCacheURL),
+			OriginalName: searchItem.FileName,
+			seeds:        searchItem.Seeds,
+		}
 		torrents = append(torrents, torrent)
 	}
 
