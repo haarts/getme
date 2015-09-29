@@ -20,6 +20,8 @@ import (
 // important when downloading very long running series.
 const batchSize = 50
 
+var searchTimeout = 3 * time.Second
+
 // Mark a piece of media as done. Currently only Show.
 type Doner interface {
 	Done()
@@ -54,6 +56,8 @@ type queryJob struct {
 func Search(show *store.Show) ([]Torrent, error) {
 	// torrents holds the torrents to complete a serie
 	var torrents []Torrent
+
+	// TODO perhaps mashing season and episode jobs together is a bad idea
 	queryJobs := createQueryJobs(show)
 	for _, queryJob := range queryJobs {
 		torrent, err := executeJob(queryJob)
@@ -79,6 +83,27 @@ func Search(show *store.Show) ([]Torrent, error) {
 }
 
 func executeJob(job queryJob) (*Torrent, error) {
+	results := searchWithFilters(job, isEnglish, isSeason)
+
+	torrents := collectResultsWithTimeout(results)
+
+	if len(torrents) == 0 {
+		return nil, fmt.Errorf("No torrents found for %s", job.query)
+	}
+
+	sort.Sort(bySeeds(torrents))
+	bestTorrent := torrents[0]
+
+	log.WithFields(log.Fields{
+		"torrent_url": bestTorrent.URL,
+		"title":       bestTorrent.Title,
+		"score":       bestTorrent.seeds,
+	}).Info("Selected best torrent")
+
+	return &bestTorrent, nil
+}
+
+func searchWithFilters(job queryJob, filters ...filter) chan []Torrent {
 	// c emits the torrents found for one search request on one search engine
 	c := make(chan []Torrent)
 	for _, searchEngine := range searchEngines {
@@ -95,30 +120,22 @@ func executeJob(job queryJob) (*Torrent, error) {
 		}(searchEngine)
 	}
 
-	var torrentsPerQuery []Torrent
-	timeout := time.After(5 * time.Second)
+	return c
+}
+
+func collectResultsWithTimeout(results chan []Torrent) []Torrent {
+	var torrentsFromAllEngines []Torrent
+	timeout := time.After(searchTimeout)
 	for i := 0; i < len(searchEngines); i++ {
 		select {
-		case result := <-c:
-			torrentsPerQuery = append(torrentsPerQuery, result...)
+		case result := <-results:
+			torrentsFromAllEngines = append(torrentsFromAllEngines, result...)
 		case <-timeout:
 			log.Error("Search timed out")
 		}
 	}
 
-	if len(torrentsPerQuery) == 0 {
-		return nil, fmt.Errorf("No torrents found for %s", job.query)
-	}
-
-	sort.Sort(bySeeds(torrentsPerQuery))
-	bestTorrent := torrentsPerQuery[0]
-	log.WithFields(log.Fields{
-		"torrent_url": bestTorrent.URL,
-		"title":       bestTorrent.Title,
-		"score":       bestTorrent.seeds,
-	}).Info("Selected best torrent")
-
-	return &bestTorrent, nil
+	return torrentsFromAllEngines
 }
 
 func createQueryJobs(show *store.Show) []queryJob {
