@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"strconv"
@@ -167,40 +168,96 @@ func createGenerator(ms []sources.Show, step int) func() (string, []interface{})
 
 // Download goes about downloading torrents found based on the pending
 // episodes/seasons.
-func Download(torrents []torrents.Torrent) (err error) {
-	fmt.Printf("Downloading %d torrents", len(torrents))
+func Download(foundTorrents []torrents.Torrent) error {
+	fmt.Printf("Downloading %d torrents", len(foundTorrents))
 	c := startProgressBar()
 	defer stopProgressBar(c)
 
-	for _, torrent := range torrents {
-		err = download(torrent, conf.WatchDir) // I know I'm shadowing err
-		if err == nil {
-			//torrent.Episode.Pending = false
-			torrent.AssociatedMedia.Done()
+	tickers := map[string]<-chan time.Time{}
+	relevantTicker := func(host string) <-chan time.Time {
+		if ticker, ok := tickers[host]; ok {
+			return ticker
 		}
+		tickers[host] = time.Tick(3 * time.Second)
+		return tickers[host]
 	}
 
+	errors := make(chan error)
+	for _, foundTorrent := range foundTorrents {
+		go func(t torrents.Torrent) {
+			url, _ := url.Parse(t.URL)
+			<-relevantTicker(url.Host) // rate limit ourselves
+			err := downloadWithTimeout(t, conf.WatchDir)
+			if err == nil {
+				log.WithFields(log.Fields{
+					"torrent": t.OriginalName,
+				}).Debug("Download successful")
+
+				t.AssociatedMedia.Done()
+			}
+			errors <- err
+		}(foundTorrent)
+	}
+
+	var err error
+	for i := 0; i < len(foundTorrents); i++ {
+		err = <-errors
+	}
 	return err
 }
 
-// This is an odd function here. Perhaps I'll group it with the 'getBody' function.
-func download(torrent torrents.Torrent, watchDir string) error {
-	//fileName := torrent.Episode.AsFileName() + ".torrent"
+func downloadWithTimeout(torrent torrents.Torrent, watchDir string) error {
+	result := make(chan error)
+	go func() {
+		result <- download(torrent, watchDir)
+	}()
 
+	select {
+	case <-time.After(3 * time.Second):
+		return fmt.Errorf("download timed out on '%s'", torrent.URL)
+	case err := <-result:
+		return err
+	}
+}
+
+// This is an odd function here.
+func download(torrent torrents.Torrent, watchDir string) error {
 	output, err := os.Create(path.Join(watchDir, torrent.OriginalName))
 	if err != nil {
+		log.WithFields(log.Fields{
+			"torrent": torrent.OriginalName,
+			"err":     err,
+		}).Warn("File creation failed")
 		return err
 	}
 	defer output.Close()
 
+	cleanup := func() error {
+		stat, err := output.Stat()
+		if err != nil {
+			return err
+		}
+		return os.Remove(path.Join(watchDir, stat.Name()))
+	}
+
 	response, err := http.Get(torrent.URL)
 	if err != nil {
+		log.WithFields(log.Fields{
+			"torrent": torrent.OriginalName,
+			"err":     err,
+		}).Warn("Download failed")
+		_ = cleanup()
 		return err
 	}
 	defer response.Body.Close()
 
 	_, err = io.Copy(output, response.Body)
 	if err != nil {
+		log.WithFields(log.Fields{
+			"torrent": torrent.OriginalName,
+			"err":     err,
+		}).Warn("Copy failed")
+		_ = cleanup()
 		return err
 	}
 
