@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"path"
 	"strings"
 
 	"github.com/haarts/getme/sources"
@@ -39,9 +40,10 @@ func (t TorrentCD) Search(query string) ([]Torrent, error) {
 	var torrents []Torrent
 	for _, item := range result.Channel.Items {
 		torrent := Torrent{
-			URL:          item.torrentURL(),
-			OriginalName: item.Title,
-			seeds:        item.Seed,
+			URL:      item.torrentURL(),
+			Title:    item.Title,
+			Filename: item.Filename(),
+			seeds:    item.Seed,
 		}
 		torrents = append(torrents, torrent)
 	}
@@ -63,4 +65,9 @@ type torrentCDItem struct {
 
 func (t torrentCDItem) torrentURL() string {
 	return strings.Replace(t.Link, "http://torrent.cd/", "http://torrent.cd/torrents/download/", 1)
+}
+
+func (t torrentCDItem) Filename() string {
+	url, _ := url.Parse(t.Link)
+	return path.Base(url.Path)
 }

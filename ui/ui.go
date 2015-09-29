@@ -191,7 +191,7 @@ func Download(foundTorrents []torrents.Torrent) error {
 			err := downloadWithTimeout(t, conf.WatchDir)
 			if err == nil {
 				log.WithFields(log.Fields{
-					"torrent": t.OriginalName,
+					"torrent": t.Filename,
 				}).Debug("Download successful")
 
 				t.AssociatedMedia.Done()
@@ -224,10 +224,10 @@ func downloadWithTimeout(torrent torrents.Torrent, watchDir string) error {
 
 // TODO move this function to some where sane.
 func download(torrent torrents.Torrent, watchDir string) error {
-	output, err := os.Create(path.Join(watchDir, torrent.OriginalName))
+	output, err := os.Create(path.Join(watchDir, torrent.Filename))
 	if err != nil {
 		log.WithFields(log.Fields{
-			"torrent": torrent.OriginalName,
+			"torrent": torrent.Filename,
 			"err":     err,
 		}).Warn("File creation failed")
 		return err
@@ -245,7 +245,7 @@ func download(torrent torrents.Torrent, watchDir string) error {
 	response, err := http.Get(torrent.URL)
 	if err != nil {
 		log.WithFields(log.Fields{
-			"torrent": torrent.OriginalName,
+			"torrent": torrent.Filename,
 			"err":     err,
 		}).Warn("Download failed")
 		_ = cleanup()
@@ -256,7 +256,7 @@ func download(torrent torrents.Torrent, watchDir string) error {
 	_, err = io.Copy(output, response.Body)
 	if err != nil {
 		log.WithFields(log.Fields{
-			"torrent": torrent.OriginalName,
+			"torrent": torrent.Filename,
 			"err":     err,
 		}).Warn("Copy failed")
 		_ = cleanup()

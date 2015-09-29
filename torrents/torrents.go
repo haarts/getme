@@ -26,7 +26,8 @@ type Doner interface {
 
 type Torrent struct {
 	URL             string
-	OriginalName    string
+	Filename        string
+	Title           string
 	seeds           int
 	AssociatedMedia Doner
 }
@@ -111,9 +112,9 @@ func executeJob(job queryJob) (*Torrent, error) {
 	sort.Sort(bySeeds(torrentsPerQuery))
 	bestTorrent := torrentsPerQuery[0]
 	log.WithFields(log.Fields{
-		"torrent_url":   bestTorrent.URL,
-		"original_name": bestTorrent.OriginalName,
-		"score":         bestTorrent.seeds,
+		"torrent_url": bestTorrent.URL,
+		"title":       bestTorrent.Title,
+		"score":       bestTorrent.seeds,
 	}).Info("Selected best torrent")
 
 	return &bestTorrent, nil
@@ -172,7 +173,7 @@ func applyFilters(job queryJob, torrents []Torrent, filters ...filter) []Torrent
 			if allGood == false {
 				break
 			}
-			allGood = f(job, torrent.OriginalName)
+			allGood = f(job, torrent.Title)
 		}
 		if allGood {
 			ok = append(ok, torrent)
@@ -181,47 +182,46 @@ func applyFilters(job queryJob, torrents []Torrent, filters ...filter) []Torrent
 	return ok
 }
 
-func isSeason(job queryJob, originalName string) bool {
-	//return true
+func isSeason(job queryJob, title string) bool {
 	if job.season == 0 {
 		return true
 	}
-	if strings.Contains(strings.ToLower(originalName), fmt.Sprintf("season %d", job.season)) {
+	if strings.Contains(strings.ToLower(title), fmt.Sprintf("season %d", job.season)) {
 		return true
 	}
 	return false
 }
 
-func isEnglish(_ queryJob, originalName string) bool {
-	lowerCaseFileName := strings.ToLower(originalName)
+func isEnglish(_ queryJob, title string) bool {
+	lowerCaseTitle := strings.ToLower(title)
 	// Too weak a check but it is the easiest. I hope there aren't any series
 	// with 'french' in the title.
-	if strings.Contains(lowerCaseFileName, "french") {
+	if strings.Contains(lowerCaseTitle, "french") {
 		return false
 	}
 
-	if strings.Contains(lowerCaseFileName, "spanish") {
+	if strings.Contains(lowerCaseTitle, "spanish") {
 		return false
 	}
 
-	if strings.Contains(lowerCaseFileName, "español") {
+	if strings.Contains(lowerCaseTitle, "español") {
 		return false
 	}
 
 	// Ignore Version Originale Sous-Titrée en FRançais. Hard coded, French subtitles.
-	if strings.Contains(lowerCaseFileName, "vostfr") {
+	if strings.Contains(lowerCaseTitle, "vostfr") {
 		return false
 	}
 
 	// Ignore Italian (ITA) dubs.
 	regex := regexp.MustCompile(`\bITA\b`)
-	if regex.MatchString(originalName) {
+	if regex.MatchString(title) {
 		return false
 	}
 
 	// Ignore hard coded (HC) subtitles.
 	regex = regexp.MustCompile(`\bHC\b`)
-	if regex.MatchString(originalName) {
+	if regex.MatchString(title) {
 		return false
 	}
 
