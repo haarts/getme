@@ -54,7 +54,13 @@ func TestTvMazeSeasons(t *testing.T) {
 	seasons, err := (sources.TvMaze{}).Seasons(&store.Show{ID: 1})
 	require.NoError(t, err)
 	require.Len(t, seasons, 3)
-	assert.Equal(t, 1, seasons[0].Season)
+	var season1 sources.Season
+	for _, v := range seasons {
+		if v.Season == 1 {
+			season1 = v
+		}
+	}
+	assert.Len(t, season1.Episodes, 13)
 }
 
 func readFixture(file string) string {
