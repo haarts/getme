@@ -22,21 +22,6 @@ func readFixture(file string) string {
 	return string(data)
 }
 
-func TestIsEnglish(t *testing.T) {
-	ss := []string{
-		"it's all good",
-		"this is very french",
-		"some show vostfr",
-		"some.show.ITA.avi",
-	}
-
-	assert.True(t, isEnglish(ss[0]))
-
-	for _, s := range ss[1:] {
-		assert.False(t, isEnglish(s), "should not be english: %s", s)
-	}
-}
-
 func TestSearching(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
