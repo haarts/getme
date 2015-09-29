@@ -51,8 +51,8 @@ type SearchResult struct {
 
 // sources contains all sources one can query for show information
 var sources = map[string]Source{
-	Trakt{}.Name():  Trakt{},
-	TvRage{}.Name(): TvRage{},
+	Trakt{}.Name(): Trakt{},
+	//TvRage{}.Name(): TvRage{},
 	TvMaze{}.Name(): TvMaze{},
 }
 
