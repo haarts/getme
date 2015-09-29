@@ -9,8 +9,6 @@ import (
 	"net/http"
 	"net/url"
 
-	log "github.com/Sirupsen/logrus"
-
 	"github.com/haarts/getme/sources"
 )
 
@@ -33,9 +31,6 @@ func (k Kickass) Name() string {
 }
 
 func (k Kickass) Search(query string) ([]Torrent, error) {
-	log.WithFields(log.Fields{
-		"query": query,
-	}).Debug("Querying Kickass")
 	return k.runQuery(query)
 }
 
@@ -65,16 +60,6 @@ func (k Kickass) runQuery(query string) ([]Torrent, error) {
 	}
 
 	searchItems := result.Channel.Items
-
-	// If we're going to reject torrents, we should do it here. (non english, whatever)
-	// ...
-	onlyEnglish := searchItems[:0]
-
-	for _, x := range searchItems {
-		if isEnglish(x.FileName) {
-			onlyEnglish = append(onlyEnglish, x)
-		}
-	}
 
 	var torrents []Torrent
 	for _, searchItem := range searchItems {
