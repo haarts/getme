@@ -50,7 +50,7 @@ type queryJob struct {
 	media   Doner
 	snippet store.Snippet
 	query   string
-	season  int // to distinguish between episode and season jobs.
+	season  int // to distinguish between episode and season jobs. Nasty hack IMO. FIXME
 }
 
 func Search(show *store.Show) ([]Torrent, error) {
@@ -115,7 +115,7 @@ func searchWithFilters(job queryJob, filters ...filter) chan []Torrent {
 					"search_engine": s.Name(),
 				}).Error("Search engine returned error")
 			}
-			torrents = applyFilters(job, torrents, isEnglish, isSeason)
+			torrents = applyFilters(job, torrents, filters...)
 			c <- torrents
 		}(searchEngine)
 	}
@@ -154,7 +154,11 @@ func queriesForEpisodes(show *store.Show) []queryJob {
 		snippet := selectEpisodeSnippet(show)
 
 		query := episodeQueryAlternatives[snippet.FormatSnippet](snippet.TitleSnippet, episode)
-		queries = append(queries, queryJob{snippet: snippet, query: query, media: episode})
+		queries = append(queries, queryJob{
+			snippet: snippet,
+			query:   query,
+			media:   episode,
+		})
 	}
 	return queries
 }
@@ -183,6 +187,8 @@ func queriesForSeasons(show *store.Show) []queryJob {
 
 type filter func(queryJob, string) bool
 
+// applyFilters takes the original job and the resulting torrents. Then it
+// decides which torrents are really a good fit for the search.
 func applyFilters(job queryJob, torrents []Torrent, filters ...filter) []Torrent {
 	ok := []Torrent{}
 	for _, torrent := range torrents {
@@ -204,6 +210,7 @@ func isSeason(job queryJob, title string) bool {
 	if job.season == 0 {
 		return true
 	}
+	// TODO perhaps check for ranges too. Eg 'Season 1-6' or 'seasons 1,2,3,4,5'
 	if strings.Contains(strings.ToLower(title), fmt.Sprintf("season %d", job.season)) {
 		return true
 	}
@@ -246,10 +253,7 @@ func isEnglish(_ queryJob, title string) bool {
 	return true
 }
 
-func selectBest(torrents []Torrent) *Torrent {
-	return &(torrents[0]) //most peers
-}
-
+// Sort highest number of seeds on top.
 type bySeeds []Torrent
 
 func (a bySeeds) Len() int           { return len(a) }

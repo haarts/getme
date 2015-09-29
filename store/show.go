@@ -52,6 +52,7 @@ type Episode struct {
 	//Backoff int
 }
 
+// Sorts the youngest episode on top.
 type ByAirDate []*Episode
 
 func (a ByAirDate) Len() int           { return len(a) }
