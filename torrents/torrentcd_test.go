@@ -14,7 +14,7 @@ import (
 )
 
 func TestTorrentCDSearch(t *testing.T) {
-	mux, ts := setup(t)
+	mux, ts := Setup(t)
 	defer ts.Close()
 
 	mux.HandleFunc("/torrents/xml", func(w http.ResponseWriter, r *http.Request) {
@@ -35,7 +35,7 @@ func TestTorrentCDSearch(t *testing.T) {
 	assert.Equal(t, "Fear The Walking Dead S01E01 HDTV x264-KILLERS[ettv]", results[0].OriginalName)
 }
 
-func setup(t *testing.T) (*http.ServeMux, *httptest.Server) {
+func Setup(t *testing.T) (*http.ServeMux, *httptest.Server) {
 	mux := http.NewServeMux()
 	ts := httptest.NewServer(mux)
 
