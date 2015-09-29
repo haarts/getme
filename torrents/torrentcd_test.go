@@ -31,8 +31,8 @@ func TestTorrentCDSearch(t *testing.T) {
 
 	results, err := torrentCD.Search("foo")
 	require.NoError(t, err)
-	require.Len(t, results, 10)
-	assert.Equal(t, "foo bar", results[0].OriginalName)
+	require.Len(t, results, 100)
+	assert.Equal(t, "Fear The Walking Dead S01E01 HDTV x264-KILLERS[ettv]", results[0].OriginalName)
 }
 
 func setup(t *testing.T) (*http.ServeMux, *httptest.Server) {

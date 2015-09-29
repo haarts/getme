@@ -38,7 +38,7 @@ type SearchEngine interface {
 
 var searchEngines = map[string]SearchEngine{
 	"kickass":      NewKickass(),
-	"torrentcd":    TorrentCD{},
+	"torrentcd":    NewTorrentCD(),
 	"extratorrent": ExtraTorrent{},
 }
 
