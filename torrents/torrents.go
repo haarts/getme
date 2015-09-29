@@ -87,8 +87,8 @@ func executeJob(query string) (*Torrent, error) {
 					"search_engine": s.Name(),
 				}).Error("Search engine returned error")
 			}
-			// TODO filter
-			//applyFilters(torrents, isEnglish, isSeason)
+			// TODO filter isSeason
+			torrents = applyFilter(torrents)
 			c <- torrents
 		}(searchEngine)
 	}
@@ -113,8 +113,6 @@ func executeJob(query string) (*Torrent, error) {
 
 	return &bestTorrent, nil
 }
-
-type filter func([]queryJob) []queryJob
 
 func createQueryJobs(show *store.Show) []queryJob {
 	seasonQueries := queriesForSeasons(show)
@@ -152,6 +150,16 @@ func queriesForSeasons(show *store.Show) []queryJob {
 		queries = append(queries, queryJob{snippet: snippet, query: query, media: season})
 	}
 	return queries
+}
+
+func applyFilter(torrents []Torrent) []Torrent {
+	ok := []Torrent{}
+	for _, torrent := range torrents {
+		if isEnglish(torrent.OriginalName) {
+			ok = append(ok, torrent)
+		}
+	}
+	return ok
 }
 
 func isEnglish(fileName string) bool {
