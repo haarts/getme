@@ -35,6 +35,26 @@ func TestSearchForTorrents(t *testing.T) {
 	assert.Equal(t, 1, len(matches))
 }
 
+func Test404(t *testing.T) {
+	mux, ts := Setup(t)
+	defer ts.Close()
+
+	mux.HandleFunc("/usearch/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(404)
+	})
+
+	torrents.SearchEngines["kickass"] = torrents.Kickass{URL: ts.URL}
+	delete(torrents.SearchEngines, "torrentcd")
+	delete(torrents.SearchEngines, "extratorrent")
+
+	season := store.Season{1, []*store.Episode{{Pending: true, Episode: 1}}}
+	show := store.Show{Title: "Title", URL: "url", Seasons: []*store.Season{&season}}
+	matches, err := torrents.Search(&show)
+	require.NoError(t, err, "Not finding a torrent is not a big deal. Just continue.")
+
+	assert.Equal(t, 0, len(matches))
+}
+
 func TestIsEnglish(t *testing.T) {
 	ss := []string{
 		"it's all good",
