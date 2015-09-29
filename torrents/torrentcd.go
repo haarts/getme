@@ -39,8 +39,13 @@ func (t TorrentCD) Search(query string) ([]Torrent, error) {
 
 	var torrents []Torrent
 	for _, item := range result.Channel.Items {
+		url, err := item.torrentURL()
+		if err != nil {
+			return nil, err
+		}
+
 		torrent := Torrent{
-			URL:      item.torrentURL(),
+			URL:      url,
 			Title:    item.Title,
 			Filename: item.Filename(),
 			seeds:    item.Seed,
@@ -63,8 +68,8 @@ type torrentCDItem struct {
 	Seed  int    `xml:"seed"`
 }
 
-func (t torrentCDItem) torrentURL() string {
-	return strings.Replace(t.Link, "http://torrent.cd/", "http://torrent.cd/torrents/download/", 1)
+func (t torrentCDItem) torrentURL() (*url.URL, error) {
+	return url.Parse(strings.Replace(t.Link, "http://torrent.cd/", "http://torrent.cd/torrents/download/", 1))
 }
 
 func (t torrentCDItem) Filename() string {

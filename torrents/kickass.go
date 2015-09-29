@@ -47,8 +47,12 @@ func (k Kickass) Search(query string) ([]Torrent, error) {
 
 	var torrents []Torrent
 	for _, searchItem := range searchItems {
+		url, err := searchItem.torrentURL(k.torCacheURL)
+		if err != nil {
+			return nil, err
+		}
 		torrent := Torrent{
-			URL:      searchItem.torrentURL(k.torCacheURL),
+			URL:      url,
 			Filename: searchItem.FileName,
 			Title:    searchItem.Title,
 			seeds:    searchItem.Seeds,
@@ -77,6 +81,6 @@ type kickassItem struct {
 	FileName string `xml:"fileName"`
 }
 
-func (i kickassItem) torrentURL(torCacheURL string) string {
-	return fmt.Sprintf(torCacheURL, i.InfoHash)
+func (i kickassItem) torrentURL(torCacheURL string) (*url.URL, error) {
+	return url.Parse(fmt.Sprintf(torCacheURL, i.InfoHash))
 }

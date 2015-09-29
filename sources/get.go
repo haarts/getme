@@ -53,7 +53,7 @@ func get(req *http.Request, target interface{}, unmarshalFunc func([]byte, inter
 			log.Fields{
 				"code": strconv.Itoa(resp.StatusCode),
 				"URL":  req.URL.String(),
-			}).Error("Non 200 response code")
+			}).Warn("Non 200 response code")
 		return fmt.Errorf("Search returned non 200 status code: %d", resp.StatusCode)
 	}
 

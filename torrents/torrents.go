@@ -5,6 +5,7 @@ package torrents
 import (
 	"fmt"
 	"math"
+	"net/url"
 	"regexp"
 	"sort"
 	"strings"
@@ -25,7 +26,7 @@ type Doner interface {
 }
 
 type Torrent struct {
-	URL             string
+	URL             *url.URL
 	Filename        string
 	Title           string
 	seeds           int

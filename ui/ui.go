@@ -4,11 +4,7 @@ package ui
 import (
 	"bufio"
 	"fmt"
-	"io"
-	"net/http"
-	"net/url"
 	"os"
-	"path"
 	"strconv"
 	"strings"
 	"text/tabwriter"
@@ -168,102 +164,12 @@ func createGenerator(ms []sources.Show, step int) func() (string, []interface{})
 
 // Download goes about downloading torrents found based on the pending
 // episodes/seasons.
-// TODO move most of this function to somewhere sane.
 func Download(foundTorrents []torrents.Torrent) error {
 	fmt.Printf("Downloading %d torrents", len(foundTorrents))
 	c := startProgressBar()
 	defer stopProgressBar(c)
 
-	tickers := map[string]<-chan time.Time{}
-	relevantTicker := func(host string) <-chan time.Time {
-		if ticker, ok := tickers[host]; ok {
-			return ticker
-		}
-		tickers[host] = time.Tick(3 * time.Second)
-		return tickers[host]
-	}
-
-	errors := make(chan error)
-	for _, foundTorrent := range foundTorrents {
-		go func(t torrents.Torrent) {
-			url, _ := url.Parse(t.URL)
-			<-relevantTicker(url.Host) // rate limit ourselves
-			err := downloadWithTimeout(t, conf.WatchDir)
-			if err == nil {
-				log.WithFields(log.Fields{
-					"torrent": t.Filename,
-				}).Debug("Download successful")
-
-				t.AssociatedMedia.Done()
-			}
-			errors <- err
-		}(foundTorrent)
-	}
-
-	var err error
-	for i := 0; i < len(foundTorrents); i++ {
-		err = <-errors
-	}
-	return err
-}
-
-// TODO move this function to some where sane.
-func downloadWithTimeout(torrent torrents.Torrent, watchDir string) error {
-	result := make(chan error)
-	go func() {
-		result <- download(torrent, watchDir)
-	}()
-
-	select {
-	case <-time.After(3 * time.Second):
-		return fmt.Errorf("download timed out on '%s'", torrent.URL)
-	case err := <-result:
-		return err
-	}
-}
-
-// TODO move this function to some where sane.
-func download(torrent torrents.Torrent, watchDir string) error {
-	output, err := os.Create(path.Join(watchDir, torrent.Filename))
-	if err != nil {
-		log.WithFields(log.Fields{
-			"torrent": torrent.Filename,
-			"err":     err,
-		}).Warn("File creation failed")
-		return err
-	}
-	defer output.Close()
-
-	cleanup := func() error {
-		stat, err := output.Stat()
-		if err != nil {
-			return err
-		}
-		return os.Remove(path.Join(watchDir, stat.Name()))
-	}
-
-	response, err := http.Get(torrent.URL)
-	if err != nil {
-		log.WithFields(log.Fields{
-			"torrent": torrent.Filename,
-			"err":     err,
-		}).Warn("Download failed")
-		_ = cleanup()
-		return err
-	}
-	defer response.Body.Close()
-
-	_, err = io.Copy(output, response.Body)
-	if err != nil {
-		log.WithFields(log.Fields{
-			"torrent": torrent.Filename,
-			"err":     err,
-		}).Warn("Copy failed")
-		_ = cleanup()
-		return err
-	}
-
-	return nil
+	return torrents.Download(foundTorrents, conf.WatchDir)
 }
 
 // SearchTorrents provides some feedback to the user and searches for torrents
@@ -271,7 +177,8 @@ func download(torrent torrents.Torrent, watchDir string) error {
 func SearchTorrents(show *store.Show) ([]torrents.Torrent, error) {
 	fmt.Printf(
 		"Searching for %d torrents",
-		len(show.PendingSeasons())+len(show.PendingEpisodes()))
+		len(show.PendingSeasons())+len(show.PendingEpisodes()),
+	)
 
 	c := startProgressBar()
 	defer stopProgressBar(c)
