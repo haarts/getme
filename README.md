@@ -68,6 +68,10 @@ shows. This is used to present the user with the most relevant search results.
 As a regular user you don't need to use this file. A recent list of shows in
 compiled in the binaries.
 
+### Third party APIs
+
+GetMe uses [Trakt](http://trakt.tv/) and [TvMaze](http://tvmaze.com/) for finding show information. It uses
+[Kickass](http://kat.cr/) and [TorrentCD](http://torrent.cd/) for finding torrents.
 
 ## Why?!
 
