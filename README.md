@@ -18,7 +18,7 @@ GetMe allows you to:
 All from a simple CLI interface.
 
 What GetMe **doesn't** do is actually download the files. That is the job of your
-Bittorrent client. All most all clients support 'watch directories'. When a
+Bittorrent client. Almost all clients support 'watch directories'. When a
 torrent shows up in that directory the client will process it.
 
 ## Installation
@@ -35,7 +35,7 @@ You need to have [Go](golang.org) installed. Then run:
 $ go get github.com/haarts/getme
 ```
 
-I've been using version 1.4 but I'm fairly certain every 1.x version of Go will
+I've been using version 1.5 but I'm fairly certain every 1.x version of Go will
 work.
 
 ## Usage
