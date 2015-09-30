@@ -63,9 +63,28 @@ func TestIsEnglish(t *testing.T) {
 		"some.show.ITA.avi",
 	}
 
-	assert.True(t, torrents.IsEnglish(ss[0]))
+	assert.True(t, torrents.IsEnglish(torrents.NewQueryJob(0), ss[0]))
 
 	for _, s := range ss[1:] {
-		assert.False(t, torrents.IsEnglish(s), "should not be english: %s", s)
+		assert.False(t, torrents.IsEnglish(torrents.NewQueryJob(0), s), "should not be english: %s", s)
+	}
+}
+
+func TestIsSeason(t *testing.T) {
+	ss := []string{
+		"not a season",
+		"a season 2",
+		"seasons 1,2,3,4",
+		"season 1,2,3",
+		"season 1, 2, 3",
+		"seasons 1-6",
+		"seasons 1 - 6",
+		"season 1-6",
+	}
+
+	assert.False(t, torrents.IsSeason(torrents.NewQueryJob(2), ss[0]))
+
+	for _, s := range ss[1:] {
+		assert.True(t, torrents.IsSeason(torrents.NewQueryJob(2), s), "should be season: %s", s)
 	}
 }

@@ -210,10 +210,12 @@ func isSeason(job queryJob, title string) bool {
 	if job.season == 0 {
 		return true
 	}
-	// TODO perhaps check for ranges too. Eg 'Season 1-6' or 'seasons 1,2,3,4,5'
-	if strings.Contains(strings.ToLower(title), fmt.Sprintf("season %d", job.season)) {
+	lowerCase := strings.ToLower(title)
+	if strings.Contains(lowerCase, fmt.Sprintf("season %d", job.season)) {
 		return true
 	}
+	pat := regexp.MustCompile(``)
+	//pat := regexp.MustCompile(`(?m)(call)\s+(?P<cmd>\w+)\s+(?P<arg>.+)\s*$`)
 	return false
 }
 
