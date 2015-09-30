@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -214,8 +215,17 @@ func isSeason(job queryJob, title string) bool {
 	if strings.Contains(lowerCase, fmt.Sprintf("season %d", job.season)) {
 		return true
 	}
-	pat := regexp.MustCompile(``)
-	//pat := regexp.MustCompile(`(?m)(call)\s+(?P<cmd>\w+)\s+(?P<arg>.+)\s*$`)
+	start := `seasons? `
+	separators := `(,|, |-| - )`
+	re := regexp.MustCompile(start + `(?P<start>\d)` + `(` + separators + `\d)*` + separators + `(?P<end>\d)`)
+	matches := re.FindStringSubmatch(lowerCase)
+	if len(matches) > 0 {
+		start, _ := strconv.Atoi(matches[1])
+		end, _ := strconv.Atoi(matches[len(matches)-1])
+		if job.season >= start && job.season <= end {
+			return true
+		}
+	}
 	return false
 }
 
