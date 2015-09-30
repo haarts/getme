@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	log "github.com/Sirupsen/logrus"
 
@@ -262,7 +263,16 @@ func isEnglish(_ queryJob, title string) bool {
 		return false
 	}
 
-	return true
+	var isAsciiPrintable = func(s string) bool {
+		for _, r := range s {
+			if r > unicode.MaxASCII || !unicode.IsPrint(r) {
+				return false
+			}
+		}
+		return true
+	}
+
+	return isAsciiPrintable(title)
 }
 
 // Sort highest number of seeds on top.

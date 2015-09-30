@@ -61,6 +61,7 @@ func TestIsEnglish(t *testing.T) {
 		"this is very french",
 		"some show vostfr",
 		"some.show.ITA.avi",
+		"Я не могу говорить по-русски",
 	}
 
 	assert.True(t, torrents.IsEnglish(torrents.NewQueryJob(0), ss[0]))
