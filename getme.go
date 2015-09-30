@@ -17,10 +17,10 @@ import (
 func handleShow(show *sources.Show) error {
 	store, err := store.Open(config.Config().StateDir)
 	if err != nil {
+		fmt.Println("We've failed to open the data store.")
 		log.WithFields(log.Fields{
 			"err": err,
 		}).Error("We've failed to open the data store.")
-		fmt.Println("We've failed to open the data store.")
 		return err
 	}
 	defer store.Close()
@@ -29,28 +29,28 @@ func handleShow(show *sources.Show) error {
 	persistedShow := store.NewShow(show.Source, show.ID, show.Title)
 	err = ui.Lookup(persistedShow)
 	if err != nil {
+		fmt.Println("We've encountered a problem looking up seasons for the show.")
 		log.WithFields(log.Fields{
 			"err": err,
 		}).Error("We've encountered a problem looking up seasons for the show.")
-		fmt.Println("We've encountered a problem looking up seasons for the show.")
 		return err
 	}
 
 	if len(persistedShow.Episodes()) == 0 {
+		fmt.Println("No episodes could be found for show.")
 		log.WithFields(log.Fields{
 			"show": persistedShow.Title,
 		}).Info("No episodes could be found for show.")
-		fmt.Println("No episodes could be found for show.")
 		return nil
 	}
 
 	err = store.CreateShow(persistedShow)
 	if err != nil {
+		fmt.Println("Show already exists. Remove it or search for something else. If you want to update it do: getme -u")
 		log.WithFields(log.Fields{
 			"err":  err,
 			"show": persistedShow.Title,
-		}).Fatalf("Show already exists.")
-		fmt.Println("Show already exists. Remove it or search for something else. If you want to update it do: getme -u")
+		}).Fatal("Show already exists.")
 	}
 
 	if !noDownload {
@@ -64,23 +64,23 @@ func downloadTorrents(show *store.Show) {
 	torrents, err := ui.SearchTorrents(show)
 	if err != nil {
 		// But that doesn't mean nothing worked...
+		fmt.Println("Something went wrong looking for your torrents. Continuing nonetheless")
 		log.WithFields(log.Fields{
 			"err": err,
 		}).Warn("Something went wrong looking for your torrents. Continuing nonetheless")
-		fmt.Println("Something went wrong looking for your torrents. Continuing nonetheless")
 	}
 	if len(torrents) == 0 {
+		fmt.Println("Didn't find any torrents for show.")
 		log.WithFields(log.Fields{
 			"show": show.Title,
 		}).Info("Didn't find any torrents for show.")
-		fmt.Println("Didn't find any torrents for show.")
 	}
 	err = ui.Download(torrents)
 	if err != nil {
+		fmt.Println("Something went wrong downloading a torrent.")
 		log.WithFields(log.Fields{
 			"err": err,
 		}).Warn("Something went wrong downloading a torrent.")
-		fmt.Println("Something went wrong downloading a torrent.")
 	}
 	ui.DisplayPendingEpisodes(show)
 }
@@ -131,10 +131,10 @@ func init() {
 func updateMedia() {
 	store, err := store.Open(config.Config().StateDir)
 	if err != nil {
+		fmt.Println("We've failed to open the data store.")
 		log.WithFields(log.Fields{
 			"err": err,
 		}).Error("We've failed to open the data store.")
-		fmt.Println("We've failed to open the data store.")
 		return
 	}
 	defer store.Close()
