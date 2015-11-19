@@ -79,7 +79,7 @@ func (s *Store) deserializeShows() {
 	}
 
 	for _, f := range files {
-		matched, err := regexp.MatchString(".*.json", f.Name())
+		matched, err := regexp.MatchString(".*.json$", f.Name())
 		if err != nil {
 			log.Errorf(err.Error())
 		}
