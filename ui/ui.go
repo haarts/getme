@@ -224,15 +224,34 @@ func Update(store *store.Store) {
 
 func updateShows(shows map[string]*store.Show) {
 	for _, show := range shows {
-		c := startProgressBar()
-		fmt.Printf("Updating '%s'\n", show.Title)
-		// ... get updated info
-		sources.UpdateSeasonsAndEpisodes(show)
-		torrents, _ := SearchTorrents(show) // TODO This really should return an error, handle errors in ui package.
-		Download(torrents)                  // TODO This really should return an error, handle errors in ui package.
-		stopProgressBar(c)
+		err := updateShow(show)
+		if err != nil {
+			fmt.Printf("Error updating '%s': %s\n", show.Title, err.Error())
+			return
+		}
+
+		torrents, err := SearchTorrents(show)
+		if err != nil {
+			fmt.Printf("Error searching torrents for '%s': %s\n", show.Title, err.Error())
+			return
+		}
+
+		err = Download(torrents)
+		if err != nil {
+			fmt.Printf("Error downloading torrents for '%s': %s\n", show.Title, err.Error())
+			return
+		}
 		DisplayPendingEpisodes(show)
 	}
+}
+
+func updateShow(show *store.Show) error {
+	fmt.Printf("Updating '%s'\n", show.Title)
+
+	c := startProgressBar()
+	defer stopProgressBar(c)
+
+	return sources.UpdateSeasonsAndEpisodes(show)
 }
 
 // TODO this is easier since we don't have to check for new episodes etc. Just pending.
