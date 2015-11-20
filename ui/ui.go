@@ -241,12 +241,14 @@ func updateShows(shows map[string]*store.Show) {
 			fmt.Printf("Error downloading torrents for '%s': %s\n", show.Title, err.Error())
 			continue
 		}
+
 		DisplayPendingEpisodes(show)
+		fmt.Println("")
 	}
 }
 
 func updateShow(show *store.Show) error {
-	fmt.Printf("Updating '%s'\n", show.Title)
+	fmt.Printf("Updating '%s'", show.Title)
 
 	c := startProgressBar()
 	defer stopProgressBar(c)
