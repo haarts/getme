@@ -13,7 +13,6 @@ type Show struct {
 	ID            int           `json:"id"`
 	Seasons       []*Season     `json:"seasons"`
 	SourceName    string        `json:"source_name"`
-	IsDaily       bool          `json:"is_daily"`
 	QuerySnippets QuerySnippets `json:"query_snippets"`
 }
 
@@ -169,7 +168,7 @@ func (s *Show) PendingEpisodes() []*Episode {
 }
 
 func (s *Show) isPending(season *Season) bool {
-	if !s.IsDaily && !s.isLastSeason(season) && season.allEpisodesPending() {
+	if !s.isLastSeason(season) && season.allEpisodesPending() {
 		return true
 	}
 	return false
