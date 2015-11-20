@@ -227,19 +227,19 @@ func updateShows(shows map[string]*store.Show) {
 		err := updateShow(show)
 		if err != nil {
 			fmt.Printf("Error updating '%s': %s\n", show.Title, err.Error())
-			return
+			continue
 		}
 
 		torrents, err := SearchTorrents(show)
 		if err != nil {
 			fmt.Printf("Error searching torrents for '%s': %s\n", show.Title, err.Error())
-			return
+			continue
 		}
 
 		err = Download(torrents)
 		if err != nil {
 			fmt.Printf("Error downloading torrents for '%s': %s\n", show.Title, err.Error())
-			return
+			continue
 		}
 		DisplayPendingEpisodes(show)
 	}
