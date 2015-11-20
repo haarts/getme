@@ -26,7 +26,7 @@ func handleShow(show *sources.Show) error {
 	defer store.Close()
 
 	// Fetch the seasons/episodes associated with the found show.
-	persistedShow := store.NewShow(show.Source, show.ID, show.Title)
+	persistedShow := store.NewShow(show.Source, show.ID, show.URL, show.Title)
 	err = ui.Lookup(persistedShow)
 	if err != nil {
 		fmt.Println("We've encountered a problem looking up seasons for the show.")

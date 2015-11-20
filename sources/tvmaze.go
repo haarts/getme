@@ -43,7 +43,7 @@ func (t TvMaze) Search(q string) SearchResult {
 	for _, r := range *result {
 		searchResult.Shows = append(
 			searchResult.Shows,
-			Show{Title: r.Show.Title, ID: r.Show.ID, Source: tvMazeName})
+			Show{Title: r.Show.Title, URL: r.Show.URL, ID: r.Show.ID, Source: tvMazeName})
 	}
 
 	return searchResult
@@ -90,6 +90,7 @@ type tvMazeResult struct {
 
 type tvMazeShow struct {
 	ID    int    `json:"id"`
+	URL   string `json:"url"`
 	Title string `json:"name"`
 }
 

@@ -44,8 +44,13 @@ func (s Store) Close() error {
 	return nil
 }
 
-func (s Store) NewShow(sourceName string, ID int, Title string) *Show {
-	return &Show{ID: ID, Title: Title, SourceName: sourceName}
+func (s Store) NewShow(sourceName string, ID int, URL, Title string) *Show {
+	return &Show{
+		ID:         ID,
+		URL:        URL,
+		Title:      Title,
+		SourceName: sourceName,
+	}
 }
 
 // CreateShow adds a show to the store. It does NOT persist it to disk yet! Use

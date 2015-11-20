@@ -11,6 +11,7 @@ import (
 type Trakt struct{}
 
 const traktName = "trakt"
+const traktURL = "https://api-v2launch.trakt.tv"
 
 func (t Trakt) Name() string {
 	return traktName
@@ -65,7 +66,12 @@ func (t Trakt) Search(q string) SearchResult {
 	for _, result := range results {
 		searchResult.Shows = append(
 			searchResult.Shows,
-			Show{Source: searchResult.Name, Title: result.Show.Title, ID: result.Show.IDs.Trakt},
+			Show{
+				Source: searchResult.Name,
+				Title:  result.Show.Title,
+				ID:     result.Show.IDs.Trakt,
+				URL:    traktURL + "shows/" + result.Show.IDs.Slug,
+			},
 		)
 	}
 	return searchResult
@@ -76,7 +82,7 @@ func traktClient() *trakt.Client {
 	authMethod := trakt.TokenAuth{AccessToken: "3b6f5bdba2fa56b086712d5f3f15b4e967f99ab049a6d3a4c2e56dc9c3c90462"}
 
 	return trakt.NewClientWith(
-		"https://api-v2launch.trakt.tv",
+		traktURL,
 		trakt.UserAgent,
 		apiKey,
 		authMethod,

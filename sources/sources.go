@@ -23,6 +23,7 @@ type Match interface {
 type Show struct {
 	Title  string
 	ID     int
+	URL    string
 	Source string
 }
 
