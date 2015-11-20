@@ -9,6 +9,8 @@ And you're done!
 
 ## What?
 
+[![Join the chat at https://gitter.im/haarts/getme](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/haarts/getme?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 GetMe allows you to:
 
 1. Find shows
