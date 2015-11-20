@@ -13,6 +13,15 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
+type RequestError struct {
+	Message      string
+	ResponseCode int
+}
+
+func (r RequestError) Error() string {
+	return fmt.Sprintf("%s, response code: %d", r.Message, r.ResponseCode)
+}
+
 // GetJSON abstracts away from the usual log/connect/retry logic involving GET
 // requests. This particular version unmarshals JSON.
 func GetJSON(req *http.Request, target interface{}) error {
@@ -54,7 +63,11 @@ func get(req *http.Request, target interface{}, unmarshalFunc func([]byte, inter
 				"code": strconv.Itoa(resp.StatusCode),
 				"URL":  req.URL.String(),
 			}).Warn("Non 200 response code")
-		return fmt.Errorf("Search returned non 200 status code: %d", resp.StatusCode)
+		return RequestError{
+			Message:      "Search returned non 200 status code",
+			ResponseCode: resp.StatusCode,
+		}
+
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)

@@ -2,10 +2,13 @@ package torrents
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/haarts/getme/sources"
 )
@@ -33,6 +36,13 @@ func (t TorrentCD) Search(query string) ([]Torrent, error) {
 
 	var result torrentCDSearchResult
 	err = sources.GetXML(req, &result)
+	if err == io.EOF { // the result contain non XML when nothing is found
+		log.WithFields(log.Fields{
+			"search_engine": t.Name(),
+			"url":           req.URL,
+		}).Debug("No torrents found.")
+		return nil, nil
+	}
 	if err != nil {
 		return nil, err
 	}

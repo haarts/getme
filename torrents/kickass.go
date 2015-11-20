@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"net/url"
 
+	log "github.com/Sirupsen/logrus"
+
 	"github.com/haarts/getme/sources"
 )
 
@@ -39,6 +41,16 @@ func (k Kickass) Search(query string) ([]Torrent, error) {
 	var result kickassSearchResult
 
 	err = sources.GetXML(req, &result)
+	if e, ok := err.(sources.RequestError); ok {
+		if e.ResponseCode == 404 {
+			log.WithFields(log.Fields{
+				"search_engine": k.Name(),
+				"url":           req.URL,
+			}).Debug("No torrents found.")
+			return nil, nil
+		}
+		return nil, err
+	}
 	if err != nil {
 		return nil, err
 	}
