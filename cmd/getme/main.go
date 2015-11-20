@@ -97,6 +97,10 @@ var version bool
 var versionNumber = "0.2"
 
 func init() {
+	flag.Usage = func() {
+		fmt.Printf("Usage of %s <flags>\n", os.Args[0])
+		flag.PrintDefaults()
+	}
 	const (
 		addUsage        = "The name of the show/movie to add."
 		updateUsage     = "Update the already added shows/movies and download pending torrents."

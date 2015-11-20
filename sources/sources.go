@@ -69,6 +69,11 @@ func UpdateSeasonsAndEpisodes(show *store.Show) error {
 	var seasons []Season
 	var err error
 
+	log.WithFields(log.Fields{
+		"show":   show.Title,
+		"source": show.SourceName,
+	}).Info("Updating show.")
+
 	seasons, err = sources[show.SourceName].Seasons(show)
 	if err != nil {
 		return err
