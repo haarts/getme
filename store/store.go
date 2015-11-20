@@ -90,12 +90,23 @@ func (s *Store) deserializeShows() {
 		var show Show
 		d, err := ioutil.ReadFile(path.Join(s.stateDir, "shows", f.Name()))
 		if err != nil {
-			log.Errorf(err.Error())
+			log.WithFields(log.Fields{
+				"err":  err,
+				"file": f.Name(),
+			}).Error("Error reading from file.")
 		}
 		err = json.Unmarshal(d, &show)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.WithFields(log.Fields{
+				"err":  err,
+				"file": f.Name(),
+			}).Error("Error deserializing show from file.")
 		}
+
+		log.WithFields(log.Fields{
+			"file": f.Name(),
+			"show": show.Title,
+		}).Debug("Loaded show from file.")
 
 		s.shows[show.Title] = &show
 	}
