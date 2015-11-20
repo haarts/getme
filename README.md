@@ -29,7 +29,7 @@ binaries or build from source.
 Check out the [releases](https://github.com/haarts/getme/releases).
 
 ### Bleeding edge
-You need to have [Go](golang.org) installed. Then run:
+You need to have [Go](https://golang.org) installed. Then run:
 
 ```
 $ go get github.com/haarts/getme
@@ -81,4 +81,4 @@ a great community. It has an endless list of features and options. Which is
 exactly why I wrote GetMe. I just wanted the job to get done without needing to
 care about all the nitty gritty details. If you _really_ want everything in
 1080p from a specific release group GetMe is not for you. If you just want the
-job done: `./getme -a 'Pioneer one`.
+job done: `$ ./getme -a 'Pioneer one'`.
