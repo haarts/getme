@@ -69,9 +69,12 @@ func (t TvMaze) Seasons(show *store.Show) ([]Season, error) {
 			seasons[r.Season] = &Season{Season: r.Season}
 		}
 		season := seasons[r.Season]
+		if r.Airdate == nil {
+			r.Airdate = &time.Time{}
+		}
 		season.Episodes = append(
 			season.Episodes,
-			Episode{Title: r.Name, Episode: r.Number, AirDate: r.Airdate},
+			Episode{Title: r.Name, Episode: r.Number, AirDate: *r.Airdate},
 		)
 	}
 
@@ -95,8 +98,8 @@ type tvMazeShow struct {
 }
 
 type tvMazeEpisode struct {
-	Name    string    `json:"name"`
-	Season  int       `json:"season"`
-	Number  int       `json:"number"`
-	Airdate time.Time `json:"airstamp"`
+	Name    string     `json:"name"`
+	Season  int        `json:"season"`
+	Number  int        `json:"number"`
+	Airdate *time.Time `json:"airstamp"`
 }
