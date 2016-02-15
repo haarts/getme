@@ -1,6 +1,7 @@
 package torrents
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/jackpal/bencode-go"
 )
 
 var timeout = 2 * time.Second
@@ -64,42 +66,59 @@ func downloadWithTimeout(torrent Torrent, destination string) error {
 	}
 }
 
-func download(torrent Torrent, destination string) error {
-	output, err := os.Create(path.Join(destination, torrent.Filename))
-	if err != nil {
-		log.WithFields(log.Fields{
-			"torrent": torrent.Filename,
-			"err":     err,
-		}).Warn("File creation failed")
-		return err
-	}
-	defer output.Close()
-
-	cleanup := func() error {
-		stat, err := output.Stat()
-		if err != nil {
-			return err
-		}
-		return os.Remove(path.Join(destination, stat.Name()))
-	}
+func download(torrent Torrent, directory string) error {
+	logEntry := log.WithFields(log.Fields{
+		"torrent": torrent.Filename,
+	})
 
 	response, err := http.Get(torrent.URL.String())
 	if err != nil {
-		log.WithFields(log.Fields{
-			"torrent": torrent.Filename,
-			"err":     err,
+		logEntry.WithFields(log.Fields{
+			"err": err,
 		}).Warn("Download failed")
-		_ = cleanup()
 		return err
 	}
 	defer response.Body.Close()
 
-	_, err = io.Copy(output, response.Body)
+	buf := &bytes.Buffer{}
+	_, err = io.Copy(buf, response.Body)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"torrent": torrent.Filename,
-			"err":     err,
-		}).Warn("Copy failed")
+		logEntry.WithFields(log.Fields{
+			"err": err,
+		}).Warn("Reading response body failed")
+		return err
+	}
+
+	_, err = bencode.Decode(buf)
+	if err != nil {
+		logEntry.WithFields(log.Fields{
+			"err": err,
+		}).Warn("Torrent could not be decoded")
+		return err
+	}
+
+	file, err := os.Create(path.Join(directory, torrent.Filename))
+	if err != nil {
+		logEntry.WithFields(log.Fields{
+			"err": err,
+		}).Warn("File creation failed")
+		return err
+	}
+	defer file.Close()
+
+	cleanup := func() error {
+		stat, err := file.Stat()
+		if err != nil {
+			return err
+		}
+		return os.Remove(path.Join(directory, stat.Name()))
+	}
+
+	_, err = io.Copy(file, buf)
+	if err != nil {
+		logEntry.WithFields(log.Fields{
+			"err": err,
+		}).Warn("Copy to file failed")
 		_ = cleanup()
 		return err
 	}
