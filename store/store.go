@@ -31,6 +31,13 @@ func Open(stateDir string) (*Store, error) {
 	return store, nil
 }
 
+// Backup copies the state file thus creating a backup. Useful when running
+// destructive operations on the state files.
+func (s Store) Backup() error {
+	s.stateDir = "/tmp"
+	return s.Close()
+}
+
 // Close writes the, in memory, store value to disk. Do NOT forget to call this
 // if you want to persist your data!
 func (s Store) Close() error {
@@ -58,6 +65,10 @@ func (s Store) NewShow(sourceName string, ID int, URL, Title string) *Show {
 func (s *Store) CreateShow(show *Show) error {
 	if _, ok := s.shows[show.Title]; ok {
 		return fmt.Errorf("Show %s already exists.\n", show.Title)
+	}
+
+	if s.shows == nil {
+		s.shows = make(map[string]*Show)
 	}
 
 	s.shows[show.Title] = show
