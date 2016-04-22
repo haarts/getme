@@ -115,6 +115,7 @@ func searchWithFilters(job queryJob, filters ...filter) chan []Torrent {
 				log.WithFields(log.Fields{
 					"err":           err,
 					"search_engine": s.Name(),
+					"job":           job.query,
 				}).Error("Search engine returned error")
 			}
 			torrents = applyFilters(job, torrents, filters...)
