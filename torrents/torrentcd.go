@@ -19,7 +19,7 @@ type TorrentCD struct {
 
 func NewTorrentCD() *TorrentCD {
 	return &TorrentCD{
-		URL: "http://torrentcd.pw",
+		URL: "http://torrentcd.net",
 	}
 }
 
@@ -79,7 +79,7 @@ type torrentCDItem struct {
 }
 
 func (t torrentCDItem) torrentURL() (*url.URL, error) {
-	return url.Parse(strings.Replace(t.Link, "http://torrentcd.pw/", "http://torrentcd.pw/torrents/download/", 1))
+	return url.Parse(strings.Replace(t.Link, "http://torrentcd.net/", "http://torrentcd.net/torrents/download/", 1))
 }
 
 func (t torrentCDItem) Filename() string {

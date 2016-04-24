@@ -24,7 +24,7 @@ type Kickass struct {
 func NewKickass() *Kickass {
 	return &Kickass{
 		URL:         "https://kickass.to",
-		torCacheURL: "http://torcache.gs/torrent/%s.torrent",
+		torCacheURL: "http://torcache.net/torrent/%s.torrent",
 	}
 }
 
