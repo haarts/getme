@@ -71,7 +71,17 @@ func download(torrent Torrent, directory string) error {
 		"torrent": torrent.Filename,
 	})
 
-	response, err := http.Get(torrent.URL.String())
+	req, err := http.NewRequest("GET", torrent.URL.String(), nil)
+	if err != nil {
+		logEntry.WithFields(log.Fields{
+			"err": err,
+		}).Warn("Request construction failed")
+	}
+
+	// Be nice and tell them who we are.
+	req.Header.Set("User-Agent", "github.com/haarts/getme")
+
+	response, err := http.DefaultClient.Do(req)
 	if err != nil {
 		logEntry.WithFields(log.Fields{
 			"err": err,

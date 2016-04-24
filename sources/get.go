@@ -41,6 +41,9 @@ func get(req *http.Request, target interface{}, unmarshalFunc func([]byte, inter
 			"URL": req.URL.String(),
 		}).Debug("Request")
 
+	// Be nice and tell them who we are.
+	req.Header.Set("User-Agent", "github.com/haarts/getme")
+
 	resp, err := http.DefaultClient.Do(req)
 
 	defer func() {
