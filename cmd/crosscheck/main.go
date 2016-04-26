@@ -37,7 +37,6 @@ func videosDir() (string, error) {
 	}
 
 	dir := flag.Arg(0)
-	fmt.Printf("dir = %+v\n", dir)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		return "", err
 	}
@@ -118,12 +117,20 @@ func main() {
 	flag.Parse()
 	log.SetLevel(log.Level(logLevel))
 
-	dir, err := videosDir()
+	root, err := videosDir()
 	if err != nil {
 		log.WithFields(log.Fields{
 			"err":  err,
 			"args": flag.Args(),
 		}).Fatal("Couldn't use argument as video location")
+	}
+
+	err = os.Chdir(root)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"err":  err,
+			"root": root,
+		}).Fatal("Error changing working dir")
 	}
 
 	store, err := store.Open(config.Config().StateDir)
@@ -134,7 +141,7 @@ func main() {
 	}
 	defer store.Close()
 
-	potentialShows, err := ioutil.ReadDir(dir)
+	potentialShows, err := ioutil.ReadDir(root)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"err": err,
