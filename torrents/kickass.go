@@ -76,7 +76,7 @@ func (k Kickass) Search(query string) ([]Torrent, error) {
 }
 
 func (k Kickass) constructSearchURL(episode string) string {
-	return fmt.Sprintf(k.URL+"/usearch/%s/?rss=1", url.QueryEscape(episode))
+	return fmt.Sprintf(k.URL+"/usearch/%s category:tv/?rss=1", url.QueryEscape(episode))
 }
 
 type kickassSearchResult struct {
