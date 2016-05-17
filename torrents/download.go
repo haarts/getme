@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"sync"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -21,11 +22,14 @@ var requestDelay = 5 * time.Second
 // while.
 func Download(foundTorrents []Torrent, destination string) error {
 	tickers := map[string]<-chan time.Time{}
+	var mu sync.Mutex
 	relevantTicker := func(host string) <-chan time.Time {
 		if ticker, ok := tickers[host]; ok {
 			return ticker
 		}
+		mu.Lock()
 		tickers[host] = time.Tick(requestDelay)
+		mu.Unlock()
 		return tickers[host]
 	}
 
