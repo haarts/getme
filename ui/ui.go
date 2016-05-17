@@ -236,8 +236,7 @@ func updateShows(shows map[string]*store.Show) {
 			continue
 		}
 
-		err = Download(torrents)
-		if err != nil {
+		if err := Download(torrents); err != nil {
 			fmt.Printf("Error downloading torrents for '%s': %s\n\n", show.Title, err.Error())
 			continue
 		}
