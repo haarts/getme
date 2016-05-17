@@ -103,7 +103,9 @@ func download(torrent Torrent, directory string) error {
 		return err
 	}
 
-	_, err = bencode.Decode(buf)
+	copy := &bytes.Buffer{}
+	*copy = *buf
+	_, err = bencode.Decode(copy)
 	if err != nil {
 		logEntry.WithFields(log.Fields{
 			"err": err,
