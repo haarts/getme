@@ -216,7 +216,7 @@ func isSeason(job queryJob, title string) bool {
 		return true
 	}
 	lowerCase := strings.ToLower(title)
-	if strings.Contains(lowerCase, fmt.Sprintf("season %d", job.season)) {
+	if strings.Contains(lowerCase, fmt.Sprintf("season %d", job.season)) && !strings.Contains(lowerCase, "episode") {
 		return true
 	}
 	start := `seasons? `
@@ -260,7 +260,7 @@ func isEnglish(_ queryJob, title string) bool {
 		return false
 	}
 
-	// Ignore hard coded (HC) subtitles.
+	// Ignore hard coded (HC) subtitles. TODO Should be a new filter.
 	regex = regexp.MustCompile(`\bHC\b`)
 	if regex.MatchString(title) {
 		return false

@@ -74,6 +74,7 @@ func TestIsEnglish(t *testing.T) {
 func TestIsSeason(t *testing.T) {
 	ss := []string{
 		"not a season",
+		"not a season 1: episode 3",
 		"a season 2",
 		"seasons 1,2,3,4",
 		"season 1,2,3",
@@ -84,8 +85,9 @@ func TestIsSeason(t *testing.T) {
 	}
 
 	assert.False(t, torrents.IsSeason(torrents.NewQueryJob(2), ss[0]))
+	assert.False(t, torrents.IsSeason(torrents.NewQueryJob(2), ss[1]))
 
-	for _, s := range ss[1:] {
+	for _, s := range ss[2:] {
 		assert.True(t, torrents.IsSeason(torrents.NewQueryJob(2), s), "should be season: %s", s)
 	}
 }
