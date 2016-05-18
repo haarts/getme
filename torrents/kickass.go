@@ -18,13 +18,13 @@ import (
 
 type Kickass struct {
 	URL         string
-	torCacheURL string
+	TorCacheURL string
 }
 
 func NewKickass() *Kickass {
 	return &Kickass{
 		URL:         "https://kickass.to",
-		torCacheURL: "http://torcache.net/torrent/%s.torrent",
+		TorCacheURL: "http://torcache.net/torrent/%s.torrent",
 	}
 }
 
@@ -59,7 +59,7 @@ func (k Kickass) Search(query string) ([]Torrent, error) {
 
 	var torrents []Torrent
 	for _, searchItem := range searchItems {
-		url, err := searchItem.torrentURL(k.torCacheURL)
+		url, err := searchItem.torrentURL(k.TorCacheURL)
 		if err != nil {
 			return nil, err
 		}

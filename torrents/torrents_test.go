@@ -22,7 +22,8 @@ func TestSearchForTorrents(t *testing.T) {
 	})
 
 	torrents.SearchEngines["kickass"] = torrents.Kickass{
-		URL: ts.URL,
+		URL:         ts.URL,
+		TorCacheURL: "http://torcache.net/torrent/%s.torrent",
 	}
 	delete(torrents.SearchEngines, "torrentcd")
 	delete(torrents.SearchEngines, "extratorrent")
