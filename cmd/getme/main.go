@@ -77,7 +77,7 @@ func downloadTorrents(show *store.Show) {
 	}
 	err = ui.Download(torrents)
 	if err != nil {
-		fmt.Println("Something went wrong downloading a torrent.")
+		fmt.Println("Something went wrong downloading a torrent. Continuing nonetheless")
 		log.WithFields(log.Fields{
 			"err": err,
 		}).Warn("Something went wrong downloading a torrent.")
