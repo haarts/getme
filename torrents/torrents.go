@@ -134,7 +134,9 @@ func collectResultsWithTimeout(results chan []Torrent) []Torrent {
 		case result := <-results:
 			torrentsFromAllEngines = append(torrentsFromAllEngines, result...)
 		case <-timeout:
-			log.Error("Search timed out")
+			log.WithFields(log.Fields{
+				"found_torrents": len(torrentsFromAllEngines),
+			}).Warn("Torrents search timed out")
 		}
 	}
 

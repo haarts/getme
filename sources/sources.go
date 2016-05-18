@@ -108,7 +108,10 @@ func Search(q string) []SearchResult {
 		case result := <-c:
 			searchResults = append(searchResults, result)
 		case <-timeout:
-			log.Error("Search timed out")
+			log.WithFields(log.Fields{
+				"successful":   len(searchResults),
+				"unsuccessful": len(sources) - len(searchResults),
+			}).Warn("Source search timed out")
 			return searchResults
 		}
 	}
