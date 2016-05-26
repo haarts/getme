@@ -70,6 +70,18 @@ shows. This is used to present the user with the most relevant search results.
 As a regular user you don't need to use this file. A recent list of shows in
 compiled in the binaries.
 
+There are two other binaries which I found useful at times.
+
+`pending` will just query the database (aka a bunch of JSON files) and returns
+which seasons and episodes still appear pending.
+
+`crosscheck` is a bit more complex. It will check for each episode in the
+database for which there *should* be a file on disk if that is the case. If
+that is wrong it either fixes the database or just outputs the offending
+episode. Please note that it can be perfectly normal for the database to have
+marked an episode as retrieved but it can not yet be found on disk. It might
+not have been moved yet or is still being downloaded.
+
 ### Third party APIs
 
 GetMe uses [Trakt](http://trakt.tv/) and [TvMaze](http://tvmaze.com/) for finding show information. It uses
