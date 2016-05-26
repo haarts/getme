@@ -80,12 +80,12 @@ func UpdateSeasonsAndEpisodes(show *store.Show) error {
 		"source": show.SourceName,
 	}).Info("Updating show.")
 
-	seasons, err = sources[show.SourceName].Seasons(show)
+	uptodateSeasons, err = sources[show.SourceName].Seasons(show)
 	if err != nil {
 		return err
 	}
 
-	for i := 0; i < len(seasons); i++ {
+	for i := 0; i < len(uptodateSeasons); i++ {
 		season := seasons[i]
 		existingSeason := findExistingSeason(show.Seasons, season)
 		if existingSeason == nil {
