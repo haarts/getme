@@ -73,7 +73,7 @@ func SourceNames() (names []string) {
 // UpdateSeasonsAndEpisodes should be called to update a Show after, for
 // example, deserialization from disk.
 func UpdateSeasonsAndEpisodes(show *store.Show) error {
-	var seasons []Season
+	var uptodateSeasons []Season
 	var err error
 
 	log.WithFields(log.Fields{
@@ -87,7 +87,7 @@ func UpdateSeasonsAndEpisodes(show *store.Show) error {
 	}
 
 	for i := 0; i < len(uptodateSeasons); i++ {
-		season := seasons[i]
+		season := uptodateSeasons[i]
 		existingSeason := findExistingSeason(show.Seasons, season)
 		if existingSeason == nil {
 			addSeason(show, season)
