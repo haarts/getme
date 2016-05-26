@@ -17,18 +17,26 @@ import (
 )
 
 var logLevel int
+var fix bool
 
 func init() {
 	flag.Usage = func() {
 		fmt.Printf("Usage of %s <flags>\n", os.Args[0])
+		fmt.Println("Checks what is stored on disk and compares it to what is stored in storage.")
+		fmt.Println("It will then tell what, in storage, is marked as NOT pending while no file on disk could be found.")
+		fmt.Println("It has an option to change the storage to reflect the state on disk.\n")
 		flag.PrintDefaults()
 	}
 	const (
 		logLevelUsage = "Set log level (0,1,2,3,4,5, higher is more logging)."
+		fixUsage      = "Fix the shows in storage."
 	)
 
 	flag.IntVar(&logLevel, "log-level", int(log.ErrorLevel), logLevelUsage)
 	flag.IntVar(&logLevel, "l", int(log.ErrorLevel), logLevelUsage+" (shorthand)")
+
+	flag.BoolVar(&fix, "fix", false, fixUsage)
+	flag.BoolVar(&fix, "f", false, fixUsage+" (shorthand)")
 }
 
 func videosDir() (string, error) {
@@ -82,7 +90,7 @@ func verifyPendingStates(dir os.FileInfo, show *store.Show) {
 			files, err := ioutil.ReadDir(pathPrefix)
 			if err != nil {
 				contextLogger.Info("Marking episode as pending as ReadDir failed")
-				episode.Pending = true
+				markOrOutput(season.Season, episode)
 				continue
 			}
 
@@ -96,9 +104,22 @@ func verifyPendingStates(dir os.FileInfo, show *store.Show) {
 			}
 			if !found {
 				contextLogger.Info("Marking episode as pending as no match was found on disk")
-				episode.Pending = true
+				markOrOutput(season.Season, episode)
 			}
 		}
+	}
+}
+
+func markOrOutput(season int, episode *store.Episode) {
+	if fix {
+		episode.Pending = true
+	} else {
+		fmt.Printf(
+			"S%02dE%02d %s is flagged as no longer pending but is missing on disk = %+v\n",
+			season,
+			episode.Episode,
+			episode.Title,
+		)
 	}
 }
 

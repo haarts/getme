@@ -41,6 +41,9 @@ func TestMatchDirWithShow(t *testing.T) {
 }
 
 func TestVerifyPendingStates(t *testing.T) {
+	// set the global 'fix' flag
+	fix = true
+
 	show := &store.Show{
 		Title: "foo",
 		Seasons: []*store.Season{
