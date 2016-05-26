@@ -10,16 +10,28 @@ import (
 	"github.com/haarts/getme/store"
 )
 
+// Match allows us to use interfaces in depending packages. This facilitates
+// testing.
+type Match interface {
+	DisplayTitle() string
+}
+
+// Source is an external data source which can be search for show data.
 type Source interface {
 	Search(string) SearchResult
 	Seasons(*store.Show) ([]Season, error)
 	Name() string
 }
 
-type Match interface {
-	DisplayTitle() string
+// SearchResult holds the results of searching on a particular source for a
+// particular query.
+type SearchResult struct {
+	Name  string
+	Shows []Show
+	Error error
 }
 
+// Show is one result from a source.
 type Show struct {
 	Title  string
 	ID     int
@@ -27,6 +39,7 @@ type Show struct {
 	Source string
 }
 
+// DisplayTitle implementes the Match interface
 func (s Show) DisplayTitle() string {
 	return s.Title
 }
@@ -40,14 +53,6 @@ type Episode struct {
 	Title   string    `json:"title"`
 	Episode int       `json:"episode"`
 	AirDate time.Time `json:"air_date"`
-}
-
-// SearchResult holds the results of searching on a particular source for a
-// particular query.
-type SearchResult struct {
-	Name  string
-	Shows []Show
-	Error error
 }
 
 // sources contains all sources one can query for show information
