@@ -45,32 +45,41 @@ func TestSortByAirDate(t *testing.T) {
 
 func TestPendingItems(t *testing.T) {
 	show := store.Show{}
-	episodes := []*store.Episode{
-		{Pending: true},
-		{Pending: true},
-		{Pending: true},
-	}
-	season1 := store.Season{Season: 1, Episodes: episodes}
-	show.Seasons = append(show.Seasons, &season1)
-	if len(show.PendingSeasons()) != 0 {
-		t.Error("All episodes are pending but it's from the last seasons thus no seasons should be returned, got:", len(show.PendingSeasons()))
-	}
-	if len(show.PendingEpisodes()) != 3 {
-		t.Error("All episodes are pending, got:", len(show.PendingEpisodes()))
-	}
 
-	episodes = []*store.Episode{
+	// first and only season is always pending in absence of Ended
+	episodesFor1 := []*store.Episode{
+		{Pending: true},
 		{Pending: true},
 		{Pending: true},
 	}
-	season2 := store.Season{Season: 2, Episodes: episodes}
+	season1 := store.Season{Season: 1, Episodes: episodesFor1}
+	show.Seasons = append(show.Seasons, &season1)
+
+	assert.Equal(t, 0, len(show.PendingSeasons()))
+	assert.Equal(t, 3, len(show.PendingEpisodes()))
+
+	// unless the show is done
+	ended := true
+	show.Ended = &ended
+	assert.Equal(t, 1, len(show.PendingSeasons()))
+	assert.Equal(t, 0, len(show.PendingEpisodes()))
+
+	// but not when it is verifiably running
+	ended = false
+	assert.Equal(t, 0, len(show.PendingSeasons()))
+	assert.Equal(t, 3, len(show.PendingEpisodes()))
+
+	// when there are more than 1 seasons
+	show.Ended = nil
+	episodesFor2 := []*store.Episode{
+		{Pending: true},
+		{Pending: true},
+	}
+	season2 := store.Season{Season: 2, Episodes: episodesFor2}
 	show.Seasons = append(show.Seasons, &season2)
-	if len(show.PendingSeasons()) != 1 {
-		t.Error("Expected 2 items representing the episodes of the last season and 1 item representing the first season.")
-	}
-	if len(show.PendingEpisodes()) != 2 {
-		t.Error("Expected 2 items representing the episodes of the last season and 1 item representing the first season.")
-	}
+
+	assert.Equal(t, 1, len(show.PendingSeasons()))
+	assert.Equal(t, 2, len(show.PendingEpisodes()))
 }
 
 func TestDisplayTitle(t *testing.T) {

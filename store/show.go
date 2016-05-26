@@ -11,6 +11,7 @@ type Show struct {
 	Title         string        `json:"title"`
 	URL           string        `json:"url"`
 	ID            int           `json:"id"`
+	Ended         *bool         `json:"ended"`
 	Seasons       []*Season     `json:"seasons"`
 	SourceName    string        `json:"source_name"`
 	QuerySnippets QuerySnippets `json:"query_snippets"`
@@ -168,10 +169,19 @@ func (s *Show) PendingEpisodes() []*Episode {
 }
 
 func (s *Show) isPending(season *Season) bool {
-	if !s.isLastSeason(season) && season.allEpisodesPending() {
-		return true
+	if !season.allEpisodesPending() {
+		return false
 	}
-	return false
+
+	if s.Ended == nil {
+		if s.isLastSeason(season) {
+			return false
+		} else {
+			return true
+		}
+	}
+
+	return *s.Ended
 }
 
 // PendingEpisodes returns all the episodes of this show which are still
