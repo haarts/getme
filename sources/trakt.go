@@ -64,17 +64,24 @@ func (t Trakt) Search(q string) SearchResult {
 	}
 
 	for _, result := range results {
+		ended := t.isEnded(result.Show.Status)
 		searchResult.Shows = append(
 			searchResult.Shows,
 			Show{
-				Source: searchResult.Name,
 				Title:  result.Show.Title,
 				ID:     result.Show.IDs.Trakt,
+				Ended:  &ended,
 				URL:    traktURL + "shows/" + result.Show.IDs.Slug,
+				Source: searchResult.Name,
 			},
 		)
 	}
 	return searchResult
+}
+
+// part of the value t because of namespace conflict.
+func (t Trakt) isEnded(status string) bool {
+	return status == "ended"
 }
 
 func traktClient() *trakt.Client {

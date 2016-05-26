@@ -41,12 +41,24 @@ func (t TvMaze) Search(q string) SearchResult {
 
 	// we assume the list is sorted...
 	for _, r := range *result {
+		ended := t.isEnded(r.Show.Status)
 		searchResult.Shows = append(
 			searchResult.Shows,
-			Show{Title: r.Show.Title, URL: r.Show.URL, ID: r.Show.ID, Source: tvMazeName})
+			Show{
+				Title:  r.Show.Title,
+				ID:     r.Show.ID,
+				Ended:  &ended,
+				URL:    r.Show.URL,
+				Source: tvMazeName,
+			})
 	}
 
 	return searchResult
+}
+
+// part of the value t because of namespace conflict.
+func (t TvMaze) isEnded(status string) bool {
+	return status == "Ended"
 }
 
 func (t TvMaze) Seasons(show *store.Show) ([]Season, error) {
@@ -92,9 +104,10 @@ type tvMazeResult struct {
 }
 
 type tvMazeShow struct {
-	ID    int    `json:"id"`
-	URL   string `json:"url"`
-	Title string `json:"name"`
+	Title  string `json:"name"`
+	ID     int    `json:"id"`
+	Status string `json:"status"`
+	URL    string `json:"url"`
 }
 
 type tvMazeEpisode struct {

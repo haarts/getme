@@ -35,6 +35,7 @@ type SearchResult struct {
 type Show struct {
 	Title  string
 	ID     int
+	Ended  *bool
 	URL    string
 	Source string
 }

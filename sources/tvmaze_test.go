@@ -33,6 +33,7 @@ func TestTvMazeSearch(t *testing.T) {
 	require.NoError(t, results.Error)
 	require.Len(t, results.Shows, 10)
 	assert.Equal(t, "Dead Set", results.Shows[0].Title)
+	assert.True(t, *results.Shows[0].Ended)
 }
 
 func TestTvMazeSeasons(t *testing.T) {
