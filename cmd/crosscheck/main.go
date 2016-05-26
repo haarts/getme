@@ -90,7 +90,7 @@ func verifyPendingStates(dir os.FileInfo, show *store.Show) {
 			files, err := ioutil.ReadDir(pathPrefix)
 			if err != nil {
 				contextLogger.Info("Marking episode as pending as ReadDir failed")
-				markOrOutput(season.Season, episode)
+				markOrOutput(show, season.Season, episode)
 				continue
 			}
 
@@ -104,18 +104,19 @@ func verifyPendingStates(dir os.FileInfo, show *store.Show) {
 			}
 			if !found {
 				contextLogger.Info("Marking episode as pending as no match was found on disk")
-				markOrOutput(season.Season, episode)
+				markOrOutput(show, season.Season, episode)
 			}
 		}
 	}
 }
 
-func markOrOutput(season int, episode *store.Episode) {
+func markOrOutput(show *store.Show, season int, episode *store.Episode) {
 	if fix {
 		episode.Pending = true
 	} else {
 		fmt.Printf(
-			"S%02dE%02d %s is flagged as no longer pending but is missing on disk = %+v\n",
+			"'%s S%02dE%02d %s' missing on disk\n",
+			show.Title,
 			season,
 			episode.Episode,
 			episode.Title,
