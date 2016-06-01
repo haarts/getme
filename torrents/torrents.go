@@ -43,9 +43,10 @@ type SearchEngine interface {
 }
 
 var searchEngines = map[string]SearchEngine{
-	"kickass":      NewKickass(),
-	"torrentcd":    NewTorrentCD(),
-	"extratorrent": ExtraTorrent{},
+	"kickass":        NewKickass(),
+	"torrentcd":      NewTorrentCD(),
+	"torrentproject": NewTorrentProject(),
+	"extratorrent":   ExtraTorrent{},
 }
 
 type queryJob struct {
